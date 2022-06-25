@@ -155,8 +155,8 @@
         "robuxServiceEnabled": true,
         "thumbnailServiceEnabled": true,
         "hostingEnabled": true,
-        "hostingTeamCreateEnabled": true,
-        "hostingConnectsToLocalhost": true,
+        "hostingTeamCreateEnabled": false,
+        "hostingConnectsToLocalhost": false,
         "maxGameStartupTime": 25,
 
         "devProducuts": {
