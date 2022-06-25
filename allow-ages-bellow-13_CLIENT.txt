@@ -1,0 +1,1 @@
+To allow ages bellow 13, replace "&&e.getFullYear()-t.getFullYear()>13" with nothing in all files.

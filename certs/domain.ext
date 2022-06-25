@@ -1,0 +1,8 @@
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = *.*.rbx2016.tk
+DNS.1 = *.rbx2016.tk
+DNS.2 = rbx2016.tk

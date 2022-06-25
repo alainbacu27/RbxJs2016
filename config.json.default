@@ -1,0 +1,392 @@
+{
+    "shared": {
+        "httpPort": 80,
+        "httpsEnabled": true,
+        "httpsPort": 443,
+
+        "allowSignup": true,
+        "allowLogin": true,
+        "allowQuickLogin": true,
+        "passwordConfiguration": {
+            "passwordResetsEnabled": false,
+            "forgotPasswordEnabled": false
+        },
+        "emailConfiguration": {
+            "emailVerificationEnabled": false
+        },
+        "devex": {
+            "enabled": false,
+            "conversionRate": 0,
+            "minRobuxToCashOut": 999999999,
+            "maxRobuxToCashOut": 999999999,
+            "showOnlyExchangeRates": true,
+            "showProgressBar": false
+        },
+        "games": {
+            "canViewGames": true,
+            "canCreateGames": true,
+            "canEditGames": true,
+            "canPlayGames": true,
+            "canManageGames": true,
+            "teamCreateEnabled": false
+        },
+        "home": {
+            "showRecentlyPlayedGames": true,
+            "showFavoritedGames": true
+        },
+        "maxGamesPerUser": {
+            "user": 1,
+            "admin": 3
+        },
+
+        "maxAssetsPerDaily": {
+            "admin": 20,
+            "user": 15
+        },
+
+        "assetsEnabled": true,
+
+        "users": {
+            "canViewUsers": true,
+            "canViewInventory": true,
+            "canViewFavorites": true,
+            "canSearchUsers": true,
+
+            "canHaveFriends": true,
+            "canViewFriends": true,
+
+            "gendersEnabled": true,
+
+            "canBeUnder13": true
+        },
+        "votingServiceEnabled": true,
+
+        "pages": {
+            "disabledRoutes": [],
+            "catalogEnabled": true,
+
+            "robuxPurchasesVisible": true,
+            "robuxPurchasesEnabled": false,
+
+            "premiumPurchasesVisible": true,
+            "premiumPurchasesEnabled": false
+        },
+
+        "groups": {
+            "groupsEnabled": true,
+            "canCreateGroups": true
+        },
+
+        "giftcardsEnabled": true,
+
+        "installerCdns": {
+            "setup.rbx2016.tk": 100
+        },
+
+        "gamepassesEnabled": true,
+        "maxGamepassesPerGame": {
+            "user": 10,
+            "admin": 15
+        },
+
+        "adsEnabled": true,
+        "maxUserRatingsPerHour": 50,
+        "needsToPlayBeforeLikeGame": true,
+
+        "ADMIN_AdminPanelEnabled": true,
+        "ADMIN_AdminPanelRoute": "/admi",
+        "ADMIN_AdminCanExecuteJobScripts": true,
+        "ADMIN_AdminCanExecuteNewJobScripts": true,
+
+        "MODS_ACCESS": ["index", "assetmoderation", "statistics"],
+
+        "CLIENT_DOWNLOAD_AVAIlABLE": true
+    },
+    "backend": {
+        "PRODUCTION": false,
+        "database": {
+            "ip": "localhost",
+            "port": 27017
+        },
+        "badUsernames": ["roblox", "builderman", "ugc", "games", "system", "unknown"],
+        "starterItems": {
+            "starterRobux": 0,
+            "starterTix": 0,
+            "starterMembership": 0,
+            "DANGER_STARTER_MOD": false,
+            "DANGER_STARTER_ADMIN": false
+        },
+        "tix": {
+            "enabled": true,
+            "exchangeRate": 10,
+            "tixEverySeconds": 86400
+        },
+        "marketplaceEarnings":{
+            "user": 10,
+            "bc": 70,
+            "admin": 70
+        },
+        
+        "presenceEnabled": true,
+
+        "logSignupIP": true,
+        "maxAccountsPerIP": 1,
+
+        "assetdeliveryEnabled": true,
+
+        "maxBatchSize": 100,
+
+        "disableLogoutOnMaintenance": true,
+        "allowedMaintenanceResources": ["/css/MainCSS___17f21dbd675f4bdb077b6158df213e11_m.css", "/css/page___f8474116137f9f0c643602405074e40b_m.css", "/7aee41db80c1071f60377c3575a0ed87.ico", "/0c76b6335f007581efc1e7446d528283.js", "/10f5b360dc268a5faf9e5620ec27c3d1.js", "/3a6c1b7385d6bf02a4e9b59e5091462c.jpg"],
+        "maxMaintenanceWhitelistAttempts": 2,
+        "canBypassMaintenanceScreen": true,
+        "datastoresEnabled": true,
+        "datastoresMaxPerPlace": 10,
+
+        "massAssetUploadEnabled": true,
+        "massAssetUploadIsAdminOnly": true,
+
+        "fallbackToRobloxAssets": true,
+        "robloxAssetsUsingR": true,
+
+        "disabledApis": ["template"],
+        "productInfoEnabled": true,
+        "productInfoEnabled2": true,
+        "robuxServiceEnabled": true,
+        "thumbnailServiceEnabled": true,
+        "hostingEnabled": true,
+        "hostingTeamCreateEnabled": true,
+        "hostingConnectsToLocalhost": false,
+        "maxGameStartupTime": 25,
+
+        "devProducuts": {
+            "enabled": true,
+            "isAdminOnly": false,
+            "maxPerPlace": {
+                "admin": 20,
+                "user": 10
+            }
+        }
+    },
+    "client": {
+        "version": 1,
+        "versionFull": "0, 1, 0, 0"
+    },
+    "frontend": {
+        "transactionTypes": {
+            "HasPurchase": true,
+            "HasSale": true,
+            "HasAffiliateSale": false,
+            "HasGroupPayout": true,
+            "HasCurrencyPurchase": true,
+            "HasTradeRobux": false,
+            "HasPremiumStipend": false,
+            "HasEngagementPayout": true,
+            "HasGroupEngagementPayout": false,
+            "HasAdSpend": false,
+            "HasDevEx": false,
+            "HasPendingRobux": true,
+            "HasIndividualToGroup": false,
+            "HasCSAdjustment": false
+        },
+        "authTokenServiceLoginMetadata": {
+            "IsLoginCodeButtonDisplayed": true,
+            "IsCodeValidationDisplayed": true,
+            "ShouldEnableCrossDeviceLoginInitiatorExperiments": true,
+            "ShouldEnableCrossDeviceLoginConfirmerExperiments": true
+        },
+        "groupUiConfig": {
+            "displayUploadGroupIcon": true,
+            "displayJoinRequirementsSetting": true,
+            "displayGroupPrivacySettings": true,
+            "displayPlayerUsername": true,
+            "displayGroupFundsAndRobuxIcon": true
+        },
+
+        "appPolicy": {
+            "ChatConversationHeaderGroupDetails": true,
+            "ChatHeaderSearch": true,
+            "ChatHeaderCreateChatGroup": true,
+            "ChatHeaderHomeButton": false,
+            "ChatHeaderNotifications": true,
+            "ChatPlayTogether": true,
+            "ChatShareGameToChatFromChat": true,
+            "ChatTapConversationThumbnail": true,
+            "ChatViewProfileOption": true,
+            "GamesDropDownList": true,
+            "GameDetailsMorePage": true,
+            "GameDetailsShowGlobalCounters": true,
+            "GameDetailsSubtitle": true,
+            "GameInfoList": true,
+            "GameInfoListDeveloper": true,
+            "GamePlaysAndRatings": true,
+            "Notifications": true,
+            "RecommendedGames": true,
+            "SearchBar": true,
+            "MorePageType": "More",
+            "AboutPageType": "About",
+            "FriendFinder": true,
+            "SocialLinks": true,
+            "SocialGroupLinks": true,
+            "SiteMessageBanner": true,
+            "UseWidthBasedFormFactorRule": false,
+            "UseHomePageWithAvatarAndPanel": false,
+            "UseBottomBar": true,
+            "AvatarHeaderIcon": "LuaApp/icons/ic-back",
+            "AvatarEditorShowBuyRobuxOnTopBar": true,
+            "HomeIcon": "LuaApp/icons/ic-roblox-close",
+            "ShowYouTubeAgeAlert": true,
+            "GameDetailsShareButton": false,
+            "CatalogShareButton": false,
+            "AccountProviderName": "",
+            "InviteFromAccountProvider": false,
+            "ShareToAccountProvider": false,
+            "ShareToAccountProviderTimeout": 8,
+            "ShowDisplayName": true,
+            "GamesPageCreationCenterTitle": false,
+            "ShowShareTargetGameCreator": true,
+            "SearchAutoComplete": false,
+            "CatalogShow3dView": true,
+            "CatalogCommunityCreations": true,
+            "CatalogPremiumCategory": true,
+            "CatalogPremiumContent": true,
+            "ItemDetailsFullView": true,
+            "UseAvatarExperienceLandingPage": true,
+            "HomePageFriendSection": true,
+            "HomePageProfileLink": true,
+            "PurchasePromptIncludingWarning": false,
+            "ShowVideoThumbnails": true,
+            "VideoSharingTestContent": [],
+            "SystemBarPlacement": "Bottom",
+            "EnableInGameHomeIcon": false,
+            "UseExternalBrowserForDisclaimerLinks": false,
+            "ShowExitFullscreenToast": true,
+            "ExitFullscreenToastEnabled": false,
+            "UseLuobuAuthentication": false,
+            "CheckUserAgreementsUpdatedOnLogin": false,
+            "UseOmniRecommendation": true,
+            "ShowAgeVerificationOverlayEnabled": false,
+            "ShouldShowGroupsTile": true,
+            "ShowVoiceUpsell": false,
+            "ProfileShareEnabled": false,
+            "CsatSurveyRestrictTextInput": true
+        },
+
+        "accountSettingsUi": {
+            "displayTwoStepVerification": true,
+            "displayAccountPIN": true,
+            "displayEmailAddress": true,
+            "displayWeChat": false,
+            "displayQQ": false,
+            "displayConnectedAccounts": true,
+            "displayNotificationStream": true,
+            "displayDesktopPush": true,
+            "displayMobilePush": true,
+            "displayPhoneNumber": true,
+            "displaySocialMedia": true,
+            "displayDescription": true,
+            "displayAccountRestrictions": true,
+            "displayCountryList": false,
+            "displayWhoCanMessageMe": true,
+            "displayWhoCanFindMeByPhoneNumber": true,
+            "displayWhoCanInviteMeToVIPServers": true,
+            "displayWhoCanTradeWithMe": true,
+            "displayTradeQualityFilter": true,
+            "displayLanguageList": true,
+            "displayChangeUsername": true,
+            "displayChangePassword": true,
+            "displayBillingTab": true,
+            "displayPrivacyModeToolTip": true,
+            "displayBirthdayInfoToolTip": true,
+            "displayIdentityVerification": true,
+            "displayVoiceChatSettings": true,
+            "displayPasswordRow": true,
+            "displayChatFilteringSetting": true,
+            "displayGuildedSocialLink": true,
+            "displayParentalControlTab": true,
+            "displayParentalSpendControl": true
+        },
+
+        "themes": ["Light", "Dark"]
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    "PRIVATE": {
+        "PRIVATE_API_KEY": "289198jas7ud8792h8s97ada"
+    }
+}

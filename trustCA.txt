@@ -1,0 +1,5 @@
+certutil -addstore -user "ROOT" .\domain.pem
+
+sudo apt-get install -y ca-certificates
+sudo cp domain.crt /usr/local/share/ca-certificates
+sudo update-ca-certificates

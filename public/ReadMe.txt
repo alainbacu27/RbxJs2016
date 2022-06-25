@@ -1,0 +1,1 @@
+CoreScripts are not included in this build of the client.
