@@ -573,9 +573,9 @@ module.exports = {
         app.get("/v1/games/list", async (req, res) => {
             let games = []
             if (req.query.keyword) {
-                games = await db.findGames(req.query.keyword)
+                games = await db.findGames(req.query.keyword);
             } else {
-                games = await db.getGamesByCreatorId(1)
+                games = await db.getPublicGames();
             }
             let games_json = []
             for (let i = 0; i < games.length; i++) {

@@ -3284,6 +3284,26 @@ module.exports = {
             });
         });
     },
+    
+    getPublicGames: async function () {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("games").find({
+                    isPublic: true
+                }).toArray(function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
 
     findUsers: async function (username) {
         return new Promise(async returnPromise => {

@@ -154,7 +154,7 @@ module.exports = {
         });
 
         app.post("/games-api/omni-recommendation", async (req, res) => {
-            const games = await db.getGamesByCreatorId(1)
+            const games = await db.getPublicGames();
             let games_json1 = []
             let games_json2 = {}
             for (let i = 0; i < games.length; i++) {
@@ -277,9 +277,9 @@ module.exports = {
         });
 
         app.post("/discovery-api/omni-recommendation", async (req, res) => {
-            const games = await db.getGamesByCreatorId(1)
-            let games_json1 = []
-            let games_json2 = {}
+            const games = await db.getPublicGames();
+            let games_json1 = [];
+            let games_json2 = {};
             for (let i = 0; i < games.length; i++) {
                 const game = games[i];
                 const creator = await db.getUser(game.creatorid);
