@@ -1607,15 +1607,17 @@ async function newJob(gameid, isCloudEdit = false) {
                             if (Object.keys(activeJobs).includes(jobId)) {
                                 delete activeJobs[jobId];
                             }
-                            if (Object.keys(activeGameJobs[gameid]).includes(jobId)) {
+                            if (Object.keys(activeGameJobs).includes(gameid) && Object.keys(activeGameJobs[gameid]).includes(jobId)) {
                                 delete activeGameJobs[gameid][jobId];
                             }
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
 
-                            proc.stdin.pause();
-                            // proc.kill();
-                            kill(proc.pid, 'SIGTERM');
+                            try{
+                                // proc.stdin.pause();
+                                // proc.kill();
+                                kill(proc.pid, 'SIGTERM');
+                            }catch{}
                             myPort = 0;
                             myHostPort = 0;
                             jobId = "";
@@ -1726,7 +1728,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                 }
                                 activeGameJobs[gameid][jobId] = self;
 
-                                proc = exec(`${rccPath} -Console -Custom -Start ${myPort}`, {
+                                proc = exec(`${rccPath} -Console -Start ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
@@ -1743,7 +1745,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cron_restart: 0,
                                     autorestart: false,
                                     stop_exit_codes: [0],
-                                    args: `-Console -Custom -Start -PlaceId:${gameid} ${myPort}`
+                                    args: `-Console -Start -PlaceId:${gameid} ${myPort}`
                                     // out_file: `app.strout.log`,
                                     // error_file: `app.strerr.log`
                                 }, async function (err, apps) {
@@ -1784,7 +1786,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                 }
                                 activeGameJobs[gameid][jobId] = self;
 
-                                proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Custom -Start ${myPort}`, {
+                                proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
@@ -1801,7 +1803,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cron_restart: 0,
                                     autorestart: false,
                                     stop_exit_codes: [0],
-                                    args: `${rccPath} -Console -Custom -PlaceId:${gameid} -Start ${myPort}`
+                                    args: `${rccPath} -Console -PlaceId:${gameid} -Start ${myPort}`
                                     // out_file: `app.strout.log`,
                                     // error_file: `app.strerr.log`
                                 }, async function (err, apps) {
@@ -1912,15 +1914,17 @@ async function newJob(gameid, isCloudEdit = false) {
                             if (Object.keys(activeJobs).includes(jobId)) {
                                 delete activeJobs[jobId];
                             }
-                            if (Object.keys(activeGameJobs[gameid]).includes(jobId)) {
+                            if (Object.keys(activeGameJobs).includes(gameid) && Object.keys(activeGameJobs[gameid]).includes(jobId)) {
                                 delete activeGameJobs[gameid][jobId];
                             }
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
 
-                            proc.stdin.pause();
-                            // proc.kill();
-                            kill(proc.pid, 'SIGTERM');
+                            try{
+                                // proc.stdin.pause();
+                                // proc.kill();
+                                kill(proc.pid, 'SIGTERM');
+                            }catch{}
                             myPort = 0;
                             myHostPort = 0;
                             jobId = "";
@@ -2031,7 +2035,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                 }
                                 activeGameJobs[gameid][jobId] = self;
 
-                                proc = exec(`${rccPath} -Console -Custom -Start ${myPort}`, {
+                                proc = exec(`${rccPath} -Console -Start ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
@@ -2048,7 +2052,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cron_restart: 0,
                                     autorestart: false,
                                     stop_exit_codes: [0],
-                                    args: `-Console -Custom -Start ${myPort}`
+                                    args: `-Console -Start ${myPort}`
                                     // out_file: `app.strout.log`,
                                     // error_file: `app.strerr.log`
                                 }, async function (err, apps) {
@@ -2088,7 +2092,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                 }
                                 activeGameJobs[gameid][jobId] = self;
 
-                                proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Custom -Start ${myPort}`, {
+                                proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
                                 
@@ -2105,7 +2109,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cron_restart: 0,
                                     autorestart: false,
                                     stop_exit_codes: [0],
-                                    args: `${rccPath} -Console -Custom -Start ${myPort}`
+                                    args: `${rccPath} -Console -Start ${myPort}`
                                     // out_file: `app.strout.log`,
                                     // error_file: `app.strerr.log`
                                 }, async function (err, apps) {

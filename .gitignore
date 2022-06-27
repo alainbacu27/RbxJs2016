@@ -128,3 +128,5 @@ dist
 
 public/setup
 internal
+games/*
+assets/*
