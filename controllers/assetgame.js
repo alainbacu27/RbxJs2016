@@ -1428,12 +1428,12 @@ end
                 if (gameSession) {
                     setImmediate(async () => {
                         await gameSession.host();
-                    let interval;
-                    interval = setInterval(async () => {
-                        if (await gameSession.update()) {
-                            clearInterval(interval);
-                        }
-                    }, 5000);
+                        let interval;
+                        interval = setInterval(async () => {
+                            if (await gameSession.update()) {
+                                clearInterval(interval);
+                            }
+                        }, 5000);
                     });
                 }
 
