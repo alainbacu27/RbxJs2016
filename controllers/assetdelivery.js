@@ -116,7 +116,7 @@ module.exports = {
             const apiKey = req.query.apiKey || (id0.length > 1 ? id0[1] : "");
 
             if (id0[0].startsWith("r") && db.getSiteConfig().backend.robloxAssetsUsingR == true) {
-                res.redirect("https://assetdelivery.roblox.tk/v1/asset/?id=" + parseInt(id0[0].substring(1)).toString());
+                res.redirect("https://assetdelivery.roblox.com/v1/asset/?id=" + parseInt(id0[0].substring(1)).toString());
                 return;
             }
 
@@ -168,7 +168,7 @@ module.exports = {
                 if (fs.existsSync(fp)) {
                     res.download(fp, "Download");
                 } else if (db.getSiteConfig().backend.fallbackToRobloxAssets == true) {
-                    res.redirect("https://assetdelivery.roblox.tk/v1/asset/?id=" + id);
+                    res.redirect("https://assetdelivery.roblox.com/v1/asset/?id=" + id);
                     // res.sendStatus(404);
                 }
             } else {
@@ -181,7 +181,7 @@ module.exports = {
                 if (fs.existsSync(fp)) {
                     res.download(fp, "Download");
                 } else if (db.getSiteConfig().backend.fallbackToRobloxAssets == true) {
-                    res.redirect("https://assetdelivery.roblox.tk/v1/asset/?id=" + id);
+                    res.redirect("https://assetdelivery.roblox.com/v1/asset/?id=" + id);
                     // res.sendStatus(404);
                 }
             }
