@@ -689,6 +689,7 @@ Build your factory as you develop and mass produce the most successful series of
                                                         
                                                         <script>
                                                             const audio = new Audio("https://www.rbx2016.tk/asset?id=<%= id %>");
+                                                            audio.volume = 0.5;
                                                             const btn = document.getElementById('audioBtn');
                                                             audio.onended = function() {
                                                                 audio.paused = true;
