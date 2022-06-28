@@ -3488,12 +3488,17 @@ module.exports = {
                     }) 
                 }
 
+                let jobId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+                try{
+                    jobId = server.getJobId()
+                }catch{}
+
                 instances.push({
                     "Capacity": game.maxplayers,
                     "Ping": 0, // TODO: Actually make work.
                     "FPS": 60, // TODO: Actually make work.
                     "ShowSlowGameMessage": false,
-                    "Guid": server.getJobId(),
+                    "Guid": jobId,
                     "PlaceId": game.gameid,
                     "CurrentPlayers": players
                 })
