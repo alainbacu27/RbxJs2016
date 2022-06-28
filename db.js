@@ -1615,6 +1615,9 @@ async function newJob(gameid, isCloudEdit = false) {
                             }
                             if (Object.keys(activeGameJobs).includes(gameid) && Object.keys(activeGameJobs[gameid]).includes(jobId)) {
                                 delete activeGameJobs[gameid][jobId];
+                                if (Object.keys(activeGameJobs[gameid]).length == 0){
+                                    delete activeGameJobs[gameid];
+                                }
                             }
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
@@ -1928,6 +1931,9 @@ async function newJob(gameid, isCloudEdit = false) {
                             }
                             if (Object.keys(activeGameJobs).includes(gameid) && Object.keys(activeGameJobs[gameid]).includes(jobId)) {
                                 delete activeGameJobs[gameid][jobId];
+                                if (Object.keys(activeGameJobs[gameid]).length == 0){
+                                    delete activeGameJobs[gameid];
+                                }
                             }
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
