@@ -1437,7 +1437,7 @@ end
                     });
                 }
 
-                setTimeout(() => {
+                setTimeout(async () => {
                     if (game.port == 0) {
                         res.json({
                             "jobId": "",
@@ -1519,7 +1519,7 @@ end
                     });
                 }
 
-                setTimeout(() => {
+                setTimeout(async () => {
                     if (game.teamCreatePort == 0) {
                         res.json({
                             "jobId": "",
@@ -1632,7 +1632,7 @@ publicIp = "${ip}"`
                     });
                 }
 
-                setTimeout(() => {
+                setTimeout(async () => {
                     if (game.port == 0) {
                         res.json({
                             "jobId": "",
@@ -1714,7 +1714,7 @@ publicIp = "${ip}"`
                     });
                 }
 
-                setTimeout(() => {
+                setTimeout(async () => {
                     if (game.teamCreatePort == 0) {
                         res.json({
                             "jobId": "",
