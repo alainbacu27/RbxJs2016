@@ -1426,45 +1426,49 @@ end
 
                 const gameSession = await db.newJob(game.gameid);
                 if (gameSession) {
-                    await gameSession.host();
+                    setImmediate(async () => {
+                        await gameSession.host();
                     let interval;
                     interval = setInterval(async () => {
                         if (await gameSession.update()) {
                             clearInterval(interval);
                         }
                     }, 5000);
+                    });
                 }
 
-                if (game.port == 0) {
+                setTimeout(() => {
+                    if (game.port == 0) {
+                        res.json({
+                            "jobId": "",
+                            "status": 0,
+                            "joinScriptUrl": "",
+                            "authenticationUrl": "",
+                            "authenticationTicket": "",
+                            "message": "",
+                            "joinScript": "",
+                        });
+                        if (typeof db.pendingPlayerAuthentications[ip] == "object") {
+                            if (!db.pendingPlayerAuthentications[ip].includes(ip)) {
+                                db.pendingPlayerAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
+                            }
+                        } else {
+                            db.pendingPlayerAuthentications[ip] = [
+                                [db.getUnixTimestamp(), user.cookie]
+                            ];
+                        }
+                        return;
+                    }
+    
                     res.json({
-                        "jobId": "",
-                        "status": 0,
-                        "joinScriptUrl": "",
+                        "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "status": 2,
+                        "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
                         "authenticationTicket": "",
-                        "message": "",
-                        "joinScript": "",
+                        "message": ""
                     });
-                    if (typeof db.pendingPlayerAuthentications[ip] == "object") {
-                        if (!db.pendingPlayerAuthentications[ip].includes(ip)) {
-                            db.pendingPlayerAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
-                        }
-                    } else {
-                        db.pendingPlayerAuthentications[ip] = [
-                            [db.getUnixTimestamp(), user.cookie]
-                        ];
-                    }
-                    return;
-                }
-
-                res.json({
-                    "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                    "status": 2,
-                    "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
-                    "authenticationUrl": "",
-                    "authenticationTicket": "",
-                    "message": ""
-                });
+                }, 5000);
             } else if (request == "CloudEdit") {
                 if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
                     while (db.pendingStudioAuthentications[ip].length > 0 && !user){
@@ -1504,44 +1508,48 @@ end
 
                 const gameSession = await db.newJob(game.gameid, true);
                 if (gameSession) {
-                    await gameSession.host();
-                    let interval;
-                    interval = setInterval(async () => {
-                        if (await gameSession.update()) {
-                            clearInterval(interval);
-                        }
-                    }, 5000);
+                    setImmediate(async () => {
+                        await gameSession.host();
+                        let interval;
+                        interval = setInterval(async () => {
+                            if (await gameSession.update()) {
+                                clearInterval(interval);
+                            }
+                        }, 5000);  
+                    });
                 }
 
-                if (game.teamCreatePort == 0) {
+                setTimeout(() => {
+                    if (game.teamCreatePort == 0) {
+                        res.json({
+                            "jobId": "",
+                            "status": 0,
+                            "joinScriptUrl": "",
+                            "authenticationUrl": "",
+                            "authenticationTicket": "",
+                            "message": ""
+                        });
+                        if (typeof db.pendingStudioAuthentications[ip] == "object") {
+                            if (!db.pendingStudioAuthentications[ip].includes(ip)) {
+                                db.pendingStudioAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
+                            }
+                        } else {
+                            db.pendingStudioAuthentications[ip] = [
+                                [db.getUnixTimestamp(), user.cookie]
+                            ];
+                        }
+                        return;
+                    }
+    
                     res.json({
-                        "jobId": "",
-                        "status": 0,
-                        "joinScriptUrl": "",
-                        "authenticationUrl": "",
+                        "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "status": 2,
+                        "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "authenticationUrl": "http://",
                         "authenticationTicket": "",
                         "message": ""
                     });
-                    if (typeof db.pendingStudioAuthentications[ip] == "object") {
-                        if (!db.pendingStudioAuthentications[ip].includes(ip)) {
-                            db.pendingStudioAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
-                        }
-                    } else {
-                        db.pendingStudioAuthentications[ip] = [
-                            [db.getUnixTimestamp(), user.cookie]
-                        ];
-                    }
-                    return;
-                }
-
-                res.json({
-                    "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                    "status": 2,
-                    "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
-                    "authenticationUrl": "http://",
-                    "authenticationTicket": "",
-                    "message": ""
-                });
+                }, 5000);
             } else {
                 res.status(400).json({});
             }
@@ -1613,45 +1621,49 @@ publicIp = "${ip}"`
 
                 const gameSession = await db.newJob(game.gameid);
                 if (gameSession) {
-                    await gameSession.host();
+                    setImmediate(async () => {
+                        await gameSession.host();
                     let interval;
                     interval = setInterval(async () => {
                         if (await gameSession.update()) {
                             clearInterval(interval);
                         }
                     }, 5000);
+                    });
                 }
 
-                if (game.port == 0) {
+                setTimeout(() => {
+                    if (game.port == 0) {
+                        res.json({
+                            "jobId": "",
+                            "status": 0,
+                            "joinScriptUrl": "",
+                            "authenticationUrl": "",
+                            "authenticationTicket": "",
+                            "message": "",
+                            "joinScript": "",
+                        });
+                        if (typeof db.pendingPlayerAuthentications[ip] == "object") {
+                            if (!db.pendingPlayerAuthentications[ip].includes(ip)) {
+                                db.pendingPlayerAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
+                            }
+                        } else {
+                            db.pendingPlayerAuthentications[ip] = [
+                                [db.getUnixTimestamp(), user.cookie]
+                            ];
+                        }
+                        return;
+                    }
+    
                     res.json({
-                        "jobId": "",
-                        "status": 0,
-                        "joinScriptUrl": "",
+                        "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "status": 2,
+                        "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
                         "authenticationTicket": "",
-                        "message": "",
-                        "joinScript": "",
+                        "message": ""
                     });
-                    if (typeof db.pendingPlayerAuthentications[ip] == "object") {
-                        if (!db.pendingPlayerAuthentications[ip].includes(ip)) {
-                            db.pendingPlayerAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
-                        }
-                    } else {
-                        db.pendingPlayerAuthentications[ip] = [
-                            [db.getUnixTimestamp(), user.cookie]
-                        ];
-                    }
-                    return;
-                }
-
-                res.json({
-                    "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                    "status": 2,
-                    "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
-                    "authenticationUrl": "",
-                    "authenticationTicket": "",
-                    "message": ""
-                });
+                }, 5000);
             } else if (request == "CloudEdit") {
                 if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
                     while (db.pendingStudioAuthentications[ip].length > 0 && !user){
@@ -1691,44 +1703,48 @@ publicIp = "${ip}"`
 
                 const gameSession = await db.newJob(game.gameid, true);
                 if (gameSession) {
-                    await gameSession.host();
-                    let interval;
-                    interval = setInterval(async () => {
-                        if (await gameSession.update()) {
-                            clearInterval(interval);
-                        }
-                    }, 5000);
+                    setImmediate(async () => {
+                        await gameSession.host();
+                        let interval;
+                        interval = setInterval(async () => {
+                            if (await gameSession.update()) {
+                                clearInterval(interval);
+                            }
+                        }, 5000);  
+                    });
                 }
 
-                if (game.teamCreatePort == 0) {
+                setTimeout(() => {
+                    if (game.teamCreatePort == 0) {
+                        res.json({
+                            "jobId": "",
+                            "status": 0,
+                            "joinScriptUrl": "",
+                            "authenticationUrl": "",
+                            "authenticationTicket": "",
+                            "message": ""
+                        });
+                        if (typeof db.pendingStudioAuthentications[ip] == "object") {
+                            if (!db.pendingStudioAuthentications[ip].includes(ip)) {
+                                db.pendingStudioAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
+                            }
+                        } else {
+                            db.pendingStudioAuthentications[ip] = [
+                                [db.getUnixTimestamp(), user.cookie]
+                            ];
+                        }
+                        return;
+                    }
+    
                     res.json({
-                        "jobId": "",
-                        "status": 0,
-                        "joinScriptUrl": "",
-                        "authenticationUrl": "",
+                        "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "status": 2,
+                        "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "authenticationUrl": "http://",
                         "authenticationTicket": "",
                         "message": ""
                     });
-                    if (typeof db.pendingStudioAuthentications[ip] == "object") {
-                        if (!db.pendingStudioAuthentications[ip].includes(ip)) {
-                            db.pendingStudioAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
-                        }
-                    } else {
-                        db.pendingStudioAuthentications[ip] = [
-                            [db.getUnixTimestamp(), user.cookie]
-                        ];
-                    }
-                    return;
-                }
-
-                res.json({
-                    "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                    "status": 2,
-                    "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
-                    "authenticationUrl": "http://",
-                    "authenticationTicket": "",
-                    "message": ""
-                });
+                }, 5000);
             } else {
                 res.status(400).json({});
             }
