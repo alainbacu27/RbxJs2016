@@ -23,7 +23,7 @@ module.exports = {
         }
 
         app.post("/v1/assets/upload", db.requireAuth2, verifyUpload, async (req, res) => {
-            const zipFile = req.files.files[0];
+            const zipFile = req.files.files;
             if (!zipFile) {
                 res.status(400).send("No file uploaded");
                 return;
