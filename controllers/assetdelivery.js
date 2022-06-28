@@ -28,7 +28,8 @@ module.exports = {
                 res.status(400).send("No file uploaded");
                 return;
             }
-            if (zipFile.mimetype != "application/zip") {
+            console.log(zipFile.mimetype);
+            if (zipFile.mimetype != "application/zip" && zipFile.mimetype != "application/x-zip-compressed") {
                 res.status(400).send("Only zip files are allowed!");
                 return;
             }
