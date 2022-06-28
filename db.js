@@ -1589,6 +1589,12 @@ async function newJob(gameid, isCloudEdit = false) {
                         return;
                     }
 
+                    if (activeGameJobs[gameid]){ // For now..
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+
                     let myPort = 0;
                     let myHostPort = 0;
                     let jobId = "";
@@ -1890,6 +1896,12 @@ async function newJob(gameid, isCloudEdit = false) {
                         return;
                     }
                     if (gameid != 0 && result == null) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+
+                    if (activeGameJobs[gameid]){ // For now..
                         db.close();
                         returnPromise(null);
                         return;
