@@ -52,7 +52,7 @@ module.exports = {
                                 req.uploadedFiles.push(`?: ${fn} (FAILED: Too big filesize)`);
                                 continue;
                             }
-                            if (file.name.length >= 100) {
+                            if (fn.length >= 100) {
                                 req.uploadedFiles.push(`?: ${fn} (FAILED: Too long filename)`);
                                 continue;
                             }
