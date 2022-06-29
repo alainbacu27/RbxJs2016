@@ -2372,7 +2372,7 @@ module.exports = {
         });
     },
 
-    deleteAsset: async function (userid, assetid) {
+    deleteAsset: async function (assetid) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -2390,6 +2390,19 @@ module.exports = {
                         return;
                     }
                     returnPromise(true);
+                });
+            });
+        });
+    },
+
+    DANGER_REAL_DELETE: async function (assetid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+
+                dbo.collection("assets").deleteOne({
+                    id: assetid,
                 });
             });
         });

@@ -14,6 +14,12 @@ const AdmZip = require('adm-zip');
 // db.createCatalogItem("Test Item", "DEBUG TESTING ITEM", 0, "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", 41, 1);
 // db.createGamepass(1, 3, "Test Gamepass", "A testing gamepass.", 0, "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
 
+for (let i = 24; i < 59; i++) {
+    setImmediate(() => {
+        await db.DANGER_REAL_DELETE(i);
+    })
+}
+
 template.app.use("/", express.static(__dirname + "/public"));
 template.app.use("/", express.static(__dirname + "/public/css"));
 template.app.use("/", express.static(__dirname + "/public/img"));
