@@ -49,6 +49,11 @@ module.exports = {
                         const mimetype = mime.lookup(fn);
                         if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg" || mimetype == "image/bmp" || mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg" || mimetype == "video/webm") {
                             if (fd.length > 20 * 1024 * 1024) {
+                                req.uploadedFiles.push(`?: ${fn} (FAILED: Too big filesize)`);
+                                continue;
+                            }
+                            if (file.name.length >= 100) {
+                                req.uploadedFiles.push(`?: ${fn} (FAILED: Too long filename)`);
                                 continue;
                             }
                             const assetId = await db.createAsset(req.user.userid, fn.split(".")[0], "", (mimetype == "image/png" || mimetype == "image/jpeg" || mimetype == "image/bmp") ? "Decal" : (mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg") ? "Audio" : mimetype == "video/webm" ? "Video" : "Unknown", true);

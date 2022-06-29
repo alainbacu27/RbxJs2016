@@ -2178,6 +2178,10 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
+                if (file.name.length >= 50) {
+                    res.status(400).send("Too long filename.");
+                    return;
+                }
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
                     id = await db.createAsset(req.user.userid, name, desc, "Decal", req.user.isAdmin || req.user.isMod);
                     req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
