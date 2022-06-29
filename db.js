@@ -4590,6 +4590,11 @@ module.exports = {
                             db.close();
                             return;
                         }
+                        if (user.tix % siteConfig.backend.tix.exchangeRate != 0) {
+                            returnPromise(false);
+                            db.close();
+                            return;
+                        }
                         if (user.tix < amount) {
                             returnPromise(false);
                             db.close();
