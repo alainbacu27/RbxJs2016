@@ -6008,19 +6008,76 @@ module.exports = {
                                         returnPromise(false);
                                         return;
                                     }
-                                    if (user.recentlyPlayedGames.includes(gameid)) {
-                                        dbo.collection("users").updateOne({
-                                            userid: userid
-                                        }, {
-                                            $set: {
-                                                recentlyPlayedGames: user.recentlyPlayedGames.filter(id => id != gameid)
-                                            }
-                                        }, function (err, res) {
-                                            if (err) {
-                                                db.close();
-                                                returnPromise(false);
-                                                return;
-                                            }
+                                    dbo.collection("users").findOne({
+                                        userid: userid
+                                    }, function (err, user) {
+                                        if (err) {
+                                            db.close();
+                                            returnPromise(false);
+                                            return;
+                                        }
+                                        if (user.recentlyPlayedGames.includes(gameid)) {
+                                            dbo.collection("users").updateOne({
+                                                userid: userid
+                                            }, {
+                                                $set: {
+                                                    recentlyPlayedGames: user.recentlyPlayedGames.filter(id => id != gameid)
+                                                }
+                                            }, function (err, res) {
+                                                if (err) {
+                                                    db.close();
+                                                    returnPromise(false);
+                                                    return;
+                                                }
+                                                if (true) {
+                                                    if (user.recentlyPlayedGames.length >= 6) {
+                                                        dbo.collection("users").updateOne({
+                                                            userid: userid
+                                                        }, {
+                                                            $inc: {
+                                                                placeVisits: 1
+                                                            },
+                                                            $pop: {
+                                                                recentlyPlayedGames: -1
+                                                            },
+                                                            $push: {
+                                                                recentlyPlayedGames: gameid
+                                                            }
+                                                        }, function (err, res) {
+                                                            if (err) {
+                                                                db.close();
+                                                                returnPromise(false);
+                                                                return;
+                                                            }
+                                                            db.close();
+                                                            returnPromise(true);
+                                                        });
+                                                    } else {
+                                                        dbo.collection("users").updateOne({
+                                                            userid: userid
+                                                        }, {
+                                                            $inc: {
+                                                                placeVisits: 1
+                                                            },
+                                                            $push: {
+                                                                recentlyPlayedGames: gameid
+                                                            }
+                                                        }, function (err, res) {
+                                                            if (err) {
+                                                                db.close();
+                                                                returnPromise(false);
+                                                                return;
+                                                            }
+                                                            db.close();
+                                                            returnPromise(true);
+                                                        });
+                                                    }
+                                                } else {
+                                                    db.close();
+                                                    returnPromise(true);
+                                                }
+                                            });
+                                        } else {
                                             if (true) {
                                                 if (user.recentlyPlayedGames.length >= 6) {
                                                     dbo.collection("users").updateOne({
@@ -6068,56 +6125,8 @@ module.exports = {
                                                 db.close();
                                                 returnPromise(true);
                                             }
-                                        });
-                                    } else {
-                                        if (true) {
-                                            if (user.recentlyPlayedGames.length >= 6) {
-                                                dbo.collection("users").updateOne({
-                                                    userid: userid
-                                                }, {
-                                                    $inc: {
-                                                        placeVisits: 1
-                                                    },
-                                                    $pop: {
-                                                        recentlyPlayedGames: -1
-                                                    },
-                                                    $push: {
-                                                        recentlyPlayedGames: gameid
-                                                    }
-                                                }, function (err, res) {
-                                                    if (err) {
-                                                        db.close();
-                                                        returnPromise(false);
-                                                        return;
-                                                    }
-                                                    db.close();
-                                                    returnPromise(true);
-                                                });
-                                            } else {
-                                                dbo.collection("users").updateOne({
-                                                    userid: userid
-                                                }, {
-                                                    $inc: {
-                                                        placeVisits: 1
-                                                    },
-                                                    $push: {
-                                                        recentlyPlayedGames: gameid
-                                                    }
-                                                }, function (err, res) {
-                                                    if (err) {
-                                                        db.close();
-                                                        returnPromise(false);
-                                                        return;
-                                                    }
-                                                    db.close();
-                                                    returnPromise(true);
-                                                });
-                                            }
-                                        } else {
-                                            db.close();
-                                            returnPromise(true);
                                         }
-                                    }
+                                    });
                                 });
                             });
                         }
