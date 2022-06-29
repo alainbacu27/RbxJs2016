@@ -2149,6 +2149,12 @@ module.exports = {
             }
             const name = req.body.name;
             const desc = req.body.description || "";
+
+            if (name.length > 50) {
+                res.status(400).send("Too long name.");
+                return;
+            }
+
             let id = 0;
             if (assetTypeId == 34) {
                 if ((await db.getGamepasses(game.gameid)).length >= (req.user.isAdmin ? db.getSiteConfig().shared.maxGamepassesPerGame.admin : db.getSiteConfig().shared.maxGamepassesPerGame.user)) {
@@ -2178,10 +2184,6 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (name.length > 50) {
-                    res.status(400).send("Too long filename.");
-                    return;
-                }
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
                     id = await db.createAsset(req.user.userid, name, desc, "Decal", req.user.isAdmin || req.user.isMod);
                     req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
