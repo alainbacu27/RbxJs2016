@@ -976,7 +976,11 @@ module.exports = {
                 res.status(400).send()
                 return;
             }
-            await db.setGameProperty(placeId, "port", 0);
+            const games = await db.getJobsByGameId(placeId);
+            for (let i = 0; i < games.length; i++) {
+                const job = await db.getJob(games[i]);
+                await job.stop();
+            }
             const script = `
 `
             const signature = db.sign(script);
@@ -1002,7 +1006,12 @@ module.exports = {
                 res.status(400).send()
                 return;
             }
-            await db.setGameProperty(placeId, "port", 0);
+            const games = await db.getJobsByGameId(placeId);
+            for (let i = 0; i < games.length; i++) {
+                const job = await db.getJob(games[i]);
+                await job.stop();
+            }
+            // await db.setGameProperty(placeId, "port", 0);
             const script = `
 `
             const signature = db.sign(script);
