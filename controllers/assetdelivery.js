@@ -69,7 +69,7 @@ module.exports = {
                     return;
                 }
 
-                res.send(req.uploadedFiles.length == 0 ? "None" : req.uploadedFiles.join("\n"));
+                res.send(req.uploadedFiles.length == 0 ? "None" : req.uploadedFiles.join("\n<p>&nsbp;</p>"));
             })
         });
 
