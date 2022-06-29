@@ -4585,12 +4585,7 @@ module.exports = {
                         return;
                     }
                     if (from == "tix") {
-                        if (Math.floor(user.tix / siteConfig.backend.tix.exchangeRate) == 0) {
-                            returnPromise(false);
-                            db.close();
-                            return;
-                        }
-                        if (user.tix % siteConfig.backend.tix.exchangeRate != 0) {
+                        if ((user.tix - Math.floor(user.tix / siteConfig.backend.tix.exchangeRate)) > 0) {
                             returnPromise(false);
                             db.close();
                             return;
