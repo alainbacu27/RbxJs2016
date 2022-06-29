@@ -2395,19 +2395,6 @@ module.exports = {
         });
     },
 
-    DANGER_REAL_DELETE: async function (assetid) {
-        return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
-                if (err) throw err;
-                const dbo = db.db(dbName);
-
-                dbo.collection("assets").deleteOne({
-                    id: assetid,
-                });
-            });
-        });
-    },
-
     createUser: async function (username, password, birthday, gender, ip) {
         return new Promise(async returnPromise => {
             username = filterText(username);
