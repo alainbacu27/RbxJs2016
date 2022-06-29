@@ -2178,7 +2178,7 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (name > 50) {
+                if (name.length > 50) {
                     res.status(400).send("Too long filename.");
                     return;
                 }
