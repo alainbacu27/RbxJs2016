@@ -51,7 +51,7 @@ module.exports = {
                             if (fd.length > 20 * 1024 * 1024) {
                                 continue;
                             }
-                            const assetId = await db.createAsset(req.user.userid, fn.split(".")[0], "", (mimetype == "image/png" || mimetype == "image/jpeg" || mimetype == "image/bmp") ? "Decal" : (mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg") ? "Audio" : mimetype == "video/webm" ? "Video" : "Unknown");
+                            const assetId = await db.createAsset(req.user.userid, fn.split(".")[0], "", (mimetype == "image/png" || mimetype == "image/jpeg" || mimetype == "image/bmp") ? "Decal" : (mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg") ? "Audio" : mimetype == "video/webm" ? "Video" : "Unknown", true);
                             fs.writeFileSync(`${__dirname}/../assets/${assetId}.asset`, fd);
                             req.uploadedFiles.push(`${assetId}: ${fn} (SUCCESS)`);
                         } else {
