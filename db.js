@@ -4585,7 +4585,7 @@ module.exports = {
                         return;
                     }
                     if (from == "tix") {
-                        if (amount.toString().includes(".")) {
+                        if ((amount / siteConfig.backend.tix.exchangeRate).toString().includes(".")) {
                             returnPromise(false);
                             db.close();
                             return;
