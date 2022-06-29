@@ -239,7 +239,7 @@ module.exports = {
             if (!user || !req.query.userId || !parseInt(req.query.userId)){
                 return res.status(401).send();
             }
-            res.send(db.getFriends(user && user.userid || parseInt(req.query.userId)).length.toString());
+            res.send(db.getFriends(user && user.userid));
         });
         
         app.post("/user/request-friendship", db.requireAuth2, async (req, res) => {
