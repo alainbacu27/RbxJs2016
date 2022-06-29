@@ -2948,10 +2948,11 @@ module.exports = {
 <a href="https://www.rbx2016.tk/games/?sortFilter=6" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
             
 <ul class="hlist game-cards ">`;
-            const games = await db.getUserRecentlyPlayedGames(userid);
+            let games = await db.getUserRecentlyPlayedGames(userid);
             if (games.length == 0) {
                 return ``;
             }
+            games.reverse();
             for (let i = 0; i < games.length; i++) {
                 const game = await db.getGame(games[i]);
                 const creator = await db.getUser(game.creatorid);
