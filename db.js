@@ -1209,7 +1209,7 @@ setInterval(() => {
                     const servers = await getJobsByGameId(result[i].gameid);
                     if (servers.length > 0) {
                         for (let j = 0; j < servers.length; j++) {
-                            const job = servers[j];
+                            const job = await db.getJob(servers[j]);
                             if (job) {
                                 await job.stop();
                             }
