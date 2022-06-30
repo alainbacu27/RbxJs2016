@@ -1207,9 +1207,13 @@ setInterval(() => {
                 if (result[i].lastHeartBeat != 0 && Date.now() - unixToDate(result[i].lastHeartBeat) > 15000) {
                     needsUpdating++;
                     const servers = await getJobsByGameId(result[i].gameid);
-                    for (let j = 0; j < servers.length; j++) {
-                        const job = servers[j];
-                        await job.stop();
+                    if (servers.length > 0) {
+                        for (let j = 0; j < servers.length; j++) {
+                            const job = servers[j];
+                            if (job) {
+                                await job.stop();
+                            }
+                        }
                     }
                     dbo.collection("users").updateMany({
                         playing: result[i].gameid
@@ -1582,7 +1586,7 @@ async function newJob(gameid, isCloudEdit = false) {
                         return;
                     }
 
-                    if (activeGameJobs[gameid]){ // For now..
+                    if (activeGameJobs[gameid]) { // For now..
                         db.close();
                         returnPromise(null);
                         return;
@@ -1608,18 +1612,18 @@ async function newJob(gameid, isCloudEdit = false) {
                             }
                             if (Object.keys(activeGameJobs).includes(gameid) && Object.keys(activeGameJobs[gameid]).includes(jobId)) {
                                 delete activeGameJobs[gameid][jobId];
-                                if (Object.keys(activeGameJobs[gameid]).length == 0){
+                                if (Object.keys(activeGameJobs[gameid]).length == 0) {
                                     delete activeGameJobs[gameid];
                                 }
                             }
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
 
-                            try{
+                            try {
                                 // proc.stdin.pause();
                                 // proc.kill();
                                 kill(proc.pid, 'SIGTERM');
-                            }catch{}
+                            } catch {}
                             myPort = 0;
                             myHostPort = 0;
                             jobId = "";
@@ -1897,7 +1901,7 @@ async function newJob(gameid, isCloudEdit = false) {
                         return;
                     }
 
-                    if (activeGameJobs[gameid]){ // For now..
+                    if (activeGameJobs[gameid]) { // For now..
                         db.close();
                         returnPromise(null);
                         return;
@@ -1924,18 +1928,18 @@ async function newJob(gameid, isCloudEdit = false) {
                             }
                             if (Object.keys(activeGameJobs).includes(gameid) && Object.keys(activeGameJobs[gameid]).includes(jobId)) {
                                 delete activeGameJobs[gameid][jobId];
-                                if (Object.keys(activeGameJobs[gameid]).length == 0){
+                                if (Object.keys(activeGameJobs[gameid]).length == 0) {
                                     delete activeGameJobs[gameid];
                                 }
                             }
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
 
-                            try{
+                            try {
                                 // proc.stdin.pause();
                                 // proc.kill();
                                 kill(proc.pid, 'SIGTERM');
-                            }catch{}
+                            } catch {}
                             myPort = 0;
                             myHostPort = 0;
                             jobId = "";
@@ -2053,7 +2057,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                 let c = 0;
                                 while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
                                     await sleep(1000);
-                                    c ++;
+                                    c++;
                                 }
                                 returnPromise(true);
                                 /*
@@ -2106,11 +2110,11 @@ async function newJob(gameid, isCloudEdit = false) {
                                 proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
-                                
+
                                 let c = 0;
                                 while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
                                     await sleep(1000);
-                                    c ++;
+                                    c++;
                                 }
                                 returnPromise(true);
                                 /*
@@ -2219,7 +2223,7 @@ async function getJobs() {
 
 async function getJobsByGameId(gameid) {
     return new Promise(async returnPromise => {
-        if (typeof activeGameJobs[gameid] == "undefined"){
+        if (typeof activeGameJobs[gameid] == "undefined") {
             returnPromise([]);
             return;
         }
@@ -3299,7 +3303,7 @@ module.exports = {
             });
         });
     },
-    
+
     getPublicGames: async function () {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
