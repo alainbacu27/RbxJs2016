@@ -1299,7 +1299,7 @@ setInterval(() => {
 
 let availableRCCPorts = [];
 for (let i = 0; i < siteConfig.backend.maxServers; i++) {
-    availableRCCPorts.push((siteConfig.backend.serverStartingPort + siteConfig.backend.maxServers) + i);
+    availableRCCPorts.push((siteConfig.backend.serverStartingPort + siteConfig.backend.maxServers + 1) + i);
 }
 let availableGamePorts = [];
 for (let i = 0; i < siteConfig.backend.maxServers; i++) {
@@ -1317,7 +1317,7 @@ function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
                         <ns1:expirationInSeconds>${timeout}</ns1:expirationInSeconds>
                     </ns1:job>
                     <ns1:script>
-                        <ns1:name>ExecutionJob</ns1:name>
+                        <ns1:name>MainExecutionJob</ns1:name>
                         <ns1:script>${script}</ns1:script>
                     </ns1:script>
                     </ns1:OpenJob>
@@ -1330,7 +1330,7 @@ function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
                    <ns1:Execute>
                         <ns1:jobID>${id}</ns1:jobID>
                         <ns1:script>
-                            <ns1:name>ExecutionJob</ns1:name>
+                            <ns1:name>${uuidv4()}</ns1:name>
                             <ns1:script>${script}</ns1:script>
                         </ns1:script>
                     </ns1:Execute>
@@ -1628,6 +1628,10 @@ async function newJob(gameid, isCloudEdit = false) {
                                     delete activeGameJobs[gameid];
                                 }
                             }
+                            
+                            console.log(activeJobs)
+                            console.log(activeGameJobs)
+
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
 
