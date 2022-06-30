@@ -1235,7 +1235,7 @@ setInterval(() => {
                         }, async function (err, res) {
                             if (err) throw err;
                             updated++;
-                        }); 
+                        });
                     });
                 } else if (result[i].lastHeartBeat == 0) {
                     needsUpdating++;
@@ -1619,16 +1619,19 @@ async function newJob(gameid, isCloudEdit = false) {
                                 returnPromise(null);
                                 return;
                             }
-                            if (Object.keys(activeJobs).includes(jobId)) {
+                            try {
                                 delete activeJobs[jobId];
-                            }
-                            if (Object.keys(activeGameJobs).includes(gameid) && Object.keys(activeGameJobs[gameid]).includes(jobId)) {
+                            } catch {}
+                            try {
                                 delete activeGameJobs[gameid][jobId];
+                            } catch {}
+                            try {
                                 if (Object.keys(activeGameJobs[gameid]).length == 0) {
                                     delete activeGameJobs[gameid];
                                 }
-                            }
-                            
+                            } catch {}
+
+
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
 
@@ -1673,7 +1676,7 @@ async function newJob(gameid, isCloudEdit = false) {
                             }
 
                             let c = siteConfig.backend.maxGameStartupTime;
-                            while (true){
+                            while (true) {
                                 try {
                                     const {
                                         response
@@ -1723,7 +1726,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                         returnPromise(result);
                                         return;
                                     } catch (e) {
-                                        if (c <= 0){
+                                        if (c <= 0) {
                                             await stop();
                                             returnPromise(["err|Unknown Error"]);
                                             return;
@@ -1848,7 +1851,7 @@ async function newJob(gameid, isCloudEdit = false) {
                             await start();
                             await sleep(1000);
                             const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
-                            if (resp == "err|Unknown Error"){
+                            if (resp == "err|Unknown Error") {
                                 await stop();
                             }
                         },
@@ -1992,7 +1995,7 @@ async function newJob(gameid, isCloudEdit = false) {
                             }
 
                             let c = siteConfig.backend.maxGameStartupTime;
-                            while (true){
+                            while (true) {
                                 try {
                                     const {
                                         response
@@ -2042,7 +2045,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                         returnPromise(result);
                                         return;
                                     } catch (e) {
-                                        if (c <= 0){
+                                        if (c <= 0) {
                                             await stop();
                                             returnPromise(["err|Unknown Error"]);
                                             return;
@@ -2166,7 +2169,7 @@ async function newJob(gameid, isCloudEdit = false) {
                             await start();
                             await sleep(1000);
                             const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, true), 6000000);
-                            if (resp == "err|Unknown Error"){
+                            if (resp == "err|Unknown Error") {
                                 await stop();
                             }
                         },
