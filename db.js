@@ -1751,7 +1751,11 @@ async function newJob(gameid, isCloudEdit = false) {
                                 }, (err, stdout, stderr) => {});
 
                                 let c = 0;
-                                while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
+                                const game = await getGame(gameid);
+                                if (!game){
+                                    await sleep(10000);
+                                }
+                                while (c < siteConfig.backend.maxGameStartupTime && game && game.port == 0) {
                                     await sleep(1000);
                                     c++;
                                 }
@@ -2066,8 +2070,12 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
+                                const game = await getGame(gameid);
+                                if (!game){
+                                    await sleep(10000);
+                                }
                                 let c = 0;
-                                while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
+                                while (c < siteConfig.backend.maxGameStartupTime && game && game.port == 0) {
                                     await sleep(1000);
                                     c++;
                                 }
