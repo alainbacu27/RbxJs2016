@@ -1207,7 +1207,7 @@ setInterval(() => {
                 if (result[i].lastHeartBeat != 0 && Date.now() - unixToDate(result[i].lastHeartBeat) > 15000) {
                     needsUpdating++;
                     try{
-                        const servers = await getJobsByGameId(result[i]);
+                        const servers = await getJobsByGameId(result[i].gameid);
                         for (let j = 0; j < servers.length; j++) {
                             await job.stop();
                         }
