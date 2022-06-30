@@ -1758,6 +1758,8 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
+                                await sleep(1000);
+
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -1810,6 +1812,8 @@ async function newJob(gameid, isCloudEdit = false) {
                                 proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
+
+                                await sleep(1000);
 
                                 returnPromise(true);
                                 /*
@@ -2076,6 +2080,8 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
+                                await sleep(1000);
+
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -2127,6 +2133,8 @@ async function newJob(gameid, isCloudEdit = false) {
                                 proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
+
+                                await sleep(1000);
 
                                 returnPromise(true);
                                 /*
