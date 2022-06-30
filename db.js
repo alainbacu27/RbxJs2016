@@ -1703,6 +1703,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                         result.push("err|" + result0[1].split("</faultstring>")[0]);
                                     }
                                     returnPromise(result);
+                                    return;
                                 } catch (e) {
                                     // console.error(e);
                                     try {
@@ -1719,6 +1720,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                         }
                                         await stop();
                                         returnPromise(result);
+                                        return;
                                     } catch (e) {
                                         if (c <= 0){
                                             await stop();
@@ -2020,6 +2022,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                         result.push("err|" + result0[1].split("</faultstring>")[0]);
                                     }
                                     returnPromise(result);
+                                    return;
                                 } catch (e) {
                                     // console.error(e);
                                     try {
@@ -2036,6 +2039,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                         }
                                         await stop();
                                         returnPromise(result);
+                                        return;
                                     } catch (e) {
                                         if (c <= 0){
                                             await stop();
