@@ -1671,56 +1671,64 @@ async function newJob(gameid, isCloudEdit = false) {
                                 hasExecutedOnce = true;
                             }
 
-                            try {
-                                const {
-                                    response
-                                } = await soapRequest({
-                                    url: url,
-                                    headers: headers2,
-                                    xml: xml,
-                                    timeout: connectionTimeout
-                                }); // Optional timeout parameter(milliseconds)
-                                const {
-                                    headers,
-                                    body,
-                                    statusCode
-                                } = response;
-                                if (statusCode != 200 && statusCode != 302 && statusCode != 304 && statusCode != 500) {
-                                    returnPromise(false);
-                                    return;
-                                }
-                                let result = [];
-                                let result0 = body.split("<ns1:value>");
-                                if (result0.length > 1) {
-                                    for (let i = 1; i < result0.length; i++) {
-                                        result.push("ok|" + result0[i].split("</ns1:value>")[0]);
-                                    }
-                                }
-                                result0 = body.split("<faultstring>");
-                                if (result0.length > 1) {
-                                    result.push("err|" + result0[1].split("</faultstring>")[0]);
-                                }
-                                returnPromise(result);
-                            } catch (e) {
-                                // console.error(e);
+                            let c = 25;
+                            while (true){
                                 try {
+                                    const {
+                                        response
+                                    } = await soapRequest({
+                                        url: url,
+                                        headers: headers2,
+                                        xml: xml,
+                                        timeout: connectionTimeout
+                                    }); // Optional timeout parameter(milliseconds)
+                                    const {
+                                        headers,
+                                        body,
+                                        statusCode
+                                    } = response;
+                                    if (statusCode != 200 && statusCode != 302 && statusCode != 304) {
+                                        returnPromise(false);
+                                        return;
+                                    }
                                     let result = [];
-                                    let result0 = e.split("<ns1:value>");
+                                    let result0 = body.split("<ns1:value>");
                                     if (result0.length > 1) {
                                         for (let i = 1; i < result0.length; i++) {
                                             result.push("ok|" + result0[i].split("</ns1:value>")[0]);
                                         }
                                     }
-                                    result0 = e.split("<faultstring>");
+                                    result0 = body.split("<faultstring>");
                                     if (result0.length > 1) {
                                         result.push("err|" + result0[1].split("</faultstring>")[0]);
                                     }
-                                    await stop();
                                     returnPromise(result);
                                 } catch (e) {
-                                    await stop();
-                                    returnPromise(["err|Unknown Error"]);
-                                    return;
+                                    // console.error(e);
+                                    try {
+                                        let result = [];
+                                        let result0 = e.split("<ns1:value>");
+                                        if (result0.length > 1) {
+                                            for (let i = 1; i < result0.length; i++) {
+                                                result.push("ok|" + result0[i].split("</ns1:value>")[0]);
+                                            }
+                                        }
+                                        result0 = e.split("<faultstring>");
+                                        if (result0.length > 1) {
+                                            result.push("err|" + result0[1].split("</faultstring>")[0]);
+                                        }
+                                        await stop();
+                                        returnPromise(result);
+                                    } catch (e) {
+                                        await stop();
+                                        if (c >= 0){
+                                            returnPromise(["err|Unknown Error"]);
+                                            return;
+                                        }
+                                        c--;
+                                        await sleep(1000);
+                                        continue;
+                                    }
                                 }
                             }
                         });
@@ -1750,15 +1758,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
-                                let c = 0;
-                                const game = await getGame(gameid);
-                                if (!game){
-                                    await sleep(10000);
-                                }
-                                while (c < siteConfig.backend.maxGameStartupTime && game && game.port == 0) {
-                                    await sleep(1000);
-                                    c++;
-                                }
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -1812,11 +1811,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
-                                let c = 0;
-                                while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
-                                    await sleep(1000);
-                                    c++;
-                                }
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -1850,7 +1844,10 @@ async function newJob(gameid, isCloudEdit = false) {
                     self = {
                         host: async function () {
                             await start();
-                            await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000, 10000);
+                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000, 10000);
+                            if (resp == "err|Unknown Error"){
+                                await stop();
+                            }
                         },
                         update: async function () {
                             return new Promise(async returnPromise => {
@@ -1991,56 +1988,64 @@ async function newJob(gameid, isCloudEdit = false) {
                                 hasExecutedOnce = true;
                             }
 
-                            try {
-                                const {
-                                    response
-                                } = await soapRequest({
-                                    url: url,
-                                    headers: headers2,
-                                    xml: xml,
-                                    timeout: connectionTimeout
-                                }); // Optional timeout parameter(milliseconds)
-                                const {
-                                    headers,
-                                    body,
-                                    statusCode
-                                } = response;
-                                if (statusCode != 200 && statusCode != 302 && statusCode != 304) {
-                                    returnPromise(false);
-                                    return;
-                                }
-                                let result = [];
-                                let result0 = body.split("<ns1:value>");
-                                if (result0.length > 1) {
-                                    for (let i = 1; i < result0.length; i++) {
-                                        result.push("ok|" + result0[i].split("</ns1:value>")[0]);
-                                    }
-                                }
-                                result0 = body.split("<faultstring>");
-                                if (result0.length > 1) {
-                                    result.push("err|" + result0[1].split("</faultstring>")[0]);
-                                }
-                                returnPromise(result);
-                            } catch (e) {
-                                // console.error(e);
+                            let c = 25;
+                            while (true){
                                 try {
+                                    const {
+                                        response
+                                    } = await soapRequest({
+                                        url: url,
+                                        headers: headers2,
+                                        xml: xml,
+                                        timeout: connectionTimeout
+                                    }); // Optional timeout parameter(milliseconds)
+                                    const {
+                                        headers,
+                                        body,
+                                        statusCode
+                                    } = response;
+                                    if (statusCode != 200 && statusCode != 302 && statusCode != 304) {
+                                        returnPromise(false);
+                                        return;
+                                    }
                                     let result = [];
-                                    let result0 = e.split("<ns1:value>");
+                                    let result0 = body.split("<ns1:value>");
                                     if (result0.length > 1) {
                                         for (let i = 1; i < result0.length; i++) {
                                             result.push("ok|" + result0[i].split("</ns1:value>")[0]);
                                         }
                                     }
-                                    result0 = e.split("<faultstring>");
+                                    result0 = body.split("<faultstring>");
                                     if (result0.length > 1) {
                                         result.push("err|" + result0[1].split("</faultstring>")[0]);
                                     }
-                                    await stop();
                                     returnPromise(result);
                                 } catch (e) {
-                                    await stop();
-                                    returnPromise(["err|Unknown Error"]);
-                                    return;
+                                    // console.error(e);
+                                    try {
+                                        let result = [];
+                                        let result0 = e.split("<ns1:value>");
+                                        if (result0.length > 1) {
+                                            for (let i = 1; i < result0.length; i++) {
+                                                result.push("ok|" + result0[i].split("</ns1:value>")[0]);
+                                            }
+                                        }
+                                        result0 = e.split("<faultstring>");
+                                        if (result0.length > 1) {
+                                            result.push("err|" + result0[1].split("</faultstring>")[0]);
+                                        }
+                                        await stop();
+                                        returnPromise(result);
+                                    } catch (e) {
+                                        await stop();
+                                        if (c >= 0){
+                                            returnPromise(["err|Unknown Error"]);
+                                            return;
+                                        }
+                                        c--;
+                                        await sleep(1000);
+                                        continue;
+                                    }
                                 }
                             }
                         });
@@ -2070,15 +2075,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
-                                const game = await getGame(gameid);
-                                if (!game){
-                                    await sleep(10000);
-                                }
-                                let c = 0;
-                                while (c < siteConfig.backend.maxGameStartupTime && game && game.port == 0) {
-                                    await sleep(1000);
-                                    c++;
-                                }
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -2131,11 +2127,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
-                                let c = 0;
-                                while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
-                                    await sleep(1000);
-                                    c++;
-                                }
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -2169,7 +2160,10 @@ async function newJob(gameid, isCloudEdit = false) {
                     self = {
                         host: async function () {
                             await start();
-                            await execute(getRCCHostScript(gameid, myHostPort, jobId, true), 6000000, 10000);
+                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, true), 6000000, 10000);
+                            if (resp == "err|Unknown Error"){
+                                await stop();
+                            }
                         },
                         update: async function () {
                             return new Promise(async returnPromise => {
