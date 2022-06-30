@@ -1206,33 +1206,20 @@ setInterval(() => {
             for (let i = 0; i < result.length; i++) {
                 if (result[i].lastHeartBeat != 0 && Date.now() - unixToDate(result[i].lastHeartBeat) > 15000) {
                     needsUpdating++;
-                    try{
-                        const servers = await getJobsByGameId(result[i].gameid);
-                        for (let j = 0; j < servers.length; j++) {
-                            await job.stop();
-                        }
-                    }catch{}
-                    dbo.collection("games").updateOne({
-                        gameid: result[i].gameid
+                    const servers = await getJobsByGameId(result[i].gameid);
+                    for (let j = 0; j < servers.length; j++) {
+                        const job = servers[j];
+                        await job.stop();
+                    }
+                    dbo.collection("users").updateMany({
+                        playing: result[i].gameid
                     }, {
                         $set: {
-                            port: 0,
-                            playing: 0,
-                            rccVersion: "",
-                            lastHeartBeat: 0
+                            playing: 0
                         }
                     }, async function (err, res) {
                         if (err) throw err;
-                        dbo.collection("users").updateMany({
-                            playing: result[i].gameid
-                        }, {
-                            $set: {
-                                playing: 0
-                            }
-                        }, async function (err, res) {
-                            if (err) throw err;
-                            updated++;
-                        });
+                        updated++;
                     });
                 } else if (result[i].lastHeartBeat == 0) {
                     needsUpdating++;
