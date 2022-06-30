@@ -1311,7 +1311,7 @@ function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
         return `<?xml version = "1.0" encoding = "UTF-8"?>
     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://rbx2016.tk/RCCServiceSoap" xmlns:ns1="http://rbx2016.tk/" xmlns:ns3="http://rbx2016.tk/RCCServiceSoap12">
         <SOAP-ENV:Body>
-               <ns1:OpenJob>
+               <ns1:OpenJobEx>
                     <ns1:job>
                         <ns1:id>${id}</ns1:id>
                         <ns1:expirationInSeconds>${timeout}</ns1:expirationInSeconds>
@@ -1320,20 +1320,20 @@ function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
                         <ns1:name>MainExecutionJob</ns1:name>
                         <ns1:script>${script}</ns1:script>
                     </ns1:script>
-                    </ns1:OpenJob>
+                </ns1:OpenJobEx>
             </SOAP-ENV:Body>
     </SOAP-ENV:Envelope>`;
     } else {
         return `<?xml version = "1.0" encoding = "UTF-8"?>
         <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://rbx2016.tk/RCCServiceSoap" xmlns:ns1="http://rbx2016.tk/" xmlns:ns3="http://rbx2016.tk/RCCServiceSoap12">
             <SOAP-ENV:Body>
-                   <ns1:Execute>
+                   <ns1:ExecuteEx>
                         <ns1:jobID>${id}</ns1:jobID>
                         <ns1:script>
-                            <ns1:name>${uuidv4()}</ns1:name>
+                            <ns1:name>AdminPanelExecutionJob</ns1:name>
                             <ns1:script>${script}</ns1:script>
                         </ns1:script>
-                    </ns1:Execute>
+                    </ns1:ExecuteEx>
                 </SOAP-ENV:Body>
         </SOAP-ENV:Envelope>`;
     }
