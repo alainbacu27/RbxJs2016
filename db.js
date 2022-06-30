@@ -1671,7 +1671,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                 hasExecutedOnce = true;
                             }
 
-                            let c = 25;
+                            let c = siteConfig.backend.maxGameStartupTime;
                             while (true){
                                 try {
                                     const {
@@ -1989,7 +1989,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                 hasExecutedOnce = true;
                             }
 
-                            let c = 25;
+                            let c = siteConfig.backend.maxGameStartupTime;
                             while (true){
                                 try {
                                     const {
