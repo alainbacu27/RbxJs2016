@@ -155,7 +155,9 @@
         "robuxServiceEnabled": true,
         "thumbnailServiceEnabled": true,
         "hostingEnabled": true,
-        "hostingTeamCreateEnabled": true,
+        "serverStartingPort": 44000,
+        "maxServers": 500,
+        "hostingTeamCreateEnabled": false,
         "hostingConnectsToLocalhost": false,
         "maxGameStartupTime": 25,
 

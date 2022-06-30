@@ -1298,12 +1298,12 @@ setInterval(() => {
 }, 7500);
 
 let availableRCCPorts = [];
-for (let i = 0; i < 10000; i++) {
-    availableRCCPorts.push(54001 + i);
+for (let i = 0; i < siteConfig.backend.maxServers; i++) {
+    availableRCCPorts.push((siteConfig.backend.serverStartingPort + siteConfig.backend.maxServers) + i);
 }
 let availableGamePorts = [];
-for (let i = 0; i < 10000; i++) {
-    availableGamePorts.push(44000 + i);
+for (let i = 0; i < siteConfig.backend.maxServers; i++) {
+    availableGamePorts.push(siteConfig.backend.serverStartingPort + i);
 }
 
 function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
