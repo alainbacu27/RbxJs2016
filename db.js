@@ -1654,7 +1654,7 @@ async function newJob(gameid, isCloudEdit = false) {
                         });
                     }
 
-                    async function execute(script, timeout = 10, connectionTimeout = 10000) {
+                    async function execute(script, timeout = 10, connectionTimeout = 1000) {
                         return new Promise(async returnPromise => {
                             if (myPort == 0) {
                                 returnPromise(null);
@@ -1727,7 +1727,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                         }
                                         c--;
                                         await sleep(1000);
-                                        continue;
                                     }
                                 }
                             }
@@ -1757,8 +1756,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                 proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
-
-                                await sleep(1000);
 
                                 returnPromise(true);
                                 /*
@@ -1813,8 +1810,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
-                                await sleep(1000);
-
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -1849,7 +1844,7 @@ async function newJob(gameid, isCloudEdit = false) {
                         host: async function () {
                             await start();
                             await sleep(1000);
-                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000, 10000);
+                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
                             if (resp == "err|Unknown Error"){
                                 await stop();
                             }
@@ -1976,7 +1971,7 @@ async function newJob(gameid, isCloudEdit = false) {
                         });
                     }
 
-                    async function execute(script, timeout = 10, connectionTimeout = 10000) {
+                    async function execute(script, timeout = 10, connectionTimeout = 1000) {
                         return new Promise(async returnPromise => {
                             if (myPort == 0) {
                                 returnPromise(null);
@@ -2049,7 +2044,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                         }
                                         c--;
                                         await sleep(1000);
-                                        continue;
                                     }
                                 }
                             }
@@ -2079,8 +2073,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                 proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
-
-                                await sleep(1000);
 
                                 returnPromise(true);
                                 /*
@@ -2134,8 +2126,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
-                                await sleep(1000);
-
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -2170,7 +2160,7 @@ async function newJob(gameid, isCloudEdit = false) {
                         host: async function () {
                             await start();
                             await sleep(1000);
-                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, true), 6000000, 10000);
+                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, true), 6000000);
                             if (resp == "err|Unknown Error"){
                                 await stop();
                             }
