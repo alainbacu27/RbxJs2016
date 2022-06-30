@@ -1720,8 +1720,8 @@ async function newJob(gameid, isCloudEdit = false) {
                                         await stop();
                                         returnPromise(result);
                                     } catch (e) {
-                                        await stop();
-                                        if (c >= 0){
+                                        if (c <= 0){
+                                            await stop();
                                             returnPromise(["err|Unknown Error"]);
                                             return;
                                         }
@@ -1844,6 +1844,7 @@ async function newJob(gameid, isCloudEdit = false) {
                     self = {
                         host: async function () {
                             await start();
+                            await sleep(1000);
                             const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000, 10000);
                             if (resp == "err|Unknown Error"){
                                 await stop();
@@ -2037,8 +2038,8 @@ async function newJob(gameid, isCloudEdit = false) {
                                         await stop();
                                         returnPromise(result);
                                     } catch (e) {
-                                        await stop();
-                                        if (c >= 0){
+                                        if (c <= 0){
+                                            await stop();
                                             returnPromise(["err|Unknown Error"]);
                                             return;
                                         }
@@ -2160,6 +2161,7 @@ async function newJob(gameid, isCloudEdit = false) {
                     self = {
                         host: async function () {
                             await start();
+                            await sleep(1000);
                             const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, true), 6000000, 10000);
                             if (resp == "err|Unknown Error"){
                                 await stop();
