@@ -1215,15 +1215,27 @@ setInterval(() => {
                             }
                         }
                     }
-                    dbo.collection("users").updateMany({
-                        playing: result[i].gameid
+                    dbo.collection("games").updateOne({
+                        gameid: result[i].gameid
                     }, {
                         $set: {
-                            playing: 0
+                            port: 0,
+                            playing: 0,
+                            rccVersion: "",
+                            lastHeartBeat: 0
                         }
                     }, async function (err, res) {
                         if (err) throw err;
-                        updated++;
+                        dbo.collection("users").updateMany({
+                            playing: result[i].gameid
+                        }, {
+                            $set: {
+                                playing: 0
+                            }
+                        }, async function (err, res) {
+                            if (err) throw err;
+                            updated++;
+                        }); 
                     });
                 } else if (result[i].lastHeartBeat == 0) {
                     needsUpdating++;
