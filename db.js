@@ -1629,9 +1629,6 @@ async function newJob(gameid, isCloudEdit = false) {
                                 }
                             }
                             
-                            console.log(activeJobs)
-                            console.log(activeGameJobs)
-
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
 
