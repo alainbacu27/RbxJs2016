@@ -1067,7 +1067,10 @@ module.exports = {
                 res.status(401).send("Too many accounts.");
                 return;
             }
-            if (typeof username == "undefined") {
+            if (typeof username != "string") {
+                return res.status(400).send();
+            }
+            if (username.length > 50){
                 return res.status(400).send();
             }
             const ROBLOSECURITY_COOKIES = await db.createUser(username, password, birthday, gender, ip);
