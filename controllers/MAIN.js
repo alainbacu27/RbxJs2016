@@ -2106,7 +2106,7 @@ module.exports = {
                 decals: decalsHtml,
                 audios: audiosHtml,
                 tab: Page,
-                assetTypeId: Page == "game-passes" ? 34 : Page == "Decals" ? 13 : null,
+                assetTypeId: Page == "game-passes" ? 34 : Page == "decals" ? 13 : Page == "audios" ? 3 : null,
                 gameid: Page == "game-passes" ? game != null ? game.gameid : null : null
             });
         });
