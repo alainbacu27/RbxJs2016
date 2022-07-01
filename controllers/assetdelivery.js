@@ -118,6 +118,10 @@ module.exports = {
                 user = await db.findUserByToken(req.query.t);
             }
 
+            if (!req.query.id) {
+                res.status(404).send();
+                return;
+            }
             const id0 = req.query.id.split("|");
             const id = parseInt(id0[0]);
             const apiKey = req.query.apiKey || (id0.length > 1 ? id0[1] : "");

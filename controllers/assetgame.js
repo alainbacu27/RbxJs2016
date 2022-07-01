@@ -53,6 +53,10 @@ module.exports = {
                 user = await db.findUserByToken(req.query.t);
             }
 
+            if (!req.query.id) {
+                res.status(404).send();
+                return;
+            }
             const id0 = req.query.id.split("|");
             const id = parseInt(id0[0]);
             const apiKey = req.query.apiKey || (id0.length > 1 ? id0[1] : "");
@@ -83,7 +87,7 @@ module.exports = {
             }
 
             const asset = await db.getAsset(id);
-            if (asset && !asset.deleted && (asset.approvedBy != 0 || (user && (asset.creatorid == user.userid || user.isAdmin || user.isMod)))){
+            if (asset && !asset.deleted && (asset.approvedBy != 0 || (user && (asset.creatorid == user.userid || user.isAdmin || user.isMod)))) {
                 const bp = path.resolve(__dirname + "/../assets/") + path.sep;
                 const fp = path.resolve(bp + id.toString() + ".asset");
                 if (!fp.startsWith(bp)) {
@@ -96,7 +100,7 @@ module.exports = {
                     res.redirect("https://assetdelivery.roblox.com/v1/asset/?id=" + id);
                     // res.sendStatus(404);
                 }
-            }else{
+            } else {
                 const bp = path.resolve(__dirname + "/../required_assets/") + path.sep;
                 const fp = path.resolve(bp + id.toString() + ".asset");
                 if (!fp.startsWith(bp)) {
@@ -116,7 +120,7 @@ module.exports = {
             const ip = get_ip(req).clientIp;
             let user = req.user;
             if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
-                while (db.pendingStudioAuthentications[ip].length > 0 && !user){
+                while (db.pendingStudioAuthentications[ip].length > 0 && !user) {
                     const cookieObject = db.pendingStudioAuthentications[ip].shift();
                     if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
                         // return res.sendStatus(403);
@@ -1401,7 +1405,7 @@ end
             const isPlayTogetherGame = req.query.isPlayTogetherGame == "true";
             if (request == "RequestGame") {
                 if (!user && typeof db.pendingPlayerAuthentications[ip] == "object" && db.pendingPlayerAuthentications[ip].length > 0) {
-                    while (db.pendingPlayerAuthentications[ip].length > 0 && !user){
+                    while (db.pendingPlayerAuthentications[ip].length > 0 && !user) {
                         const cookieObject = db.pendingPlayerAuthentications[ip].shift();
                         if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
                             // return res.sendStatus(403);
@@ -1459,7 +1463,7 @@ end
                         }
                         return;
                     }
-    
+
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
@@ -1471,7 +1475,7 @@ end
                 }, 5000);
             } else if (request == "CloudEdit") {
                 if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
-                    while (db.pendingStudioAuthentications[ip].length > 0 && !user){
+                    while (db.pendingStudioAuthentications[ip].length > 0 && !user) {
                         const cookieObject = db.pendingStudioAuthentications[ip].shift();
                         if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
                             // return res.sendStatus(403);
@@ -1515,7 +1519,7 @@ end
                             if (await gameSession.update()) {
                                 clearInterval(interval);
                             }
-                        }, 5000);  
+                        }, 5000);
                     });
                 }
 
@@ -1540,7 +1544,7 @@ end
                         }
                         return;
                     }
-    
+
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
@@ -1596,7 +1600,7 @@ publicIp = "${ip}"`
             const isPlayTogetherGame = req.query.isPlayTogetherGame == "true";
             if (request == "RequestGame") {
                 if (!user && typeof db.pendingPlayerAuthentications[ip] == "object" && db.pendingPlayerAuthentications[ip].length > 0) {
-                    while (db.pendingPlayerAuthentications[ip].length > 0 && !user){
+                    while (db.pendingPlayerAuthentications[ip].length > 0 && !user) {
                         const cookieObject = db.pendingPlayerAuthentications[ip].shift();
                         if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
                             // return res.sendStatus(403);
@@ -1623,12 +1627,12 @@ publicIp = "${ip}"`
                 if (gameSession) {
                     setImmediate(async () => {
                         await gameSession.host();
-                    let interval;
-                    interval = setInterval(async () => {
-                        if (await gameSession.update()) {
-                            clearInterval(interval);
-                        }
-                    }, 5000);
+                        let interval;
+                        interval = setInterval(async () => {
+                            if (await gameSession.update()) {
+                                clearInterval(interval);
+                            }
+                        }, 5000);
                     });
                 }
 
@@ -1654,7 +1658,7 @@ publicIp = "${ip}"`
                         }
                         return;
                     }
-    
+
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
@@ -1666,7 +1670,7 @@ publicIp = "${ip}"`
                 }, 5000);
             } else if (request == "CloudEdit") {
                 if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
-                    while (db.pendingStudioAuthentications[ip].length > 0 && !user){
+                    while (db.pendingStudioAuthentications[ip].length > 0 && !user) {
                         const cookieObject = db.pendingStudioAuthentications[ip].shift();
                         if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
                             // return res.sendStatus(403);
@@ -1710,7 +1714,7 @@ publicIp = "${ip}"`
                             if (await gameSession.update()) {
                                 clearInterval(interval);
                             }
-                        }, 5000);  
+                        }, 5000);
                     });
                 }
 
@@ -1735,7 +1739,7 @@ publicIp = "${ip}"`
                         }
                         return;
                     }
-    
+
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
