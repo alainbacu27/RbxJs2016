@@ -48,7 +48,7 @@ module.exports = {
                         const fd = entry.getData();
                         const mimetype = mime.lookup(fn);
                         if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg" || mimetype == "image/bmp" || mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg" || mimetype == "video/webm" || mimetype == "model/obj") {
-                            if (fd.length > 9 * 1024 * 1024) {
+                            if (fd.length > 5 * 1024 * 1024) {
                                 req.uploadedFiles.push(`?: ${fn} (FAILED: Too big filesize)`);
                                 continue;
                             }

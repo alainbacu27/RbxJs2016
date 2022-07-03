@@ -111,6 +111,10 @@ async function setDataStore(placeid, key, type, scope, target, value) {
             returnPromise(false);
             return;
         }
+        if (value.length > 1 * 1024 * 1024){
+            returnPromise(false);
+            return;
+        }
         MongoClient.connect(mongourl, function (err, db) {
             if (err) throw err;
             const dbo = db.db(dbName);
