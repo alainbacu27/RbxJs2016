@@ -4215,7 +4215,7 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("catalog").countDocuments(function (err, result) {
+                dbo.collection("games").countDocuments(function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(null);
