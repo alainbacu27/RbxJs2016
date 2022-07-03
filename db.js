@@ -4233,11 +4233,11 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("games").countDocuments({
+                dbo.collection("games").find({
                     port: {
                         $gt: 0
                     }
-                }, function (err, result) {
+                }).toArray(function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(null);
@@ -4259,7 +4259,7 @@ module.exports = {
                     port: {
                         $gt: 0
                     }
-                }, function (err, result) {
+                }).toArray(function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(null);
