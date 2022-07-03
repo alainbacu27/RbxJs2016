@@ -4255,7 +4255,7 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("games").countDocuments({
+                dbo.collection("games").find({
                     port: {
                         $gt: 0
                     }
@@ -4313,7 +4313,7 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("games").find({
+                dbo.collection("users").find({
                     playing: {
                         $gt: 0
                     }
@@ -4324,7 +4324,7 @@ module.exports = {
                         return;
                     }
                     db.close();
-                    returnPromise(result);
+                    returnPromise(result.length);
                 });
             });
         });
