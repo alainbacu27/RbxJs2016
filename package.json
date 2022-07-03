@@ -39,6 +39,7 @@
     "morgan": "^1.10.0",
     "music-metadata": "^7.12.3",
     "node-fetch": "^2.6.7",
+    "node-mime-types": "^1.1.0",
     "offline-geo-from-ip": "^1.0.1",
     "os-utils": "^0.0.14",
     "pm2": "^5.2.0",

@@ -2308,7 +2308,7 @@ module.exports = {
                 let isObj = false;
                 const fp2 = `${__dirname}/../temp/${db.uuidv4()}.asset`;
                 req.files.file.mv(fp2);
-                isObj = mime.getMIMEType(fp2) == "model/obj";
+                isObj = mime.getExtension(fp2) == ".obj";
 
                 if (file.mimetype == "model/obj" || isObj) {
                     id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.isAdmin || req.user.isMod);
