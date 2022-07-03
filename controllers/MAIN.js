@@ -2307,19 +2307,20 @@ module.exports = {
 
                 let isObj = false;
                 const fp2 = `${__dirname}/../temp/${db.uuidv4()}.asset`;
-                req.files.file.mv(fp2);
-                isObj = mime.getExtension(fp2) == ".obj";
+                req.files.file.mv(fp2, async (err) => {
+                    isObj = mime.getExtension(fp2) == ".obj";
 
-                if (file.mimetype == "model/obj" || isObj) {
-                    id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.isAdmin || req.user.isMod);
-                    const fp = `${__dirname}/../assets/${id}.asset`;
-                    fs.renameSync(fp2,fp);
-                    await db.convertMesh(fp);
-                } else {
-                    fs.unlinkSync(fp2);
-                    res.status(400).send("Only listed formats are allowed!");
-                    return;
-                }
+                    if (file.mimetype == "model/obj" || isObj) {
+                        id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.isAdmin || req.user.isMod);
+                        const fp = `${__dirname}/../assets/${id}.asset`;
+                        fs.renameSync(fp2,fp);
+                        await db.convertMesh(fp);
+                    } else {
+                        fs.unlinkSync(fp2);
+                        res.status(400).send("Only listed formats are allowed!");
+                        return;
+                    }
+                });
             } else {
                 res.status(400).render("400", await db.getRenderObject(req.user));
                 return;
