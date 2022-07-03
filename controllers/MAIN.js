@@ -5,6 +5,7 @@ const fetch = require('node-fetch');
 const querystring = require('querystring');
 const get_ip = require('ipware')().get_ip;
 const mm = require('music-metadata');
+let exec = require('child_process').exec;
 
 module.exports = {
     init: (app, db) => {
@@ -1920,7 +1921,7 @@ module.exports = {
             if (Page) {
                 Page = Page.toLowerCase();
             }
-            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios") || View != null) {
+            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes") || View != null) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -2098,6 +2099,55 @@ module.exports = {
                 }
             }
 
+            let meshesHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "meshes") {
+                let assets = await db.getAssets(req.user.userid, "Mesh");
+                assets = assets.reverse();
+                for (let i = 0; i < assets.length; i++) {
+                    const asset = assets[i];
+                    // if (asset.deleted) continue;
+                    const created = db.unixToDate(asset.created);
+                    const updated = db.unixToDate(asset.updated);
+                    meshesHtml += `<table class="item-table" data-item-id="${asset.id}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://www.rbx2016.tk/library/${asset.id}"
+                                    class="item-image"><img class=""
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg"}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://www.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${asset.sold}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
             res.render("develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
@@ -2105,8 +2155,9 @@ module.exports = {
                 gamepasses: gamepassesHtml,
                 decals: decalsHtml,
                 audios: audiosHtml,
+                meshes: meshesHtml,
                 tab: Page,
-                assetTypeId: Page == "game-passes" ? 34 : Page == "decals" ? 13 : Page == "audios" ? 3 : null,
+                assetTypeId: Page == "game-passes" ? 34 : Page == "decals" ? 13 : Page == "audios" ? 3 : Page == "meshes" ? 4 : null,
                 gameid: Page == "game-passes" ? game != null ? game.gameid : null : null
             });
         });
@@ -2182,7 +2233,7 @@ module.exports = {
                     res.status(400).send("No file uploaded");
                     return;
                 }
-                if (req.files.file.size > 5 * 1024 * 1024) {
+                if (req.files.file.size > 9 * 1024 * 1024) {
                     res.status(400).send("File too large");
                     return;
                 }
@@ -2226,6 +2277,37 @@ module.exports = {
                     }
                     id = await db.createAsset(req.user.userid, name, desc, "Audio", req.user.isAdmin || req.user.isMod);
                     req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
+            } else if(assetTypeId == 4){
+                if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
+                    if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.isAdmin || req.user.isMod) ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                            res.status(401).send("You have reached the daily asset upload limit");
+                            return;
+                        }
+                    } else {
+                        await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                    }
+                } else if (req.user.firstDailyAssetUpload == 0) {
+                    await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                }
+                if (!req.files || Object.keys(req.files).length == 0) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                if (req.files.file.size > 9 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                const file = req.files.file;
+                if (file.mimetype == "model/obj") {
+                    id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.isAdmin || req.user.isMod);
+                    const fp = `${__dirname}/../assets/${id}.asset`;
+                    req.files.file.mv(fp);
+                    await db.convertMesh(fp);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -2284,7 +2366,7 @@ module.exports = {
                 formData = `<div id="audio-bucket-data" data-max-audio-size="20480000" data-max-audio-length="420" data-audio-enabled="false" data-audio-size="8388608" data-audio-price="100" data-shortsoundeffect-enabled="true" data-shortsoundeffect-size="786432" data-shortsoundeffect-price="20" data-longsoundeffect-enabled="true" data-longsoundeffect-size="1835008" data-longsoundeffect-price="35" data-music-enabled="true" data-music-size="8388608" data-music-price="70" data-longmusic-enabled="true" data-longmusic-size="20480000" data-longmusic-price="350"></div>            <div class="form-row">Audio uploads must be less than 7 minutes and smaller than 9 MB.</div>
                 <div class="form-row">
                     <label for="file">Find your .mp3 or .ogg file:</label>
-                    <input id="file" type="file" accept="audio/*" name="file" tabindex="1">
+                    <input id="file" type="file" accept="audio/mpeg,audio/wav,audio/ogg" name="file" tabindex="1">
                     <span id="file-error" class="error"></span>
                 </div>
                         <div class="form-row">
@@ -2300,10 +2382,29 @@ module.exports = {
                     <div><a id="upload-fee-confirmation-link" target="_top">Audio</a> successfully created!</div>
                 </div>
             </div>`;
+            } else if (assetTypeId == 4) {
+                formData = `<div class="form-row">
+                <label for="file">Find your mesh:</label>
+                <input id="file" type="file" accept="model/obj" name="file" tabindex="1">
+                <span id="file-error" class="error">You must select a file</span>
+            </div>
+                    <div class="form-row">
+                <label for="name">Mesh Name:</label>
+                <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
+                <span id="name-error" class="error"></span>
+            </div>
+                <div class="form-row submit-buttons">
+                            <a id="upload-button" class="btn-medium btn-level-element  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
+                                    <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+            <div id="upload-fee-item-result-error" class="status-error btn-level-element hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+            <div id="upload-fee-item-result-success" class="status-confirm btn-level-element ${isUploaded ? "" : "hidden"}">
+                <div><a id="upload-fee-confirmation-link" target="_top">Mesh</a> successfully created!</div>
+            </div>
+            </div>`;
             } else if (assetTypeId == 13) {
                 formData = `<div class="form-row">
                 <label for="file">Find your image:</label>
-                <input id="file" type="file" name="file" tabindex="1">
+                <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
                 <span id="file-error" class="error">You must select a file</span>
             </div>
                     <div class="form-row">

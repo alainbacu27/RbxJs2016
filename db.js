@@ -5344,6 +5344,24 @@ module.exports = {
         });
     },
 
+    convertMesh: async function (fp){
+        return new Promise(async returnPromise => {
+            proc = exec(`${isWin ? "wine " : ""}${__dirname}/../internal/ObjToRBXMesh.exe ${fp} 2.00`, {
+                cwd: rccFolder
+            }, (err, stdout, stderr) => {});
+            const timeout = setTimeout(async () => {
+                kill(proc.pid, 'SIGTERM');
+                returnPromise(false);
+            }, 10000);
+            proc.on('exit', function() {
+                clearTimeout(timeout)
+                fs.unlinkSync(fp);
+                fs.renameSync(`${fp}.mesh`, fp);
+                returnPromise(true);
+            });
+        });
+    },
+
     createAsset: async function (userid, name, desc, type, approved) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {

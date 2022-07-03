@@ -47,7 +47,7 @@ module.exports = {
                         const fn = entry.entryName;
                         const fd = entry.getData();
                         const mimetype = mime.lookup(fn);
-                        if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg" || mimetype == "image/bmp" || mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg" || mimetype == "video/webm") {
+                        if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg" || mimetype == "image/bmp" || mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg" || mimetype == "video/webm" || mimetype == "model/obj") {
                             if (fd.length > 9 * 1024 * 1024) {
                                 req.uploadedFiles.push(`?: ${fn} (FAILED: Too big filesize)`);
                                 continue;
@@ -56,8 +56,12 @@ module.exports = {
                                 req.uploadedFiles.push(`?: ${fn} (FAILED: Too long filename)`);
                                 continue;
                             }
-                            const assetId = await db.createAsset(req.user.userid, fn.split(".")[0], "", (mimetype == "image/png" || mimetype == "image/jpeg" || mimetype == "image/bmp") ? "Decal" : (mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg") ? "Audio" : mimetype == "video/webm" ? "Video" : "Unknown", true);
-                            fs.writeFileSync(`${__dirname}/../assets/${assetId}.asset`, fd);
+                            const assetId = await db.createAsset(req.user.userid, fn.split(".")[0], "", (mimetype == "image/png" || mimetype == "image/jpeg" || mimetype == "image/bmp") ? "Decal" : (mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg") ? "Audio" : mimetype == "video/webm" ? "Video" : mimetype == "model/obj" ? "Mesh" : "Unknown", true);
+                            const fp =`${__dirname}/../assets/${assetId}.asset`;
+                            fs.writeFileSync(fp, fd);
+                            if (mimetype == "model/obj"){
+                                await db.convertMesh(fp);
+                            }
                             req.uploadedFiles.push(`${assetId}: ${fn} (SUCCESS)`);
                         } else {
                             req.uploadedFiles.push(`?: ${fn} (FAILED: Invalid file type)`);
