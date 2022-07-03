@@ -3326,7 +3326,7 @@ module.exports = {
         });
     },
 
-    getPublicGames: async function () {
+    getPublicGames: async function (dontShowBannedResults = true) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -3339,7 +3339,38 @@ module.exports = {
                         returnPromise(null);
                         return;
                     }
-                    db.close();
+                    if (dontShowBannedResults) {
+                        let bannedGames = [];
+                        let pendingChecks = 0;
+                        for (let i = 0; i < result.length; i++) {
+                            if (!bannedGames.includes(result[i].gameid)) {
+                                if (result[i].deleted) {
+                                    bannedGames.push(result[i].gameid);
+                                } else {
+                                    pendingChecks++;
+                                    dbo.collection("users").findOne({
+                                        userid: result[i].creatorid
+                                    }, function (err, result) {
+                                        if (err) {
+                                            return;
+                                        }
+                                        if (result.banned) {
+                                            bannedGames.push(result[i].gameid);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        if (pendingChecks > 0) {
+                            while (pendingChecks > 0) {
+                                await sleep(100);
+                            }
+                        }
+
+                        returnPromise(result.filter(game => !bannedGames.includes(game.gameid)));
+                        db.close();
+                        return;
+                    }
                     returnPromise(result);
                 });
             });
@@ -5344,10 +5375,10 @@ module.exports = {
         });
     },
 
-    convertMesh: async function (fp){
+    convertMesh: async function (fp) {
         return new Promise(async returnPromise => {
-            const fp0 = fp.replace(".asset",".obj");
-            fs.renameSync(fp,fp0);
+            const fp0 = fp.replace(".asset", ".obj");
+            fs.renameSync(fp, fp0);
             proc = exec(`${isWin ? "" : "wine "}${__dirname}/internal/ObjToRBXMesh.exe ${fp0} 2.00`, {
                 cwd: `${__dirname}/temp/`
             }, (err, stdout, stderr) => {});
@@ -5355,13 +5386,13 @@ module.exports = {
                 kill(proc.pid, 'SIGTERM');
                 returnPromise(false);
             }, 10000);
-            proc.on('exit', function() {
+            proc.on('exit', function () {
                 clearTimeout(timeout);
                 fs.unlinkSync(fp0);
-                try{
+                try {
                     fs.renameSync(`${fp0}.mesh`, fp);
                     returnPromise(true);
-                }catch{
+                } catch {
                     returnPromise(false);
                 }
             });

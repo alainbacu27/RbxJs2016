@@ -3923,7 +3923,11 @@ module.exports = {
             }
             const creator = await db.getUser(game.creatorid);
             if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
-                res.status(404).json({});
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
                 return;
             }
 
