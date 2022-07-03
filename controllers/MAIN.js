@@ -6,6 +6,7 @@ const querystring = require('querystring');
 const get_ip = require('ipware')().get_ip;
 const mm = require('music-metadata');
 let exec = require('child_process').exec;
+const mime = require('node-mime-types');
 
 module.exports = {
     init: (app, db) => {
@@ -2303,12 +2304,19 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "model/obj") {
+
+                let isObj = false;
+                const fp2 = `${__dirname}/../temp/${db.uuidv4()}.asset`;
+                req.files.file.mv(fp2);
+                isObj = mime.getMIMEType(fp2) == "model/obj";
+
+                if (file.mimetype == "model/obj" || isObj) {
                     id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.isAdmin || req.user.isMod);
                     const fp = `${__dirname}/../assets/${id}.asset`;
-                    req.files.file.mv(fp);
+                    fs.renameSync(fp2,fp);
                     await db.convertMesh(fp);
                 } else {
+                    fs.unlinkSync(fp2);
                     res.status(400).send("Only listed formats are allowed!");
                     return;
                 }
