@@ -3333,7 +3333,7 @@ module.exports = {
                 const dbo = db.db(dbName);
                 dbo.collection("games").find({
                     isPublic: true
-                }).toArray(async function (err, result) {
+                }).toArray(async function (err, results) {
                     if (err) {
                         db.close();
                         returnPromise(null);
@@ -3342,20 +3342,20 @@ module.exports = {
                     if (dontShowBannedResults) {
                         let bannedGames = [];
                         let pendingChecks = 0;
-                        for (let i = 0; i < result.length; i++) {
-                            if (!bannedGames.includes(result[i].gameid)) {
-                                if (result[i].deleted) {
-                                    bannedGames.push(result[i].gameid);
+                        for (let i = 0; i < results.length; i++) {
+                            if (!bannedGames.includes(results[i].gameid)) {
+                                if (results[i].deleted) {
+                                    bannedGames.push(results[i].gameid);
                                 } else {
                                     pendingChecks++;
                                     dbo.collection("users").findOne({
-                                        userid: result[i].creatorid
+                                        userid: results[i].creatorid
                                     }, function (err, result) {
                                         if (err) {
                                             return;
                                         }
                                         if (result.banned) {
-                                            bannedGames.push(result[i].gameid);
+                                            bannedGames.push(results[i].gameid);
                                         }
                                     });
                                 }
@@ -3367,11 +3367,11 @@ module.exports = {
                             }
                         }
 
-                        returnPromise(result.filter(game => !bannedGames.includes(game.gameid)));
+                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)));
                         db.close();
                         return;
                     }
-                    returnPromise(result);
+                    returnPromise(results);
                 });
             });
         });
