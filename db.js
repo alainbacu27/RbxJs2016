@@ -111,7 +111,7 @@ async function setDataStore(placeid, key, type, scope, target, value) {
             returnPromise(false);
             return;
         }
-        if (value.length > 1 * 1024 * 1024){
+        if (value.length > 256 * 1024){
             returnPromise(false);
             return;
         }

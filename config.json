@@ -141,7 +141,7 @@
         "maxMaintenanceWhitelistAttempts": 2,
         "canBypassMaintenanceScreen": true,
         "datastoresEnabled": true,
-        "datastoresMaxPerPlace": 20,
+        "datastoresMaxPerPlace": 400,
 
         "massAssetUploadEnabled": true,
         "massAssetUploadIsAdminOnly": true,
