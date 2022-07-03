@@ -6,7 +6,6 @@ const querystring = require('querystring');
 const get_ip = require('ipware')().get_ip;
 const mm = require('music-metadata');
 let exec = require('child_process').exec;
-const mime = require('node-mime-types');
 
 module.exports = {
     init: (app, db) => {
@@ -2304,19 +2303,23 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-
-                let isObj = false;
-                const fp2 = `${__dirname}/../temp/${db.uuidv4()}.asset`;
-                await req.files.file.mv(fp2);
-                isObj = mime.getExtension(fp2) == ".obj";
-
-                if (file.mimetype == "model/obj" || isObj) {
-                    id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.isAdmin || req.user.isMod);
-                    const fp = `${__dirname}/../assets/${id}.asset`;
-                    fs.renameSync(fp2,fp);
-                    await db.convertMesh(fp);
+                if (file.mimetype == "application/octet-stream") {
+                    if (file.data.toString().startsWith("MZ�������ÿÿ��") || file.data.toString().startsWith("ÐÏà¡±á��������")){
+                        res.status(400).send("Only listed formats are allowed!");
+                        return;
+                    }
+                    const fp0 = `${__dirname}/../temp/${db.uuidv4()}.asset`;
+                    await req.files.file.mv(fp0);
+                    const s = await db.convertMesh(fp0);
+                    if (s){
+                        id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.isAdmin || req.user.isMod);
+                        const fp = `${__dirname}/../assets/${id}.asset`;
+                        fs.renameSync(fp0, fp);
+                    }else{
+                        res.status(400).send("An error occured while uploading your file, please try again");
+                        return;
+                    }
                 } else {
-                    fs.unlinkSync(fp2);
                     res.status(400).send("Only listed formats are allowed!");
                     return;
                 }
