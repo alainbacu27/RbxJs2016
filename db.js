@@ -3351,6 +3351,7 @@ module.exports = {
                                     dbo.collection("users").findOne({
                                         userid: results[i].creatorid
                                     }, function (err, result) {
+                                        pendingChecks--;
                                         if (err) {
                                             return;
                                         }
@@ -3361,6 +3362,7 @@ module.exports = {
                                 }
                             }
                         }
+                        await sleep(10);
                         if (pendingChecks > 0) {
                             while (pendingChecks > 0) {
                                 await sleep(100);
