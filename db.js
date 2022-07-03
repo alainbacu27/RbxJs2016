@@ -3328,12 +3328,12 @@ module.exports = {
 
     getPublicGames: async function (dontShowBannedResults = true) {
         return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
+            MongoClient.connect(mongourl, async function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
                 dbo.collection("games").find({
                     isPublic: true
-                }).toArray(function (err, result) {
+                }).toArray(async function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(null);
