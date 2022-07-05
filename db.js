@@ -482,22 +482,6 @@ MongoClient.connect(mongourl, function (err, db) {
     if (err) throw err;
     const dbo = db.db(dbName);
     dbo.listCollections({
-        name: "datastore"
-    }).next(function (err, collinfo) {
-        if (err) throw err;
-        if (!collinfo) {
-            dbo.createCollection("datastore", function (err, res) {
-                if (err) throw err;
-                db.close();
-            });
-        }
-    });
-});
-
-MongoClient.connect(mongourl, function (err, db) {
-    if (err) throw err;
-    const dbo = db.db(dbName);
-    dbo.listCollections({
         name: "favorites"
     }).next(function (err, collinfo) {
         if (err) throw err;
