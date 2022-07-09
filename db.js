@@ -111,7 +111,7 @@ async function setDataStore(placeid, key, type, scope, target, value) {
             returnPromise(false);
             return;
         }
-        if (value.length > 256 * 1024){
+        if (value.length > 256 * 1024) {
             returnPromise(false);
             return;
         }
@@ -1047,27 +1047,27 @@ async function getRenderObject(user, banned = false) {
 async function getBlankRenderObject() {
     const config = await getConfig();
     return {
-        userid: null,
-        username: null,
-        isUnder13: null,
-        accountCreated: null,
-        isAdmin: null,
-        banned: null,
-        bannedDate: null,
-        bannedModNote: null,
-        bannedReason: null,
-        bannedReasonItem: null,
-        xcsrftoken: null,
-        robux: null,
-        robux2: null,
-        robuxFormatted: null,
-        tix: null,
-        tix2: null,
-        tixFormatted: null,
+        userid: 0,
+        username: "",
+        isUnder13: false,
+        accountCreated: 0,
+        isAdmin: false,
+        banned: false,
+        bannedDate: 0,
+        bannedModNote: "",
+        bannedReason: "",
+        bannedReasonItem: "",
+        xcsrftoken: "",
+        robux: "?",
+        robux2: "?",
+        robuxFormatted: "?",
+        tix: "?",
+        tix2: "?",
+        tixFormatted: "?",
 
         theme: "light",
-        gender: null,
-        birthday: null,
+        gender: 1,
+        birthday: 0,
 
         robloxMessage: config.roblox_message
     };
@@ -2302,6 +2302,7 @@ module.exports = {
 
     setDataStore: setDataStore,
     getDataStore: getDataStore,
+    increaseDataStore: increaseDataStore,
     getSortedDataStore: getSortedDataStore,
 
     setMaintenanceWhitelistCode: setMaintenanceWhitelistCode,
@@ -3433,7 +3434,31 @@ module.exports = {
         });
     },
 
-    createCatalogItem: async function (itemname, itemdescription, itemprice, itemimage, itemtype, itemcreatorid) {
+    setCatalogItemProperty: async function (itemid, property, value) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("catalog").updateOne({
+                    itemid: itemid
+                }, {
+                    $set: {
+                        [property]: value
+                    }
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(true);
+                });
+            });
+        });
+    },
+
+    createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, decalId = 0, meshId = 0, amount = -1, itemimage = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc8.png") {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -3469,14 +3494,18 @@ module.exports = {
                             itemfavorites: [],
                             itemlikes: [],
                             itemdislikes: [],
-                            itempurcheses: [],
+                            itemowners: [],
+                            itemdecalid: decalId,
+                            itemmeshid: meshId,
                             itempricestatus: itemprice == 0 ? "Free" : null, // OffSale, NoResellers
-                            // unitsAvailableForConsumption: 0,
+                            unitsAvailableForConsumption: amount,
                             // lowestPrice: itemprice,
                             created: getUnixTimestamp(),
                             updated: getUnixTimestamp(),
                             itemoffsafedeadline: null,
-                            itemgenre: "All"
+                            itemgenre: "All",
+                            onSale: false,
+                            currency: 1
                         }, function (err, res) {
                             if (err) {
                                 db.close();
@@ -3587,6 +3616,27 @@ module.exports = {
                         $regex: keyword,
                         $options: "i"
                     }
+                }).toArray(function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
+    
+    getCatalogItemsFromCreatorId: async function (creatorid, type) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("catalog").find({
+                    itemcreatorid: creatorid,
+                    itemtype: type
                 }).toArray(function (err, result) {
                     if (err) {
                         db.close();
@@ -4414,6 +4464,7 @@ module.exports = {
     formatBytes: formatBytes,
 
     formatNumber: formatNumber,
+    formatNumberS: formatNumberS,
 
     findUserByCookie: findUserByCookie,
 
@@ -4493,8 +4544,21 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    db.close();
-                    returnPromise(true);
+                    dbo.collection("catalog").updateOne({
+                        itemid: itemid
+                    }, {
+                        $pull: {
+                            itemowners: userid
+                        }
+                    }, function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(true);
+                    });
                 });
             });
         });
@@ -5140,7 +5204,7 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    if (result && result.owners.includes(userid)) {
+                    if (result && result.itemowners.includes(userid)) {
                         db.close();
                         returnPromise(true);
                     } else {
@@ -5319,6 +5383,162 @@ module.exports = {
                                     }, {
                                         $inc: {
                                             tix: Math.floor((gamepass.price / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
+                                        }
+                                    }, function (err, res) {
+                                        if (err) {
+                                            db.close();
+                                            returnPromise(false);
+                                            return;
+                                        }
+                                        db.close();
+                                        returnPromise(true);
+                                    });
+                                });
+                            });
+                        });
+                    } else {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                });
+            });
+        });
+    },
+
+    buyCatalogItem: async function (user, itemid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("catalog").findOne({
+                    itemid: itemid
+                }, function (err, item) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (item == null) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (!item.onSale && user.userid != item.itemcreatorid) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (item.itemowners.includes(user.userid)) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (item.currency == 1) {
+                        if (user.robux < item.itemprice) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        dbo.collection("users").updateOne({
+                            userid: user.userid
+                        }, {
+                            $inc: {
+                                robux: -item.itemprice
+                            }
+                        }, function (err, res) {
+                            if (err) {
+                                db.close();
+                                returnPromise(false);
+                                return;
+                            }
+                            dbo.collection("catalog").updateOne({
+                                itemid: itemid
+                            }, {
+                                $inc: {
+                                    sold: 1
+                                },
+                                $push: {
+                                    itemowners: user.userid
+                                }
+                            }, function (err, res) {
+                                if (err) {
+                                    db.close();
+                                    returnPromise(false);
+                                    return;
+                                }
+                                dbo.collection("users").findOne({
+                                    userid: item.itemcreatorid
+                                }, function (err, creator) {
+                                    if (err) {
+                                        db.close();
+                                        returnPromise(false);
+                                        return;
+                                    }
+                                    dbo.collection("users").updateOne({
+                                        userid: item.itemcreatorid
+                                    }, {
+                                        $inc: {
+                                            robux: Math.floor((item.itemprice / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
+                                        }
+                                    }, function (err, res) {
+                                        if (err) {
+                                            db.close();
+                                            returnPromise(false);
+                                            return;
+                                        }
+                                        db.close();
+                                        returnPromise(true);
+                                    });
+                                });
+                            });
+                        });
+                    } else if (item.currency == 2) {
+                        if (user.tix < item.itemprice) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        dbo.collection("users").updateOne({
+                            userid: user.userid
+                        }, {
+                            $inc: {
+                                tix: -item.itemprice
+                            }
+                        }, function (err, res) {
+                            if (err) {
+                                db.close();
+                                returnPromise(false);
+                                return;
+                            }
+                            dbo.collection("catalog").updateOne({
+                                itemid: itemid
+                            }, {
+                                $inc: {
+                                    sold: 1
+                                },
+                                $push: {
+                                    itemowners: user.userid
+                                }
+                            }, function (err, res) {
+                                if (err) {
+                                    db.close();
+                                    returnPromise(false);
+                                    return;
+                                }
+                                dbo.collection("users").findOne({
+                                    userid: item.itemcreatorid
+                                }, function (err, creator) {
+                                    if (err) {
+                                        db.close();
+                                        returnPromise(false);
+                                        return;
+                                    }
+                                    dbo.collection("users").updateOne({
+                                        userid: item.itemcreatorid
+                                    }, {
+                                        $inc: {
+                                            tix: Math.floor((item.itemprice / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
                                         }
                                     }, function (err, res) {
                                         if (err) {

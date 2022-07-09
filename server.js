@@ -23,7 +23,7 @@ template.app.use("/", express.static(__dirname + "/public/setup"));
 const whitelistedUrls = ["/moderation/filtertext/", "//moderation/filtertext/"]
 template.app.use((req, res, next) => {
     if (req.path.substr(-1) === '/' && req.path.length > 1 && !whitelistedUrls.includes(req.path)) {
-        const query = req.url.slice(req.path.length)
+        const query = rezq.url.slice(req.path.length)
         const safepath = req.path.slice(0, -1).replace(/\/+/g, '/')
         res.redirect(301, safepath + query)
     } else {
