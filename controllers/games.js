@@ -573,9 +573,9 @@ module.exports = {
         app.get("/v1/games/list", async (req, res) => {
             let games = []
             if (req.query.keyword) {
-                games = await db.findGames(req.query.keyword);
+                games = await db.findGames(req.query.keyword)
             } else {
-                games = await db.getPublicGames();
+                games = await db.getGamesByCreatorId(1)
             }
             let games_json = []
             for (let i = 0; i < games.length; i++) {
@@ -976,11 +976,7 @@ module.exports = {
                 res.status(400).send()
                 return;
             }
-            const games = await db.getJobsByGameId(placeId);
-            for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
-            }
+            await db.setGameProperty(placeId, "port", 0);
             const script = `
 `
             const signature = db.sign(script);
@@ -1006,12 +1002,7 @@ module.exports = {
                 res.status(400).send()
                 return;
             }
-            const games = await db.getJobsByGameId(placeId);
-            for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
-            }
-            // await db.setGameProperty(placeId, "port", 0);
+            await db.setGameProperty(placeId, "port", 0);
             const script = `
 `
             const signature = db.sign(script);

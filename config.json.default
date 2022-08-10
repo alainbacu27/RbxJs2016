@@ -100,10 +100,7 @@
 
         "MODS_ACCESS": ["index", "assetmoderation", "statistics"],
 
-        "CLIENT_DOWNLOAD_AVAIlABLE": true,
-
-        "ShirtUploadCost": 4,
-        "PantsUploadCost": 4
+        "CLIENT_DOWNLOAD_AVAIlABLE": true
     },
     "backend": {
         "PRODUCTION": false,
@@ -144,7 +141,7 @@
         "maxMaintenanceWhitelistAttempts": 2,
         "canBypassMaintenanceScreen": true,
         "datastoresEnabled": true,
-        "datastoresMaxPerPlace": 20,
+        "datastoresMaxPerPlace": 10,
 
         "massAssetUploadEnabled": true,
         "massAssetUploadIsAdminOnly": true,
@@ -158,9 +155,7 @@
         "robuxServiceEnabled": true,
         "thumbnailServiceEnabled": true,
         "hostingEnabled": true,
-        "serverStartingPort": 44000,
-        "maxServers": 500,
-        "hostingTeamCreateEnabled": false,
+        "hostingTeamCreateEnabled": true,
         "hostingConnectsToLocalhost": false,
         "maxGameStartupTime": 25,
 
