@@ -2287,7 +2287,7 @@ module.exports = {
                     res.status(400).send("No file uploaded");
                     return;
                 }
-                if (req.files.file.size > 5 * 1024 * 1024) {
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
                     res.status(400).send("File too large");
                     return;
                 }
@@ -2317,7 +2317,7 @@ module.exports = {
                     res.status(400).send("No file uploaded");
                     return;
                 }
-                if (req.files.file.size > 5 * 1024 * 1024) {
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
                     res.status(400).send("File too large");
                     return;
                 }
@@ -2352,7 +2352,7 @@ module.exports = {
                     res.status(400).send("No file uploaded");
                     return;
                 }
-                if (req.files.file.size > 5 * 1024 * 1024) {
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
                     res.status(400).send("File too large");
                     return;
                 }
@@ -2388,7 +2388,7 @@ module.exports = {
                     res.status(400).send("No file uploaded");
                     return;
                 }
-                if (req.files.file.size > 5 * 1024 * 1024) {
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
                     res.status(400).send("File too large");
                     return;
                 }
@@ -2465,7 +2465,7 @@ module.exports = {
                 </div>
             </div>`;
             } else if (assetTypeId == 3) {
-                formData = `<div id="audio-bucket-data" data-max-audio-size="20480000" data-max-audio-length="420" data-audio-enabled="false" data-audio-size="8388608" data-audio-price="100" data-shortsoundeffect-enabled="true" data-shortsoundeffect-size="786432" data-shortsoundeffect-price="20" data-longsoundeffect-enabled="true" data-longsoundeffect-size="1835008" data-longsoundeffect-price="35" data-music-enabled="true" data-music-size="8388608" data-music-price="70" data-longmusic-enabled="true" data-longmusic-size="20480000" data-longmusic-price="350"></div>            <div class="form-row">Audio uploads must be less than 7 minutes and smaller than 5 MB.</div>
+                formData = `<div id="audio-bucket-data" data-max-audio-size="20480000" data-max-audio-length="420" data-audio-enabled="false" data-audio-size="8388608" data-audio-price="100" data-shortsoundeffect-enabled="true" data-shortsoundeffect-size="786432" data-shortsoundeffect-price="20" data-longsoundeffect-enabled="true" data-longsoundeffect-size="1835008" data-longsoundeffect-price="35" data-music-enabled="true" data-music-size="8388608" data-music-price="70" data-longmusic-enabled="true" data-longmusic-size="20480000" data-longmusic-price="350"></div>            <div class="form-row">Audio uploads must be less than 7 minutes and smaller than 5.5 MB.</div>
                 <div class="form-row">
                     <label for="file">Find your .mp3 or .ogg file:</label>
                     <input id="file" type="file" accept="audio/mpeg,audio/wav,audio/ogg" name="file" tabindex="1">
