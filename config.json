@@ -4,7 +4,7 @@
         "httpsEnabled": true,
         "httpsPort": 443,
 
-        "allowSignup": true,
+        "allowSignup": false,
         "allowLogin": true,
         "allowQuickLogin": true,
         "passwordConfiguration": {
@@ -100,7 +100,10 @@
 
         "MODS_ACCESS": ["index", "assetmoderation", "statistics"],
 
-        "CLIENT_DOWNLOAD_AVAIlABLE": true
+        "CLIENT_DOWNLOAD_AVAIlABLE": true,
+
+        "ShirtUploadCost": 4,
+        "PantsUploadCost": 4
     },
     "backend": {
         "PRODUCTION": false,
@@ -141,7 +144,7 @@
         "maxMaintenanceWhitelistAttempts": 2,
         "canBypassMaintenanceScreen": true,
         "datastoresEnabled": true,
-        "datastoresMaxPerPlace": 10,
+        "datastoresMaxPerPlace": 400,
 
         "massAssetUploadEnabled": true,
         "massAssetUploadIsAdminOnly": true,
@@ -157,8 +160,8 @@
         "hostingEnabled": true,
         "serverStartingPort": 44000,
         "maxServers": 500,
-        "hostingTeamCreateEnabled": true,
-        "hostingConnectsToLocalhost": true,
+        "hostingTeamCreateEnabled": false,
+        "hostingConnectsToLocalhost": false,
         "maxGameStartupTime": 25,
 
         "devProducuts": {

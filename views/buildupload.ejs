@@ -685,10 +685,6 @@
 
     </div>
 
-    <script type="text/javascript" onerror="Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)"
-        data-monitor="true" data-bundlename="AssetsUploader" data-bundle-source="Main"
-        src="https://js.rbx2016.tk/be590329c2dd5c48f1fe92650154cb5904563fe71581f78a982a3f1ed0da3adc.js"></script>
-
 
 
     <% if (verifyUpload) { %>
@@ -709,16 +705,14 @@
                     <label class="sort-label">Target Experience: <a href="https://www.rbx2016.tk/games/<%= gameid %>"
                             target="_blank"><%= gamename %></a></label>
                 </div>
-                <% } %>
-                <% if (gameid != null){ %>
-                    <div class="hidden-form-info">
-                        <input name="targetPlaceId" value="<%= gameid %>" />
-                    </div>
+                <div class="hidden-form-info">
+                    <input name="targetPlaceId" value="<%= gameid %>" />
+                </div>
                 <% } %>
                 <%- formData %>
             </div>
         </form>
-    <% }else{ %>
+    <% } else { %>
         <form action="/build/doverifiedupload" enctype="multipart/form-data" id="upload-form" method="post">
             <input name="__RequestVerificationToken" type="hidden"
                 value="<%= xcsrftoken %>" />
@@ -736,16 +730,33 @@
                     <label class="sort-label">Target Experience: <a href="https://www.rbx2016.tk/games/<%= gameid %>"
                             target="_blank"><%= gamename %></a></label>
                 </div>
-                <% } %>
-                <% if (gameid != null){ %>
-                    <div class="hidden-form-info">
-                        <input name="targetPlaceId" value="<%= gameid %>" />
-                    </div>
+                <div class="hidden-form-info">
+                    <input name="targetPlaceId" value="<%= gameid %>" />
+                </div>
                 <% } %>
                 <%- formData %>
             </div>
         </form>
     <% } %>
+    <script>
+        const btn = document.getElementById('upload-button');
+        const form = document.getElementById('upload-form');
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            form.submit();
+        });
+
+        const file = document.getElementById('file');
+        file.addEventListener('change', function (e) {
+            let fileName = e.target.files[0].name.split(".");
+            if (fileName.length > 1){
+                fileName = fileName.splice(0, fileName.length - 1).join(".");
+            }
+            document.getElementById('name').setAttribute("value", fileName);
+            document.getElementById('name').focus();
+        });
+    </script>
+
     <script type="text/javascript">
         if (typeof Roblox === "undefined") {
             Roblox = {};
@@ -756,6 +767,7 @@
 
         Roblox.EmbeddedUpload.Resources = {
             invalidImageFile: 'Must be a .png, .jpg, .tga, or .bmp file',
+            invalidMeshFile: 'Must be a .obj file',
             invalidSoundFile: 'Must be a .mp3 or .ogg file',
             invalidPluginFile: 'Must be an .rbxm file',
             noFile: 'You must select a file',

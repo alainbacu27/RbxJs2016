@@ -176,7 +176,12 @@ module.exports = {
                 return;
             }
             let ROBLOSECURITY_COOKIES = "";
-            if (typeof username == "undefined") {
+            if (typeof username != "string") {
+                return res.status(400).send();
+            }
+            if (username.length < 3){
+                return res.status(400).send();
+            }else if (username.length > 50){
                 return res.status(400).send();
             }
             if (!shouldDeleteOldUser) {

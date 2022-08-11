@@ -3,6 +3,8 @@ const path = require("path");
 const cookieParser = require('cookie-parser');
 const fetch = require('node-fetch');
 const querystring = require('querystring');
+const AdmZip = require('adm-zip');
+const mime = require('mime');
 
 module.exports = {
     init: (app, db) => {
@@ -23,52 +25,61 @@ module.exports = {
         }
 
         app.post("/v1/assets/upload", db.requireAuth2, verifyUpload, async (req, res) => {
-            const zipFile = req.files.files[0];
+            const zipFile = req.files.files;
             if (!zipFile) {
                 res.status(400).send("No file uploaded");
                 return;
             }
-            if (zipFile.mimetype != "application/zip") {
+            if (zipFile.mimetype != "application/zip" && zipFile.mimetype != "application/x-zip-compressed") {
                 res.status(400).send("Only zip files are allowed!");
                 return;
             }
-            const fp = `${__dirname}/../temp/${db.uuidv4()}.zip`;
-            zipFile.mv(fp)
-            try {
-                const zip = new AdmZip(fp);
-                const zipEntries = zip.getEntries();
-                for (let i = 0; i < zipEntries.length; i++) {
-                    const entry = zipEntries[i];
-                    if (entry.isDirectory) {
-                        continue;
-                    }
-                    const fn = entry.entryName;
-                    const fd = entry.getData();
-                    const mimetype = mime.lookup(fn);
-                    if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg" || mimetype == "image/bmp" || mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg" || mimetype == "video/webm") {
-                        if (fd.length > 19.5 * 1024 * 1024) {
-                            req.uploadedFiles.push(`?: ${file.name} (FAILED: File too big)`);
+            const fp = path.resolve(`${__dirname}/../temp/${db.uuidv4()}.zip`);
+            zipFile.mv(fp, async () => {
+                try {
+                    const zip = new AdmZip(fp);
+                    const zipEntries = zip.getEntries();
+                    for (let i = 0; i < zipEntries.length; i++) {
+                        const entry = zipEntries[i];
+                        if (entry.isDirectory) {
                             continue;
                         }
-                        const assetId = await db.createAsset(req.user.userid, file.name.split(".")[0], "", file.mimetype == "image/png" ? "image/png" : "image/jpeg" ? 13 : file.mimetype == "audio/mpeg" || file.mimetype == "audio/wav" || file.mimetype == "audio/ogg" ? 3 : file.mimetype == "video/webm" ? 62 : 0);
-                        fs.writeFileSync(`${__dirname}/../assets/${id}.asset`, fd);
-                        req.uploadedFiles.push(`${assetId}: ${file.name} (SUCCESS)`);
-                    } else {
-                        req.uploadedFiles.push(`?: ${file.name} (FAILED: Invalid file type)`);
+                        const fn = entry.entryName;
+                        const fd = entry.getData();
+                        const mimetype = mime.lookup(fn);
+                        if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg" || mimetype == "image/bmp" || mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg" || mimetype == "video/webm" || mimetype == "model/obj") {
+                            if (fd.length > 5 * 1024 * 1024) {
+                                req.uploadedFiles.push(`?: ${fn} (FAILED: Too big filesize)`);
+                                continue;
+                            }
+                            if (fn.length >= 100) {
+                                req.uploadedFiles.push(`?: ${fn} (FAILED: Too long filename)`);
+                                continue;
+                            }
+                            const assetId = await db.createAsset(req.user.userid, fn.split(".")[0], "", (mimetype == "image/png" || mimetype == "image/jpeg" || mimetype == "image/bmp") ? "Decal" : (mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg") ? "Audio" : mimetype == "video/webm" ? "Video" : mimetype == "model/obj" ? "Mesh" : "Unknown", true);
+                            const fp =`${__dirname}/../assets/${assetId}.asset`;
+                            fs.writeFileSync(fp, fd);
+                            if (mimetype == "model/obj"){
+                                await db.convertMesh(fp);
+                            }
+                            req.uploadedFiles.push(`${assetId}: ${fn} (SUCCESS)`);
+                        } else {
+                            req.uploadedFiles.push(`?: ${fn} (FAILED: Invalid file type)`);
+                        }
                     }
+                    try {
+                        fs.unlinkSync(fp);
+                    } catch {}
+                } catch (e) {
+                    try {
+                        fs.unlinkSync(fp);
+                    } catch {}
+                    res.status(400).send("Invalid zip file!");
+                    return;
                 }
-                for (let i = 0; i < req.files.length; i++) {
 
-                }
-            } catch {
-                try {
-                    path.unlink(fp);
-                } catch {}
-                res.status(400).send("Invalid zip file!");
-                return;
-            }
-
-            res.send(req.uploadedFiles ? "None" : req.uploadedFiles.join("\n"));
+                res.send(req.uploadedFiles.length == 0 ? "None" : req.uploadedFiles.join("\n<p>&nbsp;</p>"));
+            })
         });
 
         app.post('/v1/assets/batch', async (req, res) => {
@@ -111,12 +122,16 @@ module.exports = {
                 user = await db.findUserByToken(req.query.t);
             }
 
+            if (!req.query.id) {
+                res.status(404).send();
+                return;
+            }
             const id0 = req.query.id.split("|");
             const id = parseInt(id0[0]);
             const apiKey = req.query.apiKey || (id0.length > 1 ? id0[1] : "");
 
             if (id0[0].startsWith("r") && db.getSiteConfig().backend.robloxAssetsUsingR == true) {
-                res.redirect("https://assetdelivery.roblox.tk/v1/asset/?id=" + parseInt(id0[0].substring(1)).toString());
+                res.redirect("https://assetdelivery.roblox.com/v1/asset/?id=" + parseInt(id0[0].substring(1)).toString());
                 return;
             }
 
@@ -168,7 +183,7 @@ module.exports = {
                 if (fs.existsSync(fp)) {
                     res.download(fp, "Download");
                 } else if (db.getSiteConfig().backend.fallbackToRobloxAssets == true) {
-                    res.redirect("https://assetdelivery.roblox.tk/v1/asset/?id=" + id);
+                    res.redirect("https://assetdelivery.roblox.com/v1/asset/?id=" + id);
                     // res.sendStatus(404);
                 }
             } else {
@@ -181,7 +196,7 @@ module.exports = {
                 if (fs.existsSync(fp)) {
                     res.download(fp, "Download");
                 } else if (db.getSiteConfig().backend.fallbackToRobloxAssets == true) {
-                    res.redirect("https://assetdelivery.roblox.tk/v1/asset/?id=" + id);
+                    res.redirect("https://assetdelivery.roblox.com/v1/asset/?id=" + id);
                     // res.sendStatus(404);
                 }
             }

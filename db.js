@@ -111,6 +111,10 @@ async function setDataStore(placeid, key, type, scope, target, value) {
             returnPromise(false);
             return;
         }
+        if (value.length > 256 * 1024) {
+            returnPromise(false);
+            return;
+        }
         MongoClient.connect(mongourl, function (err, db) {
             if (err) throw err;
             const dbo = db.db(dbName);
@@ -467,22 +471,6 @@ MongoClient.connect(mongourl, function (err, db) {
         if (err) throw err;
         if (!collinfo) {
             dbo.createCollection("assets", function (err, res) {
-                if (err) throw err;
-                db.close();
-            });
-        }
-    });
-});
-
-MongoClient.connect(mongourl, function (err, db) {
-    if (err) throw err;
-    const dbo = db.db(dbName);
-    dbo.listCollections({
-        name: "datastore"
-    }).next(function (err, collinfo) {
-        if (err) throw err;
-        if (!collinfo) {
-            dbo.createCollection("datastore", function (err, res) {
                 if (err) throw err;
                 db.close();
             });
@@ -1059,27 +1047,27 @@ async function getRenderObject(user, banned = false) {
 async function getBlankRenderObject() {
     const config = await getConfig();
     return {
-        userid: null,
-        username: null,
-        isUnder13: null,
-        accountCreated: null,
-        isAdmin: null,
-        banned: null,
-        bannedDate: null,
-        bannedModNote: null,
-        bannedReason: null,
-        bannedReasonItem: null,
-        xcsrftoken: null,
-        robux: null,
-        robux2: null,
-        robuxFormatted: null,
-        tix: null,
-        tix2: null,
-        tixFormatted: null,
+        userid: 0,
+        username: "",
+        isUnder13: false,
+        accountCreated: 0,
+        isAdmin: false,
+        banned: false,
+        bannedDate: 0,
+        bannedModNote: "",
+        bannedReason: "",
+        bannedReasonItem: "",
+        xcsrftoken: "",
+        robux: "?",
+        robux2: "?",
+        robuxFormatted: "?",
+        tix: "?",
+        tix2: "?",
+        tixFormatted: "?",
 
         theme: "light",
-        gender: null,
-        birthday: null,
+        gender: 1,
+        birthday: 0,
 
         robloxMessage: config.roblox_message
     };
@@ -1206,6 +1194,15 @@ setInterval(() => {
             for (let i = 0; i < result.length; i++) {
                 if (result[i].lastHeartBeat != 0 && Date.now() - unixToDate(result[i].lastHeartBeat) > 15000) {
                     needsUpdating++;
+                    const servers = await getJobsByGameId(result[i].gameid);
+                    if (servers.length > 0) {
+                        for (let j = 0; j < servers.length; j++) {
+                            const job = await getJob(servers[j]);
+                            if (job) {
+                                await job.stop();
+                            }
+                        }
+                    }
                     dbo.collection("games").updateOne({
                         gameid: result[i].gameid
                     }, {
@@ -1290,7 +1287,7 @@ setInterval(() => {
 
 let availableRCCPorts = [];
 for (let i = 0; i < siteConfig.backend.maxServers; i++) {
-    availableRCCPorts.push((siteConfig.backend.serverStartingPort + siteConfig.backend.maxServers) + i);
+    availableRCCPorts.push((siteConfig.backend.serverStartingPort + siteConfig.backend.maxServers + 1) + i);
 }
 let availableGamePorts = [];
 for (let i = 0; i < siteConfig.backend.maxServers; i++) {
@@ -1302,29 +1299,29 @@ function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
         return `<?xml version = "1.0" encoding = "UTF-8"?>
     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://rbx2016.tk/RCCServiceSoap" xmlns:ns1="http://rbx2016.tk/" xmlns:ns3="http://rbx2016.tk/RCCServiceSoap12">
         <SOAP-ENV:Body>
-               <ns1:OpenJob>
+               <ns1:OpenJobEx>
                     <ns1:job>
                         <ns1:id>${id}</ns1:id>
                         <ns1:expirationInSeconds>${timeout}</ns1:expirationInSeconds>
                     </ns1:job>
                     <ns1:script>
-                        <ns1:name>ExecutionJob</ns1:name>
+                        <ns1:name>MainExecutionJob</ns1:name>
                         <ns1:script>${script}</ns1:script>
                     </ns1:script>
-                    </ns1:OpenJob>
+                </ns1:OpenJobEx>
             </SOAP-ENV:Body>
     </SOAP-ENV:Envelope>`;
     } else {
         return `<?xml version = "1.0" encoding = "UTF-8"?>
         <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://rbx2016.tk/RCCServiceSoap" xmlns:ns1="http://rbx2016.tk/" xmlns:ns3="http://rbx2016.tk/RCCServiceSoap12">
             <SOAP-ENV:Body>
-                   <ns1:Execute>
+                   <ns1:ExecuteEx>
                         <ns1:jobID>${id}</ns1:jobID>
                         <ns1:script>
-                            <ns1:name>ExecutionJob</ns1:name>
+                            <ns1:name>AdminPanelExecutionJob</ns1:name>
                             <ns1:script>${script}</ns1:script>
                         </ns1:script>
-                    </ns1:Execute>
+                    </ns1:ExecuteEx>
                 </SOAP-ENV:Body>
         </SOAP-ENV:Envelope>`;
     }
@@ -1589,6 +1586,12 @@ async function newJob(gameid, isCloudEdit = false) {
                         return;
                     }
 
+                    if (activeGameJobs[gameid]) { // For now..
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+
                     let myPort = 0;
                     let myHostPort = 0;
                     let jobId = "";
@@ -1604,18 +1607,27 @@ async function newJob(gameid, isCloudEdit = false) {
                                 returnPromise(null);
                                 return;
                             }
-                            if (Object.keys(activeJobs).includes(jobId)) {
+                            try {
                                 delete activeJobs[jobId];
-                            }
-                            if (Object.keys(activeGameJobs[gameid]).includes(jobId)) {
+                            } catch {}
+                            try {
                                 delete activeGameJobs[gameid][jobId];
-                            }
+                            } catch {}
+                            try {
+                                if (Object.keys(activeGameJobs[gameid]).length == 0) {
+                                    delete activeGameJobs[gameid];
+                                }
+                            } catch {}
+
+
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
 
-                            proc.stdin.pause();
-                            // proc.kill();
-                            kill(proc.pid, 'SIGTERM');
+                            try {
+                                // proc.stdin.pause();
+                                // proc.kill();
+                                kill(proc.pid, 'SIGTERM');
+                            } catch {}
                             myPort = 0;
                             myHostPort = 0;
                             jobId = "";
@@ -1634,7 +1646,7 @@ async function newJob(gameid, isCloudEdit = false) {
                         });
                     }
 
-                    async function execute(script, timeout = 10, connectionTimeout = 10000) {
+                    async function execute(script, timeout = 10, connectionTimeout = 1000) {
                         return new Promise(async returnPromise => {
                             if (myPort == 0) {
                                 returnPromise(null);
@@ -1651,56 +1663,65 @@ async function newJob(gameid, isCloudEdit = false) {
                                 hasExecutedOnce = true;
                             }
 
-                            try {
-                                const {
-                                    response
-                                } = await soapRequest({
-                                    url: url,
-                                    headers: headers2,
-                                    xml: xml,
-                                    timeout: connectionTimeout
-                                }); // Optional timeout parameter(milliseconds)
-                                const {
-                                    headers,
-                                    body,
-                                    statusCode
-                                } = response;
-                                if (statusCode != 200 && statusCode != 302 && statusCode != 304 && statusCode != 500) {
-                                    returnPromise(false);
-                                    return;
-                                }
-                                let result = [];
-                                let result0 = body.split("<ns1:value>");
-                                if (result0.length > 1) {
-                                    for (let i = 1; i < result0.length; i++) {
-                                        result.push("ok|" + result0[i].split("</ns1:value>")[0]);
-                                    }
-                                }
-                                result0 = body.split("<faultstring>");
-                                if (result0.length > 1) {
-                                    result.push("err|" + result0[1].split("</faultstring>")[0]);
-                                }
-                                returnPromise(result);
-                            } catch (e) {
-                                // console.error(e);
+                            let c = siteConfig.backend.maxGameStartupTime;
+                            while (true) {
                                 try {
+                                    const {
+                                        response
+                                    } = await soapRequest({
+                                        url: url,
+                                        headers: headers2,
+                                        xml: xml,
+                                        timeout: connectionTimeout
+                                    }); // Optional timeout parameter(milliseconds)
+                                    const {
+                                        headers,
+                                        body,
+                                        statusCode
+                                    } = response;
+                                    if (statusCode != 200 && statusCode != 302 && statusCode != 304) {
+                                        returnPromise(false);
+                                        return;
+                                    }
                                     let result = [];
-                                    let result0 = e.split("<ns1:value>");
+                                    let result0 = body.split("<ns1:value>");
                                     if (result0.length > 1) {
                                         for (let i = 1; i < result0.length; i++) {
                                             result.push("ok|" + result0[i].split("</ns1:value>")[0]);
                                         }
                                     }
-                                    result0 = e.split("<faultstring>");
+                                    result0 = body.split("<faultstring>");
                                     if (result0.length > 1) {
                                         result.push("err|" + result0[1].split("</faultstring>")[0]);
                                     }
-                                    await stop();
                                     returnPromise(result);
-                                } catch (e) {
-                                    await stop();
-                                    returnPromise(["err|Unknown Error"]);
                                     return;
+                                } catch (e) {
+                                    // console.error(e);
+                                    try {
+                                        let result = [];
+                                        let result0 = e.split("<ns1:value>");
+                                        if (result0.length > 1) {
+                                            for (let i = 1; i < result0.length; i++) {
+                                                result.push("ok|" + result0[i].split("</ns1:value>")[0]);
+                                            }
+                                        }
+                                        result0 = e.split("<faultstring>");
+                                        if (result0.length > 1) {
+                                            result.push("err|" + result0[1].split("</faultstring>")[0]);
+                                        }
+                                        await stop();
+                                        returnPromise(result);
+                                        return;
+                                    } catch (e) {
+                                        if (c <= 0) {
+                                            await stop();
+                                            returnPromise(["err|Unknown Error"]);
+                                            return;
+                                        }
+                                        c--;
+                                        await sleep(1000);
+                                    }
                                 }
                             }
                         });
@@ -1726,15 +1747,10 @@ async function newJob(gameid, isCloudEdit = false) {
                                 }
                                 activeGameJobs[gameid][jobId] = self;
 
-                                proc = exec(`${rccPath} -Console -Custom -Start ${myPort}`, {
+                                proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
-                                let c = 0;
-                                while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
-                                    await sleep(1000);
-                                    c++;
-                                }
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -1743,7 +1759,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cron_restart: 0,
                                     autorestart: false,
                                     stop_exit_codes: [0],
-                                    args: `-Console -Custom -Start -PlaceId:${gameid} ${myPort}`
+                                    args: `-Console -Start -Custom -PlaceId:${gameid} ${myPort}`
                                     // out_file: `app.strout.log`,
                                     // error_file: `app.strerr.log`
                                 }, async function (err, apps) {
@@ -1784,15 +1800,10 @@ async function newJob(gameid, isCloudEdit = false) {
                                 }
                                 activeGameJobs[gameid][jobId] = self;
 
-                                proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Custom -Start ${myPort}`, {
+                                proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
-                                let c = 0;
-                                while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
-                                    await sleep(1000);
-                                    c++;
-                                }
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -1801,7 +1812,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cron_restart: 0,
                                     autorestart: false,
                                     stop_exit_codes: [0],
-                                    args: `${rccPath} -Console -Custom -PlaceId:${gameid} -Start ${myPort}`
+                                    args: `${rccPath} -Console -PlaceId:${gameid} -Start -Custom -PlaceId:${gameid} ${myPort}`
                                     // out_file: `app.strout.log`,
                                     // error_file: `app.strerr.log`
                                 }, async function (err, apps) {
@@ -1826,7 +1837,11 @@ async function newJob(gameid, isCloudEdit = false) {
                     self = {
                         host: async function () {
                             await start();
-                            await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000, 10000);
+                            await sleep(1000);
+                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
+                            if (resp == "err|Unknown Error") {
+                                await stop();
+                            }
                         },
                         update: async function () {
                             return new Promise(async returnPromise => {
@@ -1893,6 +1908,12 @@ async function newJob(gameid, isCloudEdit = false) {
                         return;
                     }
 
+                    if (activeGameJobs[gameid]) { // For now..
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+
                     let proc = null;
 
                     let myPort = 0;
@@ -1912,15 +1933,20 @@ async function newJob(gameid, isCloudEdit = false) {
                             if (Object.keys(activeJobs).includes(jobId)) {
                                 delete activeJobs[jobId];
                             }
-                            if (Object.keys(activeGameJobs[gameid]).includes(jobId)) {
+                            if (Object.keys(activeGameJobs).includes(gameid) && Object.keys(activeGameJobs[gameid]).includes(jobId)) {
                                 delete activeGameJobs[gameid][jobId];
+                                if (Object.keys(activeGameJobs[gameid]).length == 0) {
+                                    delete activeGameJobs[gameid];
+                                }
                             }
                             availableRCCPorts.push(myPort);
                             availableGamePorts.push(myHostPort);
 
-                            proc.stdin.pause();
-                            // proc.kill();
-                            kill(proc.pid, 'SIGTERM');
+                            try {
+                                // proc.stdin.pause();
+                                // proc.kill();
+                                kill(proc.pid, 'SIGTERM');
+                            } catch {}
                             myPort = 0;
                             myHostPort = 0;
                             jobId = "";
@@ -1939,7 +1965,7 @@ async function newJob(gameid, isCloudEdit = false) {
                         });
                     }
 
-                    async function execute(script, timeout = 10, connectionTimeout = 10000) {
+                    async function execute(script, timeout = 10, connectionTimeout = 1000) {
                         return new Promise(async returnPromise => {
                             if (myPort == 0) {
                                 returnPromise(null);
@@ -1956,56 +1982,65 @@ async function newJob(gameid, isCloudEdit = false) {
                                 hasExecutedOnce = true;
                             }
 
-                            try {
-                                const {
-                                    response
-                                } = await soapRequest({
-                                    url: url,
-                                    headers: headers2,
-                                    xml: xml,
-                                    timeout: connectionTimeout
-                                }); // Optional timeout parameter(milliseconds)
-                                const {
-                                    headers,
-                                    body,
-                                    statusCode
-                                } = response;
-                                if (statusCode != 200 && statusCode != 302 && statusCode != 304) {
-                                    returnPromise(false);
-                                    return;
-                                }
-                                let result = [];
-                                let result0 = body.split("<ns1:value>");
-                                if (result0.length > 1) {
-                                    for (let i = 1; i < result0.length; i++) {
-                                        result.push("ok|" + result0[i].split("</ns1:value>")[0]);
-                                    }
-                                }
-                                result0 = body.split("<faultstring>");
-                                if (result0.length > 1) {
-                                    result.push("err|" + result0[1].split("</faultstring>")[0]);
-                                }
-                                returnPromise(result);
-                            } catch (e) {
-                                // console.error(e);
+                            let c = siteConfig.backend.maxGameStartupTime;
+                            while (true) {
                                 try {
+                                    const {
+                                        response
+                                    } = await soapRequest({
+                                        url: url,
+                                        headers: headers2,
+                                        xml: xml,
+                                        timeout: connectionTimeout
+                                    }); // Optional timeout parameter(milliseconds)
+                                    const {
+                                        headers,
+                                        body,
+                                        statusCode
+                                    } = response;
+                                    if (statusCode != 200 && statusCode != 302 && statusCode != 304) {
+                                        returnPromise(false);
+                                        return;
+                                    }
                                     let result = [];
-                                    let result0 = e.split("<ns1:value>");
+                                    let result0 = body.split("<ns1:value>");
                                     if (result0.length > 1) {
                                         for (let i = 1; i < result0.length; i++) {
                                             result.push("ok|" + result0[i].split("</ns1:value>")[0]);
                                         }
                                     }
-                                    result0 = e.split("<faultstring>");
+                                    result0 = body.split("<faultstring>");
                                     if (result0.length > 1) {
                                         result.push("err|" + result0[1].split("</faultstring>")[0]);
                                     }
-                                    await stop();
                                     returnPromise(result);
-                                } catch (e) {
-                                    await stop();
-                                    returnPromise(["err|Unknown Error"]);
                                     return;
+                                } catch (e) {
+                                    // console.error(e);
+                                    try {
+                                        let result = [];
+                                        let result0 = e.split("<ns1:value>");
+                                        if (result0.length > 1) {
+                                            for (let i = 1; i < result0.length; i++) {
+                                                result.push("ok|" + result0[i].split("</ns1:value>")[0]);
+                                            }
+                                        }
+                                        result0 = e.split("<faultstring>");
+                                        if (result0.length > 1) {
+                                            result.push("err|" + result0[1].split("</faultstring>")[0]);
+                                        }
+                                        await stop();
+                                        returnPromise(result);
+                                        return;
+                                    } catch (e) {
+                                        if (c <= 0) {
+                                            await stop();
+                                            returnPromise(["err|Unknown Error"]);
+                                            return;
+                                        }
+                                        c--;
+                                        await sleep(1000);
+                                    }
                                 }
                             }
                         });
@@ -2031,15 +2066,10 @@ async function newJob(gameid, isCloudEdit = false) {
                                 }
                                 activeGameJobs[gameid][jobId] = self;
 
-                                proc = exec(`${rccPath} -Console -Custom -Start ${myPort}`, {
+                                proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
-                                let c = 0;
-                                while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
-                                    await sleep(1000);
-                                    c ++;
-                                }
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -2048,7 +2078,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cron_restart: 0,
                                     autorestart: false,
                                     stop_exit_codes: [0],
-                                    args: `-Console -Custom -Start ${myPort}`
+                                    args: `-Console -Start -Custom -PlaceId:${gameid} ${myPort}`
                                     // out_file: `app.strout.log`,
                                     // error_file: `app.strerr.log`
                                 }, async function (err, apps) {
@@ -2088,15 +2118,10 @@ async function newJob(gameid, isCloudEdit = false) {
                                 }
                                 activeGameJobs[gameid][jobId] = self;
 
-                                proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Custom -Start ${myPort}`, {
+                                proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
-                                
-                                let c = 0;
-                                while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
-                                    await sleep(1000);
-                                    c ++;
-                                }
+
                                 returnPromise(true);
                                 /*
                                 pm2.start({
@@ -2105,7 +2130,7 @@ async function newJob(gameid, isCloudEdit = false) {
                                     cron_restart: 0,
                                     autorestart: false,
                                     stop_exit_codes: [0],
-                                    args: `${rccPath} -Console -Custom -Start ${myPort}`
+                                    args: `${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`
                                     // out_file: `app.strout.log`,
                                     // error_file: `app.strerr.log`
                                 }, async function (err, apps) {
@@ -2130,7 +2155,11 @@ async function newJob(gameid, isCloudEdit = false) {
                     self = {
                         host: async function () {
                             await start();
-                            await execute(getRCCHostScript(gameid, myHostPort, jobId, true), 6000000, 10000);
+                            await sleep(1000);
+                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, true), 6000000);
+                            if (resp == "err|Unknown Error") {
+                                await stop();
+                            }
                         },
                         update: async function () {
                             return new Promise(async returnPromise => {
@@ -2204,7 +2233,7 @@ async function getJobs() {
 
 async function getJobsByGameId(gameid) {
     return new Promise(async returnPromise => {
-        if (typeof activeGameJobs[gameid] == "undefined"){
+        if (typeof activeGameJobs[gameid] == "undefined") {
             returnPromise([]);
             return;
         }
@@ -2273,6 +2302,7 @@ module.exports = {
 
     setDataStore: setDataStore,
     getDataStore: getDataStore,
+    increaseDataStore: increaseDataStore,
     getSortedDataStore: getSortedDataStore,
 
     setMaintenanceWhitelistCode: setMaintenanceWhitelistCode,
@@ -2344,7 +2374,7 @@ module.exports = {
         });
     },
 
-    deleteAsset: async function (userid, assetid) {
+    deleteAsset: async function (assetid) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -3285,6 +3315,59 @@ module.exports = {
         });
     },
 
+    getPublicGames: async function (dontShowBannedResults = true) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, async function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("games").find({
+                    isPublic: true
+                }).toArray(async function (err, results) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    if (dontShowBannedResults) {
+                        let bannedGames = [];
+                        let pendingChecks = 0;
+                        for (let i = 0; i < results.length; i++) {
+                            if (!bannedGames.includes(results[i].gameid)) {
+                                if (results[i].deleted) {
+                                    bannedGames.push(results[i].gameid);
+                                } else {
+                                    pendingChecks++;
+                                    dbo.collection("users").findOne({
+                                        userid: results[i].creatorid
+                                    }, function (err, result) {
+                                        pendingChecks--;
+                                        if (err) {
+                                            return;
+                                        }
+                                        if (result.banned) {
+                                            bannedGames.push(results[i].gameid);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        await sleep(10);
+                        if (pendingChecks > 0) {
+                            while (pendingChecks > 0) {
+                                await sleep(100);
+                            }
+                        }
+
+                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)));
+                        db.close();
+                        return;
+                    }
+                    returnPromise(results);
+                });
+            });
+        });
+    },
+
     findUsers: async function (username) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
@@ -3351,7 +3434,31 @@ module.exports = {
         });
     },
 
-    createCatalogItem: async function (itemname, itemdescription, itemprice, itemimage, itemtype, itemcreatorid) {
+    setCatalogItemProperty: async function (itemid, property, value) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("catalog").updateOne({
+                    itemid: itemid
+                }, {
+                    $set: {
+                        [property]: value
+                    }
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(true);
+                });
+            });
+        });
+    },
+
+    createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, decalId = 0, meshId = 0, amount = -1, itemimage = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc8.png") {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -3387,14 +3494,18 @@ module.exports = {
                             itemfavorites: [],
                             itemlikes: [],
                             itemdislikes: [],
-                            itempurcheses: [],
+                            itemowners: [],
+                            itemdecalid: decalId,
+                            itemmeshid: meshId,
                             itempricestatus: itemprice == 0 ? "Free" : null, // OffSale, NoResellers
-                            // unitsAvailableForConsumption: 0,
+                            unitsAvailableForConsumption: amount,
                             // lowestPrice: itemprice,
                             created: getUnixTimestamp(),
                             updated: getUnixTimestamp(),
                             itemoffsafedeadline: null,
-                            itemgenre: "All"
+                            itemgenre: "All",
+                            onSale: false,
+                            currency: 1
                         }, function (err, res) {
                             if (err) {
                                 db.close();
@@ -3505,6 +3616,27 @@ module.exports = {
                         $regex: keyword,
                         $options: "i"
                     }
+                }).toArray(function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
+    
+    getCatalogItemsFromCreatorId: async function (creatorid, type) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("catalog").find({
+                    itemcreatorid: creatorid,
+                    itemtype: type
                 }).toArray(function (err, result) {
                     if (err) {
                         db.close();
@@ -4154,7 +4286,7 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("catalog").countDocuments(function (err, result) {
+                dbo.collection("games").countDocuments(function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(null);
@@ -4172,11 +4304,11 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("games").countDocuments({
+                dbo.collection("games").find({
                     port: {
                         $gt: 0
                     }
-                }, function (err, result) {
+                }).toArray(function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(null);
@@ -4194,11 +4326,11 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("games").countDocuments({
+                dbo.collection("games").find({
                     port: {
                         $gt: 0
                     }
-                }, function (err, result) {
+                }).toArray(function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(null);
@@ -4252,7 +4384,7 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("games").find({
+                dbo.collection("users").find({
                     playing: {
                         $gt: 0
                     }
@@ -4263,7 +4395,7 @@ module.exports = {
                         return;
                     }
                     db.close();
-                    returnPromise(result);
+                    returnPromise(result.length);
                 });
             });
         });
@@ -4332,6 +4464,7 @@ module.exports = {
     formatBytes: formatBytes,
 
     formatNumber: formatNumber,
+    formatNumberS: formatNumberS,
 
     findUserByCookie: findUserByCookie,
 
@@ -4411,8 +4544,21 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    db.close();
-                    returnPromise(true);
+                    dbo.collection("catalog").updateOne({
+                        itemid: itemid
+                    }, {
+                        $pull: {
+                            itemowners: userid
+                        }
+                    }, function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(true);
+                    });
                 });
             });
         });
@@ -4537,7 +4683,7 @@ module.exports = {
                         return;
                     }
                     if (from == "tix") {
-                        if (Math.floor(user.tix / siteConfig.backend.tix.exchangeRate) == 0) {
+                        if ((amount / siteConfig.backend.tix.exchangeRate).toString().includes(".")) {
                             returnPromise(false);
                             db.close();
                             return;
@@ -5058,7 +5204,7 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    if (result && result.owners.includes(userid)) {
+                    if (result && result.itemowners.includes(userid)) {
                         db.close();
                         returnPromise(true);
                     } else {
@@ -5260,6 +5406,162 @@ module.exports = {
         });
     },
 
+    buyCatalogItem: async function (user, itemid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("catalog").findOne({
+                    itemid: itemid
+                }, function (err, item) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (item == null) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (!item.onSale && user.userid != item.itemcreatorid) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (item.itemowners.includes(user.userid)) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (item.currency == 1) {
+                        if (user.robux < item.itemprice) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        dbo.collection("users").updateOne({
+                            userid: user.userid
+                        }, {
+                            $inc: {
+                                robux: -item.itemprice
+                            }
+                        }, function (err, res) {
+                            if (err) {
+                                db.close();
+                                returnPromise(false);
+                                return;
+                            }
+                            dbo.collection("catalog").updateOne({
+                                itemid: itemid
+                            }, {
+                                $inc: {
+                                    sold: 1
+                                },
+                                $push: {
+                                    itemowners: user.userid
+                                }
+                            }, function (err, res) {
+                                if (err) {
+                                    db.close();
+                                    returnPromise(false);
+                                    return;
+                                }
+                                dbo.collection("users").findOne({
+                                    userid: item.itemcreatorid
+                                }, function (err, creator) {
+                                    if (err) {
+                                        db.close();
+                                        returnPromise(false);
+                                        return;
+                                    }
+                                    dbo.collection("users").updateOne({
+                                        userid: item.itemcreatorid
+                                    }, {
+                                        $inc: {
+                                            robux: Math.floor((item.itemprice / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
+                                        }
+                                    }, function (err, res) {
+                                        if (err) {
+                                            db.close();
+                                            returnPromise(false);
+                                            return;
+                                        }
+                                        db.close();
+                                        returnPromise(true);
+                                    });
+                                });
+                            });
+                        });
+                    } else if (item.currency == 2) {
+                        if (user.tix < item.itemprice) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        dbo.collection("users").updateOne({
+                            userid: user.userid
+                        }, {
+                            $inc: {
+                                tix: -item.itemprice
+                            }
+                        }, function (err, res) {
+                            if (err) {
+                                db.close();
+                                returnPromise(false);
+                                return;
+                            }
+                            dbo.collection("catalog").updateOne({
+                                itemid: itemid
+                            }, {
+                                $inc: {
+                                    sold: 1
+                                },
+                                $push: {
+                                    itemowners: user.userid
+                                }
+                            }, function (err, res) {
+                                if (err) {
+                                    db.close();
+                                    returnPromise(false);
+                                    return;
+                                }
+                                dbo.collection("users").findOne({
+                                    userid: item.itemcreatorid
+                                }, function (err, creator) {
+                                    if (err) {
+                                        db.close();
+                                        returnPromise(false);
+                                        return;
+                                    }
+                                    dbo.collection("users").updateOne({
+                                        userid: item.itemcreatorid
+                                    }, {
+                                        $inc: {
+                                            tix: Math.floor((item.itemprice / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
+                                        }
+                                    }, function (err, res) {
+                                        if (err) {
+                                            db.close();
+                                            returnPromise(false);
+                                            return;
+                                        }
+                                        db.close();
+                                        returnPromise(true);
+                                    });
+                                });
+                            });
+                        });
+                    } else {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                });
+            });
+        });
+    },
+
     getFirstXUnapprovedAssets: async function (x) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
@@ -5279,6 +5581,30 @@ module.exports = {
                     db.close();
                     returnPromise(result);
                 });
+            });
+        });
+    },
+
+    convertMesh: async function (fp) {
+        return new Promise(async returnPromise => {
+            const fp0 = fp.replace(".asset", ".obj");
+            fs.renameSync(fp, fp0);
+            proc = exec(`${isWin ? "" : "wine "}${__dirname}/internal/ObjToRBXMesh.exe ${fp0} 2.00`, {
+                cwd: `${__dirname}/temp/`
+            }, (err, stdout, stderr) => {});
+            const timeout = setTimeout(async () => {
+                kill(proc.pid, 'SIGTERM');
+                returnPromise(false);
+            }, 10000);
+            proc.on('exit', function () {
+                clearTimeout(timeout);
+                fs.unlinkSync(fp0);
+                try {
+                    fs.renameSync(`${fp0}.mesh`, fp);
+                    returnPromise(true);
+                } catch {
+                    returnPromise(false);
+                }
             });
         });
     },
@@ -5960,19 +6286,76 @@ module.exports = {
                                         returnPromise(false);
                                         return;
                                     }
-                                    if (user.recentlyPlayedGames.includes(gameid)) {
-                                        dbo.collection("users").updateOne({
-                                            userid: userid
-                                        }, {
-                                            $set: {
-                                                recentlyPlayedGames: user.recentlyPlayedGames.filter(id => id != gameid)
-                                            }
-                                        }, function (err, res) {
-                                            if (err) {
-                                                db.close();
-                                                returnPromise(false);
-                                                return;
-                                            }
+                                    dbo.collection("users").findOne({
+                                        userid: userid
+                                    }, function (err, user) {
+                                        if (err) {
+                                            db.close();
+                                            returnPromise(false);
+                                            return;
+                                        }
+                                        if (user.recentlyPlayedGames.includes(gameid)) {
+                                            dbo.collection("users").updateOne({
+                                                userid: userid
+                                            }, {
+                                                $set: {
+                                                    recentlyPlayedGames: user.recentlyPlayedGames.filter(id => id != gameid)
+                                                }
+                                            }, function (err, res) {
+                                                if (err) {
+                                                    db.close();
+                                                    returnPromise(false);
+                                                    return;
+                                                }
+                                                if (true) {
+                                                    if (user.recentlyPlayedGames.length >= 6) {
+                                                        dbo.collection("users").updateOne({
+                                                            userid: userid
+                                                        }, {
+                                                            $inc: {
+                                                                placeVisits: 1
+                                                            },
+                                                            $pop: {
+                                                                recentlyPlayedGames: -1
+                                                            },
+                                                            $push: {
+                                                                recentlyPlayedGames: gameid
+                                                            }
+                                                        }, function (err, res) {
+                                                            if (err) {
+                                                                db.close();
+                                                                returnPromise(false);
+                                                                return;
+                                                            }
+                                                            db.close();
+                                                            returnPromise(true);
+                                                        });
+                                                    } else {
+                                                        dbo.collection("users").updateOne({
+                                                            userid: userid
+                                                        }, {
+                                                            $inc: {
+                                                                placeVisits: 1
+                                                            },
+                                                            $push: {
+                                                                recentlyPlayedGames: gameid
+                                                            }
+                                                        }, function (err, res) {
+                                                            if (err) {
+                                                                db.close();
+                                                                returnPromise(false);
+                                                                return;
+                                                            }
+                                                            db.close();
+                                                            returnPromise(true);
+                                                        });
+                                                    }
+                                                } else {
+                                                    db.close();
+                                                    returnPromise(true);
+                                                }
+                                            });
+                                        } else {
                                             if (true) {
                                                 if (user.recentlyPlayedGames.length >= 6) {
                                                     dbo.collection("users").updateOne({
@@ -6020,56 +6403,8 @@ module.exports = {
                                                 db.close();
                                                 returnPromise(true);
                                             }
-                                        });
-                                    } else {
-                                        if (true) {
-                                            if (user.recentlyPlayedGames.length >= 6) {
-                                                dbo.collection("users").updateOne({
-                                                    userid: userid
-                                                }, {
-                                                    $inc: {
-                                                        placeVisits: 1
-                                                    },
-                                                    $pop: {
-                                                        recentlyPlayedGames: -1
-                                                    },
-                                                    $push: {
-                                                        recentlyPlayedGames: gameid
-                                                    }
-                                                }, function (err, res) {
-                                                    if (err) {
-                                                        db.close();
-                                                        returnPromise(false);
-                                                        return;
-                                                    }
-                                                    db.close();
-                                                    returnPromise(true);
-                                                });
-                                            } else {
-                                                dbo.collection("users").updateOne({
-                                                    userid: userid
-                                                }, {
-                                                    $inc: {
-                                                        placeVisits: 1
-                                                    },
-                                                    $push: {
-                                                        recentlyPlayedGames: gameid
-                                                    }
-                                                }, function (err, res) {
-                                                    if (err) {
-                                                        db.close();
-                                                        returnPromise(false);
-                                                        return;
-                                                    }
-                                                    db.close();
-                                                    returnPromise(true);
-                                                });
-                                            }
-                                        } else {
-                                            db.close();
-                                            returnPromise(true);
                                         }
-                                    }
+                                    });
                                 });
                             });
                         }

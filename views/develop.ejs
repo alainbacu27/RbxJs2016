@@ -571,9 +571,9 @@
                                         <div class="BuildPageContent" data-groupid="">
 
 
-                                            <input id="assetTypeId" name="assetTypeId" type="hidden" value="9">
+                                            <input id="assetTypeId" name="assetTypeId" type="hidden" value="<%= assetTypeId %>">
 
-                                            <table id="build-page" data-asset-type-id="9" data-edit-opens-studio="True">
+                                            <table id="build-page" data-asset-type-id="<%= assetTypeId %>" data-edit-opens-studio="True">
                                                 <tbody>
                                                     <tr>
                                                         <td class="menu-area divider-right">
@@ -592,10 +592,12 @@
                                                                 <a href="https://www.rbx2016.tk/develop?Page=audios"
                                                                 class="tab-item <% if (tab == "audios"){ %>tab-item-selected<% } %>">Audio</a>
                                                             <a class="tab-item ">Animations</a>
-                                                            <a class="tab-item ">Meshes</a>
+                                                            <a href="https://www.rbx2016.tk/develop?Page=meshes"
+                                                                class="tab-item <% if (tab == "meshes"){ %>tab-item-selected<% } %>">Meshes</a>
                                                             <a class="tab-item ">User Ads</a>
                                                             <a class="tab-item ">Sponsored Games</a>
-                                                            <a class="tab-item ">Shirts</a>
+                                                            <a href="https://www.rbx2016.tk/develop?Page=shirts"
+                                                                class="tab-item <% if (tab == "shirts"){ %>tab-item-selected<% } %>">Shirts</a>
                                                             <a class="tab-item ">T-Shirts</a>
                                                             <a class="tab-item ">Pants</a>
                                                             <a class="tab-item ">Plugins</a>
@@ -819,6 +821,70 @@
         
                                                             </td>
                                                             <% } %>
+                                                            <% if (tab == "meshes"){ %>
+                                                            <td class="content-area ">
+                                                                <h2>Create a Mesh</h2>
+                                                                <iframe id="upload-iframe"
+                                                                    class="place-specific-assets my-upload-iframe"
+                                                                    src="/build/upload?assetTypeId=4&amp;GroupId=&amp;targetPlaceId=<%= gameid %>"
+                                                                    frameborder="0" scrolling="no"
+                                                                    data-target-universe-id="<% if (gameid){ %><%= gameid %><% } %>"></iframe>
+                                                                <table class="section-header">
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td class="content-title">
+                                                                                <div>
+        
+                                                                                    <h2 class="header-text">Meshes</h2>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                                <div class="items-container ">
+                                                                    <%- meshes %>
+                                                                </div>
+                                                                <div class="build-loading-container" style="display: none;">
+                                                                    <div class="buildpage-loading-container">
+                                                                        <img alt="^_^" class=""
+                                                                            src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif">
+                                                                    </div>
+                                                                </div>
+        
+                                                            </td>
+                                                            <% } %>
+                                                            <% if (tab == "shirts"){ %>
+                                                                <td class="content-area ">
+                                                                    <h2>Create a Shirt</h2>
+                                                                    <iframe id="upload-iframe"
+                                                                        class="place-specific-assets my-upload-iframe"
+                                                                        src="/build/upload?assetTypeId=11&amp;GroupId=&amp;targetPlaceId=<%= gameid %>"
+                                                                        frameborder="0" scrolling="no"
+                                                                        data-target-universe-id="<% if (gameid){ %><%= gameid %><% } %>"></iframe>
+                                                                    <table class="section-header">
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td class="content-title">
+                                                                                    <div>
+            
+                                                                                        <h2 class="header-text">Shirts</h2>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <div class="items-container ">
+                                                                        <%- shirts %>
+                                                                    </div>
+                                                                    <div class="build-loading-container" style="display: none;">
+                                                                        <div class="buildpage-loading-container">
+                                                                            <img alt="^_^" class=""
+                                                                                src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif">
+                                                                        </div>
+                                                                    </div>
+            
+                                                                </td>
+                                                                <% } %>
                                                 </tbody>
                                             </table>
                                         </div>

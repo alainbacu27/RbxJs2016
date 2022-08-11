@@ -5,19 +5,21 @@ const fetch = require('node-fetch');
 const querystring = require('querystring');
 const get_ip = require('ipware')().get_ip;
 const mm = require('music-metadata');
+let exec = require('child_process').exec;
 
 module.exports = {
     init: (app, db) => {
         app.get("/", db.requireNonAuth, async (req, res) => {
             let years = ``;
             const year = new Date().getFullYear();
-            for (let i = year; i >= year - 100; i--) {
+            for (let i = year; i >= year - 99; i--) {
                 years += `<option value="${i}">${i}</option>
                 `;
             }
             res.render("index", {
                 ...await db.getBlankRenderObject(),
-                years: years
+                years: years,
+                signupEnabled: await db.getSiteConfig().shared.allowSignup,
             });
         });
 
@@ -1067,7 +1069,10 @@ module.exports = {
                 res.status(401).send("Too many accounts.");
                 return;
             }
-            if (typeof username == "undefined") {
+            if (typeof username != "string") {
+                return res.status(400).send();
+            }
+            if (username.length > 50) {
                 return res.status(400).send();
             }
             const ROBLOSECURITY_COOKIES = await db.createUser(username, password, birthday, gender, ip);
@@ -1917,7 +1922,7 @@ module.exports = {
             if (Page) {
                 Page = Page.toLowerCase();
             }
-            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios") || View != null) {
+            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts") || View != null) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -2095,6 +2100,104 @@ module.exports = {
                 }
             }
 
+            let meshesHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "meshes") {
+                let assets = await db.getAssets(req.user.userid, "Mesh");
+                assets = assets.reverse();
+                for (let i = 0; i < assets.length; i++) {
+                    const asset = assets[i];
+                    // if (asset.deleted) continue;
+                    const created = db.unixToDate(asset.created);
+                    const updated = db.unixToDate(asset.updated);
+                    meshesHtml += `<table class="item-table" data-item-id="${asset.id}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://www.rbx2016.tk/library/${asset.id}"
+                                    class="item-image"><img class=""
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg"}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://www.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${asset.sold}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
+            let shirtsHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "shirts") {
+                let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "Shirt");
+                assets = assets.reverse();
+                for (let i = 0; i < assets.length; i++) {
+                    const asset = assets[i];
+                    // if (asset.deleted) continue;
+                    const created = db.unixToDate(asset.created);
+                    const updated = db.unixToDate(asset.updated);
+                    shirtsHtml += `<table class="item-table" data-item-id="${asset.itemid}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://www.rbx2016.tk/library/${asset.itemid}"
+                                    class="item-image"><img class=""
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemdecalid}`}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://www.rbx2016.tk/catalog/${asset.itemid}">${asset.itemname}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${asset.itemowners.length}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
             res.render("develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
@@ -2102,8 +2205,10 @@ module.exports = {
                 gamepasses: gamepassesHtml,
                 decals: decalsHtml,
                 audios: audiosHtml,
+                meshes: meshesHtml,
+                shirts: shirtsHtml,
                 tab: Page,
-                assetTypeId: Page == "game-passes" ? 34 : Page == "Decals" ? 13 : null,
+                assetTypeId: Page == "game-passes" ? 34 : Page == "decals" ? 13 : Page == "audios" ? 3 : Page == "meshes" ? 4 : null,
                 gameid: Page == "game-passes" ? game != null ? game.gameid : null : null
             });
         });
@@ -2149,6 +2254,15 @@ module.exports = {
             }
             const name = req.body.name;
             const desc = req.body.description || "";
+
+            if (name.length < 3) {
+                res.status(400).send("Too short name.");
+                return;
+            }else if (name.length > 50) {
+                res.status(400).send("Too long name.");
+                return;
+            }
+
             let id = 0;
             if (assetTypeId == 34) {
                 if ((await db.getGamepasses(game.gameid)).length >= (req.user.isAdmin ? db.getSiteConfig().shared.maxGamepassesPerGame.admin : db.getSiteConfig().shared.maxGamepassesPerGame.user)) {
@@ -2185,6 +2299,42 @@ module.exports = {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
                 }
+            } else if (assetTypeId == 11) {
+                if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
+                    if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.isAdmin || req.user.isMod) ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                            res.status(401).send("You have reached the daily asset upload limit");
+                            return;
+                        }
+                    } else {
+                        await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                    }
+                } else if (req.user.firstDailyAssetUpload == 0) {
+                    await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                }
+                
+                if (!req.files || Object.keys(req.files).length == 0) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                if (req.files.file.size > 5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                if (req.user.robux < db.getSiteConfig().shared.ShirtUploadCost) {
+                    res.status(401).send("You do not have enough Robux to upload a shirt");
+                    return;   
+                }
+                const file = req.files.file;
+                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
+                    id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.userid, req.user.isAdmin || req.user.isMod);
+                    await db.createCatalogItem(name, desc, 0, "Shirt", req.user.userid, id);
+                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.ShirtUploadCost);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
             } else if (assetTypeId == 3) {
                 if (req.user.firstMonthlyAssetUpload && req.user.firstMonthlyAssetUpload != 0) {
                     if (db.getUnixTimestamp() - req.user.firstMonthlyAssetUpload < 30 * 24 * 60 * 60) {
@@ -2202,7 +2352,7 @@ module.exports = {
                     res.status(400).send("No file uploaded");
                     return;
                 }
-                if (req.files.file.size > 20 * 1024 * 1024) {
+                if (req.files.file.size > 5 * 1024 * 1024) {
                     res.status(400).send("File too large");
                     return;
                 }
@@ -2217,6 +2367,48 @@ module.exports = {
                     }
                     id = await db.createAsset(req.user.userid, name, desc, "Audio", req.user.isAdmin || req.user.isMod);
                     req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
+            } else if (assetTypeId == 4) {
+                if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
+                    if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.isAdmin || req.user.isMod) ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                            res.status(401).send("You have reached the daily asset upload limit");
+                            return;
+                        }
+                    } else {
+                        await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                    }
+                } else if (req.user.firstDailyAssetUpload == 0) {
+                    await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                }
+                if (!req.files || Object.keys(req.files).length == 0) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                if (req.files.file.size > 5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                const file = req.files.file;
+                if (file.mimetype == "application/octet-stream") {
+                    if (file.data.toString().startsWith("MZ�������ÿÿ��") || file.data.toString().startsWith("ÐÏà¡±á��������")) {
+                        res.status(400).send("Only listed formats are allowed!");
+                        return;
+                    }
+                    const fp0 = `${__dirname}/../temp/${db.uuidv4()}.asset`;
+                    await req.files.file.mv(fp0);
+                    const s = await db.convertMesh(fp0);
+                    if (s) {
+                        id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.isAdmin || req.user.isMod);
+                        const fp = `${__dirname}/../assets/${id}.asset`;
+                        fs.renameSync(fp0, fp);
+                    } else {
+                        res.status(400).send("An error occured while uploading your file, please try again");
+                        return;
+                    }
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -2244,6 +2436,7 @@ module.exports = {
             let isCreator = game && game.creatorid == req.user.userid;
             let fault = false;
             let formData = ``;
+
             if (assetTypeId == 34) {
                 formData = `<div class="form-row">
                 <label for="file">Find your image:</label>
@@ -2272,10 +2465,10 @@ module.exports = {
                 </div>
             </div>`;
             } else if (assetTypeId == 3) {
-                formData = `<div id="audio-bucket-data" data-max-audio-size="20480000" data-max-audio-length="420" data-audio-enabled="false" data-audio-size="8388608" data-audio-price="100" data-shortsoundeffect-enabled="true" data-shortsoundeffect-size="786432" data-shortsoundeffect-price="20" data-longsoundeffect-enabled="true" data-longsoundeffect-size="1835008" data-longsoundeffect-price="35" data-music-enabled="true" data-music-size="8388608" data-music-price="70" data-longmusic-enabled="true" data-longmusic-size="20480000" data-longmusic-price="350"></div>            <div class="form-row">Audio uploads must be less than 7 minutes and smaller than 19.5 MB.</div>
+                formData = `<div id="audio-bucket-data" data-max-audio-size="20480000" data-max-audio-length="420" data-audio-enabled="false" data-audio-size="8388608" data-audio-price="100" data-shortsoundeffect-enabled="true" data-shortsoundeffect-size="786432" data-shortsoundeffect-price="20" data-longsoundeffect-enabled="true" data-longsoundeffect-size="1835008" data-longsoundeffect-price="35" data-music-enabled="true" data-music-size="8388608" data-music-price="70" data-longmusic-enabled="true" data-longmusic-size="20480000" data-longmusic-price="350"></div>            <div class="form-row">Audio uploads must be less than 7 minutes and smaller than 5 MB.</div>
                 <div class="form-row">
                     <label for="file">Find your .mp3 or .ogg file:</label>
-                    <input id="file" type="file" accept="audio/*" name="file" tabindex="1">
+                    <input id="file" type="file" accept="audio/mpeg,audio/wav,audio/ogg" name="file" tabindex="1">
                     <span id="file-error" class="error"></span>
                 </div>
                         <div class="form-row">
@@ -2291,11 +2484,30 @@ module.exports = {
                     <div><a id="upload-fee-confirmation-link" target="_top">Audio</a> successfully created!</div>
                 </div>
             </div>`;
+            } else if (assetTypeId == 4) {
+                formData = `<div class="form-row">
+                <label for="file">Find your mesh:</label>
+                <input id="file" type="file" accept="model/obj" name="file" tabindex="1">
+                <span id="file-error" class="error"></span>
+            </div>
+                    <div class="form-row">
+                <label for="name">Mesh Name:</label>
+                <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
+                <span id="name-error" class="error"></span>
+            </div>
+                <div class="form-row submit-buttons">
+                            <a id="upload-button" class="btn-medium btn-level-element  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
+                                    <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+            <div id="upload-fee-item-result-error" class="status-error btn-level-element hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+            <div id="upload-fee-item-result-success" class="status-confirm btn-level-element ${isUploaded ? "" : "hidden"}">
+                <div><a id="upload-fee-confirmation-link" target="_top">Mesh</a> successfully created!</div>
+            </div>
+            </div>`;
             } else if (assetTypeId == 13) {
                 formData = `<div class="form-row">
                 <label for="file">Find your image:</label>
-                <input id="file" type="file" name="file" tabindex="1">
-                <span id="file-error" class="error">You must select a file</span>
+                <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
+                <span id="file-error" class="error"></span>
             </div>
                     <div class="form-row">
                 <label for="name">Decal Name:</label>
@@ -2310,6 +2522,26 @@ module.exports = {
                 <div><a id="upload-fee-confirmation-link" target="_top">Decal</a> successfully created!</div>
             </div>
             </div>`
+            } else if (assetTypeId == 11) {
+                formData = `<div class="form-row">Did you use the template? If not, <a target="_blank" href="https://static.rbx2016.tk/images/shirttemplate.png">download it here</a>.</div>
+                <div class="form-row">
+                    <label for="file">Find your image:</label>
+                    <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
+                    <span id="file-error" class="error"></span>
+                </div>
+                        <div class="form-row">
+                    <label for="name">Shirt Name:</label>
+                    <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
+                    <span id="name-error" class="error"></span>
+                </div>
+                    <div class="form-row submit-buttons">
+                                <a id="upload-button" class="btn-medium btn-level-element  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload for ${db.getSiteConfig().shared.ShirtUploadCost} Robux<span class=""></span></a>
+                                        <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                <div id="upload-fee-item-result-error" class="status-error btn-level-element hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+                <div id="upload-fee-item-result-success" class="status-confirm btn-level-element ${isUploaded ? "" : "hidden"}">
+                    <div><a id="upload-fee-confirmation-link" target="_top">Shirt</a> successfully created!</div>
+                </div>
+                </div>`
             } else {
                 res.status(404).render("404", await db.getRenderObject(req.user));
                 return;
@@ -2948,10 +3180,11 @@ module.exports = {
 <a href="https://www.rbx2016.tk/games/?sortFilter=6" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
             
 <ul class="hlist game-cards ">`;
-            const games = await db.getUserRecentlyPlayedGames(userid);
+            let games = await db.getUserRecentlyPlayedGames(userid);
             if (games.length == 0) {
                 return ``;
             }
+            games.reverse();
             for (let i = 0; i < games.length; i++) {
                 const game = await db.getGame(games[i]);
                 const creator = await db.getUser(game.creatorid);
@@ -3092,6 +3325,68 @@ module.exports = {
             res.redirect("/games");
         });
 
+        async function getCatalogItems(keyword) {
+            return new Promise(async returnPromise => {
+                if (db.getSiteConfig().shared.pages.catalogEnabled == false) {
+                    returnPromise(``);
+                    return;
+                }
+                let catalogItems = []
+                if (keyword){
+                    catalogItems = await db.getCatalogItems(keyword);;
+                }else {
+                    catalogItems = await db.getCatalogItems2(0, 50);
+                }
+                if (catalogItems.length == 0) {
+                    returnPromise(``);
+                    return;
+                }
+                let out = ``;
+                for (let i = 0; i < catalogItems.length; i++) {
+                    const item = catalogItems[i];
+                    let limitedHtml = ``;
+                    if (item.unitsAvailableForConsumption > -1){
+                        if (item.unquie) {
+                            limitedHtml = `<img src="https://static.rbx2016.tk/d649b9c54a08dcfa76131d123e7d8acc.png" alt="Limited Unique" class="limited-overlay">`;
+                        }else{
+                            limitedHtml = `<img src="https://static.rbx2016.tk/793dc1fd7562307165231ca2b960b19a.png" alt="Limited Unique" class="limited-overlay">`;
+                        }
+                    }
+                    const creator = await db.getUser(item.itemcreatorid);
+                    const created = db.unixToDate(item.created);
+                    const updated = db.unixToDate(item.updated);
+                    out += `<div class="CatalogItemOuter SmallOuter">
+                    <div class="SmallCatalogItemView SmallView">
+                    <div class="CatalogItemInner SmallInner">    
+                            <div class="roblox-item-image image-small" data-item-id="${item.id}" data-image-size="small">
+                                <div class="item-image-wrapper">
+                                    <a href="https://www.rbx2016.tk/catalog/${item.itemid}">
+                                        <img title="${item.itemname}" alt="${item.itemname}" class="original-image " src="${item.itemimage}">
+                                                                ${limitedHtml}
+                                                                                    ${db.getUnixTimestamp() - item.created > 86400 ? `<img src="https://static.rbx2016.tk/b84cdb8c0e7c6cbe58e91397f91b8be8.png" alt="New">` : ``}
+                                    </a>
+                                </div>
+                            </div>
+                            
+                        <div id="textDisplay">
+                        <div class="CatalogItemName notranslate"><a class="name notranslate" href="https://www.rbx2016.tk/catalog/?id=${item.itemid}" title="${item.itemname}">${item.itemname}</a></div>
+                        ${item.amount > 0 ? `<div class="robux-price"><span class="SalesText">was </span><span class="robux notranslate">${item.itemprice == 0 ? "FREE" : db.formatNumberS(item.itemprice)}</span></div>
+                        <div id="PrivateSales"><span class="SalesText">now </span><span class="robux notranslate">???</span></div>
+                </div>` : `<div class="robux-price"><span class="robux notranslate">${item.itemprice == 0 ? "FREE" : db.formatNumberS(item.itemprice)}</span></div>    `}        
+                            <div class="CatalogHoverContent">
+                                <div><span class="CatalogItemInfoLabel">Creator:</span> <span class="HoverInfo notranslate"><a href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a></span></div>
+                                <div><span class="CatalogItemInfoLabel">Updated:</span> <span class="HoverInfo">${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}</span></div>
+                                <div><span class="CatalogItemInfoLabel">Sales:</span> <span class="HoverInfo notranslate">${item.itemowners.length}</span></div>
+                                <div><span class="CatalogItemInfoLabel">Favorited:</span> <span class="HoverInfo">${item.itemfavorites.length} times</span></div>
+                            </div>
+                    </div>
+                    </div>	
+                    </div>`;
+                }
+                returnPromise(out);
+            });
+        }
+
         app.get("/catalog", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.pages.catalogEnabled == false) {
                 if (req.user) {
@@ -3102,6 +3397,157 @@ module.exports = {
                 return;
             }
             res.render("catalog", await db.getRenderObject(req.user));
+        });
+
+        app.get("/catalog/contents", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.pages.catalogEnabled == false) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            if (req.query.Category != "All" && req.query.Category != "Featured" && req.query.Category != "1" && req.query.Category != "0") {
+                res.status(400).render("400", await db.getRenderObject(req.user));
+                return;
+            }
+            if (req.query.Category == "Featured") {
+                req.query.Category = "1";
+            }else if (req.query.Category == "All") {
+                req.query.Category = "0";
+            }
+            res.render("catalog_page", {
+                ...(await db.getRenderObject(req.user)),
+                catalogHtml: await getCatalogItems((!req.query.Keyword || req.query.Keyword == "") ? null : req.query.Keyword),
+                category: req.query.Category || "1",
+                legendShown: req.query.LegendExpanded == "true"
+            });
+        });
+
+        app.get("/catalog/browse.aspx", db.requireAuth, async (req, res) => {
+            const query = querystring.stringify(req.query);
+            res.redirect(`/catalog/contents?${query}`); 
+        });
+
+        app.get("/catalog/:id", db.requireAuth, async (req, res) => {
+            const id = parseInt(req.params.id);
+            const asset = await db.getCatalogItem(id);
+            if (!asset || (asset.deleted && !req.user.isAdmin && !req.user.isMod && req.user.userid != asset.creatorid)) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            res.redirect("/catalog/" + asset.itemid.toString() + "/" + db.filterText(asset.itemname).replaceAll(" ", "-"));
+        });
+
+        app.get("/catalog/:id/:name", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.assetsEnabled == false) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const id = parseInt(req.params.id);
+            let asset = await db.getCatalogItem(id);
+            let asset2 = null;
+            let asset2Expected = false;
+            if (asset.itemdecalid){
+                asset2Expected = true;
+                asset2 = await db.getAsset(asset.itemdecalid);
+            }
+            let asset3 = null;
+            let asset3Expected = false;
+            if (asset.itemmeshid){
+                asset3Expected = true;
+                asset3 = await db.getAsset(asset.itemmeshid);
+            }
+            if (asset2Expected){
+                if (!asset2 || ((asset2.deleted || asset2.approvedBy == 0) && !req.user.isAdmin && !req.user.isMod && req.user.userid != asset2.creatorid)) {
+                    if (req.user) {
+                        res.status(404).render("404", await db.getRenderObject(req.user));
+                    } else {
+                        res.status(404).render("404", await db.getBlankRenderObject());
+                    }
+                    return;
+                }
+            }
+            if (asset3Expected){
+                if (!asset3 || ((asset3.deleted || asset3.approvedBy == 0) && !req.user.isAdmin && !req.user.isMod && req.user.userid != asset3.creatorid)) {
+                    if (req.user) {
+                        res.status(404).render("404", await db.getRenderObject(req.user));
+                    } else {
+                        res.status(404).render("404", await db.getBlankRenderObject());
+                    }
+                    return;
+                }
+            }
+            const actualUrl = `/catalog/${asset.itemid}/${db.filterText2(asset.itemname).replaceAll(" ", "-")}`;
+            if (req.url != actualUrl) {
+                res.redirect(actualUrl);
+                return;
+            }
+            const creator = await db.getUser(asset.itemcreatorid);
+            const created = db.unixToDate(asset.created);
+            const updated = db.unixToDate(asset.updated);
+            if (!creator || creator.banned || asset.deleted || creator.inviteKey == "") {
+                res.render("catalogitem", {
+                    ...(await db.getRenderObject(req.user)),
+                    id: asset.itemid,
+                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemid}`,
+                    price: asset.price || 0,
+                    name: "[ Content Deleted ]",
+                    name2: "[ Content Deleted ]".replaceAll(" ", "-"),
+                    desc: "[ Content Deleted ]",
+                    genre: asset.itemgenre,
+                    likes: asset.itemlikes.length,
+                    dislikes: asset.itemdislikes.length,
+                    userVoted: await db.userLikeStatus(req.user.userid, asset.id),
+                    favorites: asset.itemfavorites.length,
+                    userFavorited: await db.userHasFavorited(req.user.userid, asset.id),
+                    creatorname: creator.username,
+                    creatorid: creator.userid,
+                    sold: asset.itemowners.length,
+                    owned: asset.itemowners.includes(req.user.userid),
+                    likeratio: asset.itemlikes.length == 0 && asset.itemdislikes.length == 0 ? 50 : asset.itemlikes.length / (asset.itemlikes.length + asset.itemdislikes.length),
+                    created: `${created.getDate()}/${created.getMonth()}/${created.getFullYear()}`,
+                    updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
+                    onSale: asset.onSale,
+                    isCreator: req.user.userid == asset.itemcreatorid,
+                    type: asset.itemtype
+                });
+                return;
+            }
+            res.render("catalogitem", {
+                ...(await db.getRenderObject(req.user)),
+                id: asset.itemid,
+                genre: asset.itemgenre,
+                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemdecalid}`,
+                price: asset.price || 0,
+                name: asset.itemname,
+                name2: asset.itemname.replaceAll(" ", "-"),
+                desc: asset.itemdesc,
+                likes: asset.itemlikes.length,
+                dislikes: asset.itemdislikes.length,
+                userVoted: await db.userLikeStatus(req.user.userid, asset.id),
+                favorites: asset.itemfavorites.length,
+                userFavorited: await db.userHasFavorited(req.user.userid, asset.id),
+                creatorname: creator.username,
+                creatorid: creator.userid,
+                sold: asset.itemowners.length,
+                owned: asset.itemowners.includes(req.user.userid),
+                likeratio: asset.itemlikes.length == 0 && asset.itemdislikes.length == 0 ? 50 : asset.itemlikes.length / (asset.itemlikes.length + asset.itemdislikes.length),
+                created: `${created.getDate()}/${created.getMonth()}/${created.getFullYear()}`,
+                updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
+                onSale: asset.onSale,
+                isCreator: req.user.userid == asset.itemcreatorid,
+                type: asset.itemtype
+            });
         });
 
         app.get("/catalog/:itemid", db.requireAuth, async (req, res) => {
@@ -3381,7 +3827,7 @@ module.exports = {
             if (Keyword) {
                 games = await db.findGames(Keyword);
             } else {
-                games = await db.getGamesByCreatorId(1);
+                games = await db.getPublicGames();
             }
             let genre = "All"
             if (GenreID) {
@@ -3459,13 +3905,15 @@ module.exports = {
 
             const game = await db.getGame(placeId);
             if (!game) {
-                return res.status(404).json({"Collection": []});
+                return res.status(404).json({
+                    "Collection": []
+                });
             }
             let servers = await db.getJobsByGameId(placeId);
 
-            if (!servers){
+            if (!servers) {
                 servers = [];
-            }else if (servers.length > startindex + 10){
+            } else if (servers.length > startindex + 10) {
                 servers = servers.splice(startindex, 10)
             }
 
@@ -3485,21 +3933,28 @@ module.exports = {
                         // "AssetHash": plrs.userid.toString(),
                         // "AssetTypeId": 0,
                         "Url": "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png",
-                    }) 
+                    })
                 }
+
+                let jobId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+                try {
+                    jobId = server.getJobId()
+                } catch {}
 
                 instances.push({
                     "Capacity": game.maxplayers,
                     "Ping": 0, // TODO: Actually make work.
                     "FPS": 60, // TODO: Actually make work.
                     "ShowSlowGameMessage": false,
-                    "Guid": server.getJobId(),
+                    "Guid": jobId,
                     "PlaceId": game.gameid,
                     "CurrentPlayers": players
                 })
             }
 
-            res.json({"Collection": instances});
+            res.json({
+                "Collection": instances
+            });
         });
 
         app.get("/games/:gameid", db.requireAuth, async (req, res) => {
@@ -3796,7 +4251,11 @@ module.exports = {
             }
             const creator = await db.getUser(game.creatorid);
             if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
-                res.status(404).json({});
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
                 return;
             }
 
@@ -3893,19 +4352,54 @@ module.exports = {
         app.post("/api/item.ashx", db.requireAuth, async (req, res) => {
             const rqtype = req.query.rqtype;
             if (rqtype == "purchase") {
-                if (db.getSiteConfig().shared.gamepassesEnabled == false) {
-                    res.status(404).json({});
-                    return;
-                }
                 const productId = parseInt(req.query.productID);
                 const expectedCurrency = parseInt(req.query.expectedCurrency);
                 const expectedPrice = parseInt(req.query.expectedPrice);
                 const expectedSellerId = parseInt(req.query.expectedSellerID);
                 const gamepass = await db.getGamepass(productId);
+                
                 if (!gamepass) {
+                    const item = await db.getCatalogItem(productId);
+                    if (!item){
+                        res.status(404).json({});
+                        return;
+                    }
+                    if (db.getSiteConfig().shared.pages.catalogEnabled == false) {
+                        res.status(404).json({});
+                        return;
+                    }
+    
+                    if (item.itemcreatorid != expectedSellerId) {
+                        res.status(401).json({});
+                        return;
+                    }
+                    if (item.itemprice != expectedPrice) {
+                        res.status(403).json({});
+                        return;
+                    }
+                    if (item.currency != expectedCurrency) {
+                        res.status(403).json({});
+                        return;
+                    }
+                    if (await db.buyCatalogItem(req.user, productId)) {
+                        res.json({
+                            isValid: true,
+                            data: {
+                                name: item.itemname,
+                                productId: item.itemid
+                            }
+                        });
+                    } else {
+                        res.status(500).json({});
+                    }    
+                    return;
+                }
+
+                if (db.getSiteConfig().shared.gamepassesEnabled == false) {
                     res.status(404).json({});
                     return;
                 }
+
                 if (gamepass.creatorid != expectedSellerId) {
                     res.status(401).json({});
                     return;
@@ -4062,7 +4556,7 @@ module.exports = {
                 res.render("asset", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.id,
-                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
+                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -4091,7 +4585,7 @@ module.exports = {
             res.render("asset", {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.id,
-                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
+                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
                 price: asset.price || 0,
                 name: asset.name,
                 name2: asset.name.replaceAll(" ", "-"),
@@ -4119,7 +4613,21 @@ module.exports = {
             const price = parseInt(req.body.price);
             const gamepass = await db.getGamepass(itemId);
             if (!gamepass) {
-                res.status(404).send("Invalid item ID");
+                const item = await db.getCatalogItem(itemId);
+                if (!item) {
+                    res.status(404).send("Invalid item ID");
+                    return;
+                }
+                if (item.itemcreatorid != req.user.userid) {
+                    res.status(403).send("You are not the creator of this item");
+                    return;
+                }
+                if (price < 0) {
+                    res.status(400).send("Invalid price");
+                    return;
+                }
+                await db.setCatalogItemProperty(itemId, "price", price);
+                res.redirect(`/catalog/${itemId}/${db.filterText2(item.name).replaceAll(" ", "-")}`);
                 return;
             }
             if (gamepass.creatorid != req.user.userid) {
@@ -4140,7 +4648,21 @@ module.exports = {
             if (!gamepass) {
                 const asset = await db.getAsset(itemId);
                 if (!asset) {
-                    res.status(404).json({});
+                    const item = await db.getCatalogItem(itemId);
+                    if (!item) {
+                        res.status(404).json({});
+                        return;
+                    }
+                    if (req.user.userid != item.creatorid){
+                        res.status(403).json({});
+                        return;
+                    }
+                    await db.setCatalogItemProperty(itemId, "onSale", !asset.onSale);
+                    res.json({});
+                    return;
+                }
+                if (req.user.userid != asset.creatorid){
+                    res.status(403).json({});
                     return;
                 }
                 await db.setAssetProperty(itemId, "onSale", !asset.onSale);
