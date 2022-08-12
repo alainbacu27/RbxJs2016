@@ -749,8 +749,8 @@ function toString(input) {
     }
 }
 
-function timeToString(input) {
-    return formatAMPMFull(new Date(input * 1000));
+function timeToString(input, onlyDate = false) {
+    return formatAMPMFull(new Date(input * 1000), onlyDate);
 }
 
 async function isUserUnder13(userid) {
