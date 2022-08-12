@@ -2166,7 +2166,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://www.rbx2016.tk/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemdecalid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -2259,7 +2259,7 @@ module.exports = {
             if (name.length < 3) {
                 res.status(400).send("Too short name.");
                 return;
-            }else if (name.length > 50) {
+            } else if (name.length > 50) {
                 res.status(400).send("Too long name.");
                 return;
             }
@@ -2313,7 +2313,7 @@ module.exports = {
                 } else if (req.user.firstDailyAssetUpload == 0) {
                     await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
                 }
-                
+
                 if (!req.files || Object.keys(req.files).length == 0) {
                     res.status(400).send("No file uploaded");
                     return;
@@ -2324,7 +2324,7 @@ module.exports = {
                 }
                 if (req.user.robux < db.getSiteConfig().shared.ShirtUploadCost) {
                     res.status(401).send("You do not have enough Robux to upload a shirt");
-                    return;   
+                    return;
                 }
                 const file = req.files.file;
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
@@ -2994,7 +2994,7 @@ module.exports = {
             });
         });
 
-        app.get("/users/inventory/list-json", (req, res) => {
+        app.get("/users/inventory/list-json", async (req, res) => {
             if (db.getSiteConfig().shared.users.canViewInventory == false) {
                 res.status(404).json({});
                 return;
@@ -3004,7 +3004,7 @@ module.exports = {
             const pageNumber = parseInt(req.query.pageNumber);
             const userId = parseInt(req.query.userId);
 
-            const items = [
+            let items = [
                 /*
                         {
                                 "AssetRestrictionIcon": {
@@ -3079,7 +3079,480 @@ module.exports = {
                                 }
                             }
                         */
-            ] // TODO: Implement this.
+            ]
+
+            const creator = await db.getUser(userId);
+            if (!creator) {
+                res.json({
+                    "IsValid": false,
+                    "Data": {
+                        "TotalItems": 0,
+                        "nextPageCursor": null,
+                        "previousPageCursor": null,
+                        "PageType": "inventory",
+                        "Items": []
+                    }
+                });
+                return;
+            }
+
+            if (assetTypeId == 3) {
+                const assets = await await db.getAssets(userId, "Audio")
+                for (const asset of assets) {
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.id,
+                            "UniverseId": asset.id,
+                            "Name": asset.name,
+                            "AbsoluteUrl": "https://www.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.description,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": "https://assetdelivery.rbx2016.tk/asset?id=" + asset.id.toString()
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": true,
+                            "NoPriceText": "Offsale",
+                            "IsFree": true
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png",
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
+            } else if (assetTypeId == 13) {
+                const assets = await await db.getAssets(userId, "Decal")
+                for (const asset of assets) {
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.id,
+                            "UniverseId": asset.id,
+                            "Name": asset.name,
+                            "AbsoluteUrl": "https://www.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.description,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": null
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": true,
+                            "NoPriceText": "Offsale",
+                            "IsFree": true
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.id}`,
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
+            } else if (assetTypeId == 40) {
+                const assets = await await db.getAssets(userId, "Mesh")
+                for (const asset of assets) {
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.id,
+                            "UniverseId": asset.id,
+                            "Name": asset.name,
+                            "AbsoluteUrl": "https://www.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.description,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": null
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": true,
+                            "NoPriceText": "Offsale",
+                            "IsFree": true
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg",
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
+            } else if (assetTypeId == 11) {
+                const assets = await await db.getOwnedCatalogItems(userId, "Shirt")
+                for (const asset of assets) {
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.itemid,
+                            "UniverseId": asset.itemid,
+                            "Name": asset.itemname,
+                            "AbsoluteUrl": "https://www.rbx2016.tk/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.itemdescription,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": null
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": asset.itemprice > 0 ? asset.itemprice : null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": !asset.onSale,
+                            "NoPriceText": asset.onSale ? (asset.itemprice == 0 ? "Free" : asset.itemprice.toString()) : "Offsale",
+                            "IsFree": asset.itemprice == 0
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemid}`,
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
+            } else if (assetTypeId == 34) {
+                const assets = await await db.getOwnedGamepasses(userId)
+                for (const asset of assets) {
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.id,
+                            "UniverseId": asset.id,
+                            "Name": asset.name,
+                            "AbsoluteUrl": "https://www.rbx2016.tk/game-pass/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.description,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": null
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": asset.price > 0 ? asset.price : null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": !asset.onSale,
+                            "NoPriceText": asset.onSale ? (asset.price == 0 ? "Free" : asset.price.toString()) : "Offsale",
+                            "IsFree": asset.price == 0
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
+            } else if (assetTypeId == 9) {
+                const assets = await db.getGamesByCreatorId(userId);
+                for (const asset of assets) {
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.gameid,
+                            "UniverseId": asset.gameid,
+                            "Name": asset.gamename,
+                            "AbsoluteUrl": "https://www.rbx2016.tk/games/" + asset.gameid.toString() + "/" + db.filterText2(asset.gamename).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.description,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": null
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": !asset.isPublic,
+                            "NoPriceText": asset.isPublic ? "Public" : "Private",
+                            "IsFree": true
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
+            }
 
             res.json({
                 "IsValid": true,
@@ -3333,10 +3806,10 @@ module.exports = {
                     return;
                 }
                 let catalogItems = []
-                if (keyword){
-                    catalogItems = await db.getCatalogItems(keyword);;
-                }else {
-                    catalogItems = await db.getCatalogItems2(0, 50);
+                if (keyword) {
+                    catalogItems = await db.getCatalogItems(keyword, true);
+                } else {
+                    catalogItems = await db.getCatalogItems2(0, 50, true);
                 }
                 if (catalogItems.length == 0) {
                     returnPromise(``);
@@ -3346,10 +3819,10 @@ module.exports = {
                 for (let i = 0; i < catalogItems.length; i++) {
                     const item = catalogItems[i];
                     let limitedHtml = ``;
-                    if (item.unitsAvailableForConsumption > -1){
+                    if (item.unitsAvailableForConsumption > -1) {
                         if (item.unquie) {
                             limitedHtml = `<img src="https://static.rbx2016.tk/d649b9c54a08dcfa76131d123e7d8acc.png" alt="Limited Unique" class="limited-overlay">`;
-                        }else{
+                        } else {
                             limitedHtml = `<img src="https://static.rbx2016.tk/793dc1fd7562307165231ca2b960b19a.png" alt="Limited Unique" class="limited-overlay">`;
                         }
                     }
@@ -3415,7 +3888,7 @@ module.exports = {
             }
             if (req.query.Category == "Featured") {
                 req.query.Category = "1";
-            }else if (req.query.Category == "All") {
+            } else if (req.query.Category == "All") {
                 req.query.Category = "0";
             }
             res.render("catalog_page", {
@@ -3428,7 +3901,7 @@ module.exports = {
 
         app.get("/catalog/browse.aspx", db.requireAuth, async (req, res) => {
             const query = querystring.stringify(req.query);
-            res.redirect(`/catalog/contents?${query}`); 
+            res.redirect(`/catalog/contents?${query}`);
         });
 
         app.get("/catalog/:id", db.requireAuth, async (req, res) => {
@@ -3445,6 +3918,99 @@ module.exports = {
             res.redirect("/catalog/" + asset.itemid.toString() + "/" + db.filterText(asset.itemname).replaceAll(" ", "-"));
         });
 
+        app.post("/api/v1/thumbnail/upload", async (req, res) => {
+            if (db.getSiteConfig().backend.thumbnailServiceEnabled == false) {
+                res.status(400).send();
+                return;
+            }
+            const apiKey = req.body.apiKey;
+            if (apiKey != db.getSiteConfig().backend.PRIVATE.PRIVATE_API_KEY) {
+                res.status(401).send();
+                return;
+            }
+
+            const data = req.body.data;
+            const itemid = req.body.id;
+            const base64Data = data.replace(/^data:image\/png;base64,/, "");
+
+            fs.writeFile(`../thumbnails/${itemid}.asset`, base64Data, 'base64', function(err) {
+                console.error(err);
+            });
+        });
+
+        app.get("/v1.1/avatar-fetch", async (req, res) => {
+            const userId = parseInt(req.query.userId);
+            const placeId = parseInt(req.query.placeId);
+
+            if (userId == 0){
+                res.json({
+                    "resolvedAvatarType": "R6",
+                    "equippedGearVersionIds": [],
+                    "backpackGearVersionIds": [],
+                    "assetAndAssetTypeIds": [/*
+                    {
+                        "assetId": 0,
+                        "assetTypeId": 0
+                    }
+                */],
+                    "animationAssetIds": {},
+                    "bodyColors": {
+                        "headColorId": 194,
+                        "torsoColorId": 194,
+                        "rightArmColorId": 194,
+                        "leftArmColorId": 194,
+                        "rightLegColorId": 194,
+                        "leftLegColorId": 194
+                    },
+                    "scales": {
+                        "height": 1.0000,
+                        "width": 1.0000,
+                        "head": 1.0000,
+                        "depth": 1.00,
+                        "proportion": 0.0000,
+                        "bodyType": 0.0000
+                    },
+                    "emotes": []
+                });
+                return;
+            }
+
+            const user = await db.getUser(userId);
+            if (!user) {
+                res.status(404).json({});
+                return;
+            }
+            res.json({
+                "resolvedAvatarType": "R6",
+                "equippedGearVersionIds": [],
+                "backpackGearVersionIds": [],
+                "assetAndAssetTypeIds": [/*
+                {
+                    "assetId": 0,
+                    "assetTypeId": 0
+                }
+            */],
+                "animationAssetIds": {},
+                "bodyColors": {
+                    "headColorId": 194,
+                    "torsoColorId": 194,
+                    "rightArmColorId": 194,
+                    "leftArmColorId": 194,
+                    "rightLegColorId": 194,
+                    "leftLegColorId": 194
+                },
+                "scales": {
+                    "height": 1.0000,
+                    "width": 1.0000,
+                    "head": 1.0000,
+                    "depth": 1.00,
+                    "proportion": 0.0000,
+                    "bodyType": 0.0000
+                },
+                "emotes": []
+            });
+        });
+
         app.get("/catalog/:id/:name", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.assetsEnabled == false) {
                 if (req.user) {
@@ -3456,19 +4022,27 @@ module.exports = {
             }
             const id = parseInt(req.params.id);
             let asset = await db.getCatalogItem(id);
+            if (!asset) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
             let asset2 = null;
             let asset2Expected = false;
-            if (asset.itemdecalid){
+            if (asset.itemdecalid) {
                 asset2Expected = true;
                 asset2 = await db.getAsset(asset.itemdecalid);
             }
             let asset3 = null;
             let asset3Expected = false;
-            if (asset.itemmeshid){
+            if (asset.itemmeshid) {
                 asset3Expected = true;
                 asset3 = await db.getAsset(asset.itemmeshid);
             }
-            if (asset2Expected){
+            if (asset2Expected) {
                 if (!asset2 || ((asset2.deleted || asset2.approvedBy == 0) && !req.user.isAdmin && !req.user.isMod && req.user.userid != asset2.creatorid)) {
                     if (req.user) {
                         res.status(404).render("404", await db.getRenderObject(req.user));
@@ -3478,7 +4052,7 @@ module.exports = {
                     return;
                 }
             }
-            if (asset3Expected){
+            if (asset3Expected) {
                 if (!asset3 || ((asset3.deleted || asset3.approvedBy == 0) && !req.user.isAdmin && !req.user.isMod && req.user.userid != asset3.creatorid)) {
                     if (req.user) {
                         res.status(404).render("404", await db.getRenderObject(req.user));
@@ -3528,7 +4102,7 @@ module.exports = {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.itemid,
                 genre: asset.itemgenre,
-                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemdecalid}`,
+                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemid}`,
                 price: asset.price || 0,
                 name: asset.itemname,
                 name2: asset.itemname.replaceAll(" ", "-"),
@@ -4361,10 +4935,10 @@ module.exports = {
                 const expectedPrice = parseInt(req.query.expectedPrice);
                 const expectedSellerId = parseInt(req.query.expectedSellerID);
                 const gamepass = await db.getGamepass(productId);
-                
+
                 if (!gamepass) {
                     const item = await db.getCatalogItem(productId);
-                    if (!item){
+                    if (!item) {
                         res.status(404).json({});
                         return;
                     }
@@ -4372,7 +4946,7 @@ module.exports = {
                         res.status(404).json({});
                         return;
                     }
-    
+
                     if (item.itemcreatorid != expectedSellerId) {
                         res.status(401).json({});
                         return;
@@ -4395,7 +4969,7 @@ module.exports = {
                         });
                     } else {
                         res.status(500).json({});
-                    }    
+                    }
                     return;
                 }
 
@@ -4464,7 +5038,7 @@ module.exports = {
         });
 
         app.post("/v1/password/change", db.requireAuth, async (req, res) => {
-            if (db.getSiteConfig().shared.passwordConfiguration.canChangePassword != true){
+            if (db.getSiteConfig().shared.passwordConfiguration.canChangePassword != true) {
                 res.status(401).send("Changing usernames is currently disabled.");
                 return;
             }
@@ -4477,15 +5051,15 @@ module.exports = {
                 return;
             }
 
-            if (await db.setUserProperty(req.user.userid, "password", bcrypt.hashSync(npass, 10))){
+            if (await db.setUserProperty(req.user.userid, "password", bcrypt.hashSync(npass, 10))) {
                 res.send("OK");
-            }else{
+            } else {
                 res.status(500).send("Something went wrong, please try again.");
             }
         });
-        
+
         app.post("/v1/username/change", db.requireAuth, async (req, res) => {
-            if (db.getSiteConfig().shared.usernameConfiguration.canChangeUsername != true){
+            if (db.getSiteConfig().shared.usernameConfiguration.canChangeUsername != true) {
                 res.status(401).send("Changing usernames is currently disabled.");
                 return;
             }
@@ -4514,11 +5088,11 @@ module.exports = {
             }
 
             const finalUsername = db.filterText3(username);
-            
-            if (await db.setUserProperty(req.user.userid, "username", finalUsername)){
+
+            if (await db.setUserProperty(req.user.userid, "username", finalUsername)) {
                 await db.setUserProperty(req.user.userid, "robux", robux - db.getSiteConfig().shared.usernameConfiguration.changeUsernamePrice);
                 res.send("OK");
-            }else{
+            } else {
                 res.status(500).send("Something went wrong");
             }
         });
@@ -4717,15 +5291,15 @@ module.exports = {
                         res.status(404).json({});
                         return;
                     }
-                    if (req.user.userid != item.creatorid){
+                    if (req.user.userid != item.itemcreatorid) {
                         res.status(403).json({});
                         return;
                     }
-                    await db.setCatalogItemProperty(itemId, "onSale", !asset.onSale);
+                    await db.setCatalogItemProperty(itemId, "onSale", !item.onSale);
                     res.json({});
                     return;
                 }
-                if (req.user.userid != asset.creatorid){
+                if (req.user.userid != asset.creatorid) {
                     res.status(403).json({});
                     return;
                 }

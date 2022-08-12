@@ -135,6 +135,22 @@ module.exports = {
                 return;
             }
 
+            const item = await db.getCatalogItem(id);
+            if (item) {
+                const bp = path.resolve(__dirname + "/../thumbnails/") + path.sep;
+                const fp = path.resolve(bp + id.toString() + ".asset");
+                if (!fp.startsWith(bp)) {
+                    res.status(403).send("Forbidden");
+                    return;
+                }
+                if (fs.existsSync(fp)) {
+                    res.download(fp, "Download");
+                }else{
+                    res.redirect("https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
+                }
+                return;
+            }
+
             const game = await db.getGame(id);
             if (game) {
                 const creator = await db.getUser(game.creatorid);

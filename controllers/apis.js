@@ -428,7 +428,7 @@ module.exports = {
             const prefix = req.query.prefix;
 
             let data = [];
-            const items = await db.getCatalogItems(prefix);
+            const items = await db.getCatalogItems(prefix, true);
             for (let i = 0; i < items.length; i++) {
                 const item = items[i];
                 data.push({

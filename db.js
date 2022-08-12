@@ -1127,6 +1127,31 @@ async function getGame(gameid) {
     });
 }
 
+async function getCatalogItem(itemid) {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("catalog").findOne({
+                itemid: itemid
+            }, function (err, result) {
+                if (err) {
+                    db.close();
+                    returnPromise(null);
+                    return;
+                }
+                if (result != null) {
+                    db.close();
+                    returnPromise(result);
+                } else {
+                    db.close();
+                    returnPromise(null);
+                }
+            });
+        });
+    });
+}
+
 setInterval(() => {
     MongoClient.connect(mongourl, async function (err, db) {
         if (err) throw err;
@@ -1564,338 +1589,853 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     return script;
 }
 
+async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (ThumbnailGenerator crashes rcc.)
+    const isGame = await getGame(itemid) != null;
+
+    let script = ``;
+
+    if (isGame) {
+        const key = uuidv4();
+        PRIVATE_PLACE_KEYS.push(key);
+        script = `local placeId = ${itemid}
+        local port = ${port}
+        local url = "http://www.rbx2016.tk"
+        
+        function waitForChild(parent, childName)
+            while true do
+                local child = parent:findFirstChild(childName)
+                if child then
+                    return child
+                end
+                parent.ChildAdded:wait()
+            end
+        end
+        
+        pcall(function() settings().Network.UseInstancePacketCache = true end)
+        pcall(function() settings().Network.UsePhysicsPacketCache = true end)
+        pcall(function() settings()["Task Scheduler"].PriorityMethod = Enum.PriorityMethod.AccumulatedError end)
+        
+        settings().Network.PhysicsSend = Enum.PhysicsSendMethod.TopNErrors
+        settings().Network.ExperimentalPhysicsEnabled = true
+        settings().Network.WaitingForCharacterLogRate = 100
+        pcall(function() settings().Diagnostics:LegacyScriptMode() end)
+        
+        local scriptContext = game:GetService('ScriptContext')
+        pcall(function() scriptContext:AddStarterScript(37801172) end)
+        scriptContext.ScriptsDisabled = true
+        
+        game:SetPlaceID(placeId, false)
+        game:GetService("ChangeHistoryService"):SetEnabled(false)
+        
+        local ns = game:GetService("NetworkServer")
+        
+        if url~=nil then
+            pcall(function() game:GetService("Players"):SetAbuseReportUrl(url .. "/AbuseReport/InGameChatHandler.ashx") end)
+            pcall(function() game:GetService("ScriptInformationProvider"):SetAssetUrl(url .. "/Asset/") end)
+            pcall(function() game:GetService("ContentProvider"):SetBaseUrl(url .. "/") end)
+            pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/Game/ChatFilter.ashx") end)
+        
+            game:GetService("BadgeService"):SetPlaceId(placeId)
+        
+            game:GetService("BadgeService"):SetIsBadgeLegalUrl("")
+            game:GetService("InsertService"):SetBaseSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
+            game:GetService("InsertService"):SetUserSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
+            game:GetService("InsertService"):SetCollectionUrl(url .. "/Game/Tools/InsertAsset.ashx?sid=%d")
+            game:GetService("InsertService"):SetAssetUrl(url .. "/Asset/?id=%d")
+            game:GetService("InsertService"):SetAssetVersionUrl(url .. "/Asset/?assetversionid=%d")
+            
+            pcall(function() loadfile(url .. "/Game/LoadPlaceInfo.ashx?PlaceId=" .. placeId)() end)
+            
+        end
+        
+        settings().Diagnostics.LuaRamLimit = 0
+        
+        if placeId~=nil and url~=nil then
+            wait()
+            
+            game:Load("http://www.rbx2016.tk/asset/?id=${itemid}|${key}")
+        end
+
+        spawn(function()
+            while true do
+                wait(25)
+                loadfile(url .. "/Game/api/v1/close?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. game.JobId .. "|${itemid}")
+                game:FinishShutdown(false)
+            end
+        end)
+        
+        local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
+        local https = game:GetService("HttpService")
+        local url = "https://www.rbx2016.tk/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+        
+        local data = ""
+        for k, v in pairs(result) do
+            data = data .. ("&%s=%s"):format(
+                https:UrlEncode(k),
+                https:UrlEncode(v)
+            )
+        end
+        data = data:sub(2)
+        
+        local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)`;
+    } else {
+        const item = getCatalogItem(itemid);
+        if (!item){
+            script = `local url = "http://www.rbx2016.tk"
+        game:GetService("ScriptContext").ScriptsDisabled = true
+        local plr = game.Players:CreateLocalPlayer(0)
+        plr.CharacterAppearance = "https://api.roblox.com/v1.1/avatar-fetch/?userId=15491471"
+        plr:LoadCharacter(false)
+        for i,v in pairs(plr.Character:GetChildren()) do
+           print(v)
+           if v:IsA("Tool") then
+               plr.Character.Torso["Right Shoulder"].CurrentAngle = math.pi / 2
+           end
+        end
+
+        spawn(function()
+            while true do
+                wait(25)
+                loadfile(url .. "/Game/api/v1/close?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. game.JobId .. "|${itemid}")
+                game:FinishShutdown(false)
+            end
+        end)
+
+        local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
+        local https = game:GetService("HttpService")
+        local url = "https://www.rbx2016.tk/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+        
+        local data = ""
+        for k, v in pairs(result) do
+            data = data .. ("&%s=%s"):format(
+                https:UrlEncode(k),
+                https:UrlEncode(v)
+            )
+        end
+        data = data:sub(2)
+        
+        local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)
+        `;
+        }else{
+            let loadCode = ""
+            if (item.itemtype == "Shirt"){
+                loadCode = `local shirt = Instance.new("Shirt")
+                shirt.ShirtTemplate = "rbxassetid://${item.itemdecalid}"
+                shirt.Parent = plr.Character`;
+            }else if (item.itemtype == "Pants"){
+                loadCode = `local pants = Instance.new("Pants")
+                pants.PantsTemplate = "rbxassetid://${item.itemdecalid}"
+                pants.Parent = plr.Character`;
+            }
+            script = `local url = "http://www.rbx2016.tk"
+        game:GetService("ScriptContext").ScriptsDisabled = true
+        local plr = game.Players:CreateLocalPlayer(0)
+        plr.CharacterAppearance = "https://api.rbx2016.tk/v1.1/avatar-fetch/?userId=0"
+        plr:LoadCharacter(false)
+
+        for i,v in pairs(plr.Character:GetChildren()) do
+           if v:IsA("Shirt") or v:IsA("Pants") then
+               v:Destroy()
+           end
+        end
+        
+        ${loadCode}
+        
+        for i,v in pairs(plr.Character:GetChildren()) do
+           if v:IsA("Tool") then
+               plr.Character.Torso["Right Shoulder"].CurrentAngle = math.pi / 2
+           end
+        end
+
+        spawn(function()
+            while true do
+                wait(25)
+                loadfile(url .. "/Game/api/v1/close?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. game.JobId .. "|${itemid}")
+                game:FinishShutdown(false)
+            end
+        end)
+        
+        local result = game:GetService("ThumbnailGenerator"):Click("PNG", 5, 5, true)
+        error(result)
+
+        local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
+        local https = game:GetService("HttpService")
+        url = url .. "/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+
+        local data = ""
+        for k, v in pairs(result) do
+            data = data .. ("&" .. "%s" .. "=" .. "%s"):format(
+                https:UrlEncode(k),
+                https:UrlEncode(v)
+            )
+        end
+        data = data:sub(2)
+        
+        local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)
+        `;
+        }
+    }
+
+    return script;
+}
+
 // console.log(getRCCHostScript(1, 53640))
 
 let activeJobs = {};
 let activeGameJobs = {};
 
-async function newJob(gameid, isCloudEdit = false) {
+async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
     return new Promise(async returnPromise => {
         MongoClient.connect(mongourl, function (err, db) {
             if (err) throw err;
             const dbo = db.db(dbName);
             if (!isCloudEdit) {
-                dbo.collection("games").findOne({
-                    gameid: gameid,
-                    port: 0
-                }, function (err, result) {
-                    if (err) {
-                        db.close();
-                        returnPromise(null);
-                        return;
-                    }
-                    if (gameid != 0 && result == null) {
-                        db.close();
-                        returnPromise(null);
-                        return;
-                    }
+                if (!isRenderJob) {
+                    dbo.collection("games").findOne({
+                        gameid: gameid,
+                        port: 0
+                    }, function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        if (gameid != 0 && result == null) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
 
-                    if (activeGameJobs[gameid]) { // For now..
-                        db.close();
-                        returnPromise(null);
-                        return;
-                    }
+                        if (activeGameJobs[gameid]) { // For now..
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
 
-                    let myPort = 0;
-                    let myHostPort = 0;
-                    let jobId = "";
-                    let proc = null;
+                        let myPort = 0;
+                        let myHostPort = 0;
+                        let jobId = "";
+                        let proc = null;
 
-                    let hasExecutedOnce = false;
+                        let hasExecutedOnce = false;
 
-                    let self = {}
+                        let self = {}
 
-                    async function stop() {
-                        return new Promise(async returnPromise => {
-                            if (myPort == 0) {
-                                returnPromise(null);
-                                return;
-                            }
-                            try {
-                                delete activeJobs[jobId];
-                            } catch {}
-                            try {
-                                delete activeGameJobs[gameid][jobId];
-                            } catch {}
-                            try {
-                                if (Object.keys(activeGameJobs[gameid]).length == 0) {
-                                    delete activeGameJobs[gameid];
+                        async function stop() {
+                            return new Promise(async returnPromise => {
+                                if (myPort == 0) {
+                                    returnPromise(null);
+                                    return;
                                 }
-                            } catch {}
+                                try {
+                                    delete activeJobs[jobId];
+                                } catch {}
+                                try {
+                                    delete activeGameJobs[gameid][jobId];
+                                } catch {}
+                                try {
+                                    if (Object.keys(activeGameJobs[gameid]).length == 0) {
+                                        delete activeGameJobs[gameid];
+                                    }
+                                } catch {}
 
 
-                            availableRCCPorts.push(myPort);
-                            availableGamePorts.push(myHostPort);
+                                availableRCCPorts.push(myPort);
+                                availableGamePorts.push(myHostPort);
 
-                            try {
-                                // proc.stdin.pause();
-                                // proc.kill();
-                                kill(proc.pid, 'SIGTERM');
-                            } catch {}
-                            myPort = 0;
-                            myHostPort = 0;
-                            jobId = "";
-                            returnPromise(true);
-                            /*
-                            pm2.delete(`RCC-${myPort}`, (err) => {
-                                if (err) {
-                                    console.error(err);
-                                }
+                                try {
+                                    // proc.stdin.pause();
+                                    // proc.kill();
+                                    kill(proc.pid, 'SIGTERM');
+                                } catch {}
                                 myPort = 0;
                                 myHostPort = 0;
                                 jobId = "";
                                 returnPromise(true);
+                                /*
+                                pm2.delete(`RCC-${myPort}`, (err) => {
+                                    if (err) {
+                                        console.error(err);
+                                    }
+                                    myPort = 0;
+                                    myHostPort = 0;
+                                    jobId = "";
+                                    returnPromise(true);
+                                });
+                                */
                             });
-                            */
-                        });
-                    }
+                        }
 
-                    async function execute(script, timeout = 10, connectionTimeout = 1000) {
-                        return new Promise(async returnPromise => {
-                            if (myPort == 0) {
-                                returnPromise(null);
-                                return;
-                            }
-                            const url = `http://127.0.0.1:${myPort}/`;
-                            const headers2 = {
-                                'user-agent': 'RCC-Arbiter',
-                                'Content-Type': 'text/xml;charset=UTF-8',
-                                'soapAction': `https://www.rbx2016.tk/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
-                            };
-                            const xml = utf8.encode(getRCCScriptXml(script, jobId, timeout, hasExecutedOnce));
-                            if (!hasExecutedOnce) {
-                                hasExecutedOnce = true;
-                            }
-
-                            let c = siteConfig.backend.maxGameStartupTime;
-                            while (true) {
-                                try {
-                                    const {
-                                        response
-                                    } = await soapRequest({
-                                        url: url,
-                                        headers: headers2,
-                                        xml: xml,
-                                        timeout: connectionTimeout
-                                    }); // Optional timeout parameter(milliseconds)
-                                    const {
-                                        headers,
-                                        body,
-                                        statusCode
-                                    } = response;
-                                    if (statusCode != 200 && statusCode != 302 && statusCode != 304) {
-                                        returnPromise(false);
-                                        return;
-                                    }
-                                    let result = [];
-                                    let result0 = body.split("<ns1:value>");
-                                    if (result0.length > 1) {
-                                        for (let i = 1; i < result0.length; i++) {
-                                            result.push("ok|" + result0[i].split("</ns1:value>")[0]);
-                                        }
-                                    }
-                                    result0 = body.split("<faultstring>");
-                                    if (result0.length > 1) {
-                                        result.push("err|" + result0[1].split("</faultstring>")[0]);
-                                    }
-                                    returnPromise(result);
+                        async function execute(script, timeout = 10, connectionTimeout = 1000) {
+                            return new Promise(async returnPromise => {
+                                if (myPort == 0) {
+                                    returnPromise(null);
                                     return;
-                                } catch (e) {
-                                    // console.error(e);
+                                }
+                                const url = `http://127.0.0.1:${myPort}/`;
+                                const headers2 = {
+                                    'user-agent': 'RCC-Arbiter',
+                                    'Content-Type': 'text/xml;charset=UTF-8',
+                                    'soapAction': `https://www.rbx2016.tk/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
+                                };
+                                const xml = utf8.encode(getRCCScriptXml(script, jobId, timeout, hasExecutedOnce));
+                                if (!hasExecutedOnce) {
+                                    hasExecutedOnce = true;
+                                }
+
+                                let c = siteConfig.backend.maxGameStartupTime;
+                                while (true) {
                                     try {
+                                        const {
+                                            response
+                                        } = await soapRequest({
+                                            url: url,
+                                            headers: headers2,
+                                            xml: xml,
+                                            timeout: connectionTimeout
+                                        }); // Optional timeout parameter(milliseconds)
+                                        const {
+                                            headers,
+                                            body,
+                                            statusCode
+                                        } = response;
+                                        if (statusCode != 200 && statusCode != 302 && statusCode != 304) {
+                                            returnPromise(false);
+                                            return;
+                                        }
                                         let result = [];
-                                        let result0 = e.split("<ns1:value>");
+                                        let result0 = body.split("<ns1:value>");
                                         if (result0.length > 1) {
                                             for (let i = 1; i < result0.length; i++) {
                                                 result.push("ok|" + result0[i].split("</ns1:value>")[0]);
                                             }
                                         }
-                                        result0 = e.split("<faultstring>");
+                                        result0 = body.split("<faultstring>");
                                         if (result0.length > 1) {
                                             result.push("err|" + result0[1].split("</faultstring>")[0]);
                                         }
-                                        await stop();
                                         returnPromise(result);
                                         return;
                                     } catch (e) {
-                                        if (c <= 0) {
+                                        // console.error(e);
+                                        try {
+                                            let result = [];
+                                            let result0 = e.split("<ns1:value>");
+                                            if (result0.length > 1) {
+                                                for (let i = 1; i < result0.length; i++) {
+                                                    result.push("ok|" + result0[i].split("</ns1:value>")[0]);
+                                                }
+                                            }
+                                            result0 = e.split("<faultstring>");
+                                            if (result0.length > 1) {
+                                                result.push("err|" + result0[1].split("</faultstring>")[0]);
+                                            }
                                             await stop();
-                                            returnPromise(["err|Unknown Error"]);
+                                            returnPromise(result);
                                             return;
+                                        } catch (e) {
+                                            if (c <= 0) {
+                                                await stop();
+                                                returnPromise(["err|Unknown Error"]);
+                                                return;
+                                            }
+                                            c--;
+                                            await sleep(1000);
                                         }
-                                        c--;
-                                        await sleep(1000);
                                     }
                                 }
-                            }
-                        });
-                    }
+                            });
+                        }
 
-                    async function start() {
-                        return new Promise(async returnPromise => {
-                            if (myHostPort != 0) {
-                                // throw new Error("Already Hosting");
-                                returnPromise(false);
-                            }
-                            myPort = availableRCCPorts.shift();
-                            myHostPort = availableGamePorts.shift();
-                            jobId = uuidv4();
-                            if (isWin) {
-                                let rccFolder = rccPath.split(path.sep);
-                                rccFolder = rccFolder.splice(0, rccFolder.length - 1);
-                                rccFolder = rccFolder.join(path.sep);
-
-                                activeJobs[jobId] = self;
-                                if (!activeGameJobs[gameid]) {
-                                    activeGameJobs[gameid] = {};
-                                }
-                                activeGameJobs[gameid][jobId] = self;
-
-                                proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
-                                    cwd: rccFolder
-                                }, (err, stdout, stderr) => {});
-
-                                returnPromise(true);
-                                /*
-                                pm2.start({
-                                    name: `RCC-${myPort}`,
-                                    script: `${rccPath}`,
-                                    cron_restart: 0,
-                                    autorestart: false,
-                                    stop_exit_codes: [0],
-                                    args: `-Console -Start -Custom -PlaceId:${gameid} ${myPort}`
-                                    // out_file: `app.strout.log`,
-                                    // error_file: `app.strerr.log`
-                                }, async function (err, apps) {
-                                    if (err) {
-                                        console.error(err)
-                                        returnPromise(false);
-                                        return;
-                                    }
-                                    let c = 0;
-                                    while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
-                                        await sleep(1000);
-                                        c ++;
-                                    }
-                                    activeJobs[jobId] = self;
-                                    returnPromise(true);
-                                });
-                                */
-                            } else {
-                                // REQUIRES WINE.
-                                let rccFolder = rccPath.split(path.sep);
-                                rccFolder = rccFolder.splice(0, rccFolder.length - 1);
-                                rccFolder = rccFolder.join(path.sep);
-
-                                /*
-                                sudo apt install xvfb lightdm
-
-                                export DISPLAY=:1
-                                Xvfb :1 -screen 0 1024x768x16 &
-                                sleep 1
-
-                                #exec gnome-session & # use gnome-session instead of lightdm
-                                exec lightdm-session &
-                                */
-
-                                activeJobs[jobId] = self;
-                                if (!activeGameJobs[gameid]) {
-                                    activeGameJobs[gameid] = {};
-                                }
-                                activeGameJobs[gameid][jobId] = self;
-
-                                proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
-                                    cwd: rccFolder
-                                }, (err, stdout, stderr) => {});
-
-                                returnPromise(true);
-                                /*
-                                pm2.start({
-                                    name: `RCC-${myPort}`,
-                                    script: `exec.sh`,
-                                    cron_restart: 0,
-                                    autorestart: false,
-                                    stop_exit_codes: [0],
-                                    args: `${rccPath} -Console -PlaceId:${gameid} -Start -Custom -PlaceId:${gameid} ${myPort}`
-                                    // out_file: `app.strout.log`,
-                                    // error_file: `app.strerr.log`
-                                }, async function (err, apps) {
-                                    if (err) {
-                                        console.error(err)
-                                        returnPromise(false);
-                                        return;
-                                    }
-                                    let c = 0;
-                                    while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
-                                        await sleep(1000);
-                                        c ++;
-                                    }
-                                    activeJobs[jobId] = self;
-                                    returnPromise(true);
-                                });
-                                */
-                            }
-                        });
-                    }
-
-                    self = {
-                        host: async function () {
-                            await start();
-                            await sleep(1000);
-                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
-                            if (resp == "err|Unknown Error") {
-                                await stop();
-                            }
-                        },
-                        update: async function () {
+                        async function start() {
                             return new Promise(async returnPromise => {
-                                if (myPort == 0) {
+                                if (myHostPort != 0) {
+                                    // throw new Error("Already Hosting");
                                     returnPromise(false);
-                                    return;
                                 }
-                                MongoClient.connect(mongourl, function (err, db) {
-                                    if (err) throw err;
-                                    const dbo = db.db(dbName);
-                                    dbo.collection("games").findOne({
-                                        gameid: gameid,
-                                        port: myHostPort
-                                    }, async function (err, result) {
+                                myPort = availableRCCPorts.shift();
+                                myHostPort = availableGamePorts.shift();
+                                jobId = uuidv4();
+                                if (isWin) {
+                                    let rccFolder = rccPath.split(path.sep);
+                                    rccFolder = rccFolder.splice(0, rccFolder.length - 1);
+                                    rccFolder = rccFolder.join(path.sep);
+
+                                    activeJobs[jobId] = self;
+                                    if (!activeGameJobs[gameid]) {
+                                        activeGameJobs[gameid] = {};
+                                    }
+                                    activeGameJobs[gameid][jobId] = self;
+
+                                    proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
+                                        cwd: rccFolder
+                                    }, (err, stdout, stderr) => {});
+
+                                    returnPromise(true);
+                                    /*
+                                    pm2.start({
+                                        name: `RCC-${myPort}`,
+                                        script: `${rccPath}`,
+                                        cron_restart: 0,
+                                        autorestart: false,
+                                        stop_exit_codes: [0],
+                                        args: `-Console -Start -Custom -PlaceId:${gameid} ${myPort}`
+                                        // out_file: `app.strout.log`,
+                                        // error_file: `app.strerr.log`
+                                    }, async function (err, apps) {
                                         if (err) {
-                                            db.close();
+                                            console.error(err)
                                             returnPromise(false);
                                             return;
                                         }
-                                        if (result == null) {
-                                            await stop();
-                                            db.close();
-                                            returnPromise(true);
+                                        let c = 0;
+                                        while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
+                                            await sleep(1000);
+                                            c ++;
+                                        }
+                                        activeJobs[jobId] = self;
+                                        returnPromise(true);
+                                    });
+                                    */
+                                } else {
+                                    // REQUIRES WINE.
+                                    let rccFolder = rccPath.split(path.sep);
+                                    rccFolder = rccFolder.splice(0, rccFolder.length - 1);
+                                    rccFolder = rccFolder.join(path.sep);
+
+                                    /*
+                                    sudo apt install xvfb lightdm
+    
+                                    export DISPLAY=:1
+                                    Xvfb :1 -screen 0 1024x768x16 &
+                                    sleep 1
+    
+                                    #exec gnome-session & # use gnome-session instead of lightdm
+                                    exec lightdm-session &
+                                    */
+
+                                    activeJobs[jobId] = self;
+                                    if (!activeGameJobs[gameid]) {
+                                        activeGameJobs[gameid] = {};
+                                    }
+                                    activeGameJobs[gameid][jobId] = self;
+
+                                    proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
+                                        cwd: rccFolder
+                                    }, (err, stdout, stderr) => {});
+
+                                    returnPromise(true);
+                                    /*
+                                    pm2.start({
+                                        name: `RCC-${myPort}`,
+                                        script: `exec.sh`,
+                                        cron_restart: 0,
+                                        autorestart: false,
+                                        stop_exit_codes: [0],
+                                        args: `${rccPath} -Console -PlaceId:${gameid} -Start -Custom -PlaceId:${gameid} ${myPort}`
+                                        // out_file: `app.strout.log`,
+                                        // error_file: `app.strerr.log`
+                                    }, async function (err, apps) {
+                                        if (err) {
+                                            console.error(err)
+                                            returnPromise(false);
                                             return;
                                         }
-                                        db.close();
+                                        let c = 0;
+                                        while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
+                                            await sleep(1000);
+                                            c ++;
+                                        }
+                                        activeJobs[jobId] = self;
+                                        returnPromise(true);
+                                    });
+                                    */
+                                }
+                            });
+                        }
+
+                        self = {
+                            host: async function () {
+                                await start();
+                                await sleep(1000);
+                                const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
+                                if (resp == "err|Unknown Error") {
+                                    await stop();
+                                }
+                            },
+                            update: async function () {
+                                return new Promise(async returnPromise => {
+                                    if (myPort == 0) {
                                         returnPromise(false);
+                                        return;
+                                    }
+                                    MongoClient.connect(mongourl, function (err, db) {
+                                        if (err) throw err;
+                                        const dbo = db.db(dbName);
+                                        dbo.collection("games").findOne({
+                                            gameid: gameid,
+                                            port: myHostPort
+                                        }, async function (err, result) {
+                                            if (err) {
+                                                db.close();
+                                                returnPromise(false);
+                                                return;
+                                            }
+                                            if (result == null) {
+                                                await stop();
+                                                db.close();
+                                                returnPromise(true);
+                                                return;
+                                            }
+                                            db.close();
+                                            returnPromise(false);
+                                        });
                                     });
                                 });
-                            });
-                        },
-                        start: start,
-                        stop: stop,
-                        execute: execute,
-                        isAlive: function () {
-                            return myPort != 0;
-                        },
-                        getRccPort: function () {
-                            return myPort;
-                        },
-                        getHostPort: function () {
-                            return myHostPort;
-                        },
-                        getJobId: function () {
-                            return jobId;
+                            },
+                            start: start,
+                            stop: stop,
+                            execute: execute,
+                            isAlive: function () {
+                                return myPort != 0;
+                            },
+                            getRccPort: function () {
+                                return myPort;
+                            },
+                            getHostPort: function () {
+                                return myHostPort;
+                            },
+                            getJobId: function () {
+                                return jobId;
+                            }
                         }
-                    }
 
-                    returnPromise(self);
-                });
+                        returnPromise(self);
+                    });
+                } else {
+                    dbo.collection("games").findOne({
+                        gameid: gameid,
+                        port: 0
+                    }, function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        if (gameid != 0 && result == null) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+
+                        if (activeGameJobs[gameid]) { // For now..
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+
+                        let myPort = 0;
+                        let myHostPort = 0;
+                        let jobId = "";
+                        let proc = null;
+
+                        let hasExecutedOnce = false;
+
+                        let self = {}
+
+                        async function stop() {
+                            return new Promise(async returnPromise => {
+                                if (myPort == 0) {
+                                    returnPromise(null);
+                                    return;
+                                }
+                                try {
+                                    delete activeJobs[jobId];
+                                } catch {}
+                                try {
+                                    delete activeGameJobs[gameid][jobId];
+                                } catch {}
+                                try {
+                                    if (Object.keys(activeGameJobs[gameid]).length == 0) {
+                                        delete activeGameJobs[gameid];
+                                    }
+                                } catch {}
+
+
+                                availableRCCPorts.push(myPort);
+                                availableGamePorts.push(myHostPort);
+
+                                try {
+                                    // proc.stdin.pause();
+                                    // proc.kill();
+                                    kill(proc.pid, 'SIGTERM');
+                                } catch {}
+                                myPort = 0;
+                                myHostPort = 0;
+                                jobId = "";
+                                returnPromise(true);
+                                /*
+                                pm2.delete(`RCC-${myPort}`, (err) => {
+                                    if (err) {
+                                        console.error(err);
+                                    }
+                                    myPort = 0;
+                                    myHostPort = 0;
+                                    jobId = "";
+                                    returnPromise(true);
+                                });
+                                */
+                            });
+                        }
+
+                        async function execute(script, timeout = 10, connectionTimeout = 1000) {
+                            return new Promise(async returnPromise => {
+                                if (myPort == 0) {
+                                    returnPromise(null);
+                                    return;
+                                }
+                                const url = `http://127.0.0.1:${myPort}/`;
+                                const headers2 = {
+                                    'user-agent': 'RCC-Arbiter',
+                                    'Content-Type': 'text/xml;charset=UTF-8',
+                                    'soapAction': `https://www.rbx2016.tk/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
+                                };
+                                const xml = utf8.encode(getRCCScriptXml(script, jobId, timeout, hasExecutedOnce));
+                                if (!hasExecutedOnce) {
+                                    hasExecutedOnce = true;
+                                }
+
+                                let c = siteConfig.backend.maxGameStartupTime;
+                                while (true) {
+                                    try {
+                                        const {
+                                            response
+                                        } = await soapRequest({
+                                            url: url,
+                                            headers: headers2,
+                                            xml: xml,
+                                            timeout: connectionTimeout
+                                        }); // Optional timeout parameter(milliseconds)
+                                        const {
+                                            headers,
+                                            body,
+                                            statusCode
+                                        } = response;
+                                        if (statusCode != 200 && statusCode != 302 && statusCode != 304) {
+                                            returnPromise(false);
+                                            return;
+                                        }
+                                        let result = [];
+                                        let result0 = body.split("<ns1:value>");
+                                        if (result0.length > 1) {
+                                            for (let i = 1; i < result0.length; i++) {
+                                                result.push("ok|" + result0[i].split("</ns1:value>")[0]);
+                                            }
+                                        }
+                                        result0 = body.split("<faultstring>");
+                                        if (result0.length > 1) {
+                                            result.push("err|" + result0[1].split("</faultstring>")[0]);
+                                        }
+                                        returnPromise(result);
+                                        return;
+                                    } catch (e) {
+                                        // console.error(e);
+                                        try {
+                                            let result = [];
+                                            let result0 = e.split("<ns1:value>");
+                                            if (result0.length > 1) {
+                                                for (let i = 1; i < result0.length; i++) {
+                                                    result.push("ok|" + result0[i].split("</ns1:value>")[0]);
+                                                }
+                                            }
+                                            result0 = e.split("<faultstring>");
+                                            if (result0.length > 1) {
+                                                result.push("err|" + result0[1].split("</faultstring>")[0]);
+                                            }
+                                            await stop();
+                                            returnPromise(result);
+                                            return;
+                                        } catch (e) {
+                                            if (c <= 0) {
+                                                await stop();
+                                                returnPromise(["err|Unknown Error"]);
+                                                return;
+                                            }
+                                            c--;
+                                            await sleep(1000);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        async function start() {
+                            return new Promise(async returnPromise => {
+                                if (myHostPort != 0) {
+                                    // throw new Error("Already Hosting");
+                                    returnPromise(false);
+                                }
+                                myPort = availableRCCPorts.shift();
+                                myHostPort = availableGamePorts.shift();
+                                jobId = uuidv4();
+                                if (isWin) {
+                                    let rccFolder = rccPath.split(path.sep);
+                                    rccFolder = rccFolder.splice(0, rccFolder.length - 1);
+                                    rccFolder = rccFolder.join(path.sep);
+
+                                    activeJobs[jobId] = self;
+                                    if (!activeGameJobs[gameid]) {
+                                        activeGameJobs[gameid] = {};
+                                    }
+                                    activeGameJobs[gameid][jobId] = self;
+
+                                    proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
+                                        cwd: rccFolder
+                                    }, (err, stdout, stderr) => {});
+
+                                    returnPromise(true);
+                                    /*
+                                    pm2.start({
+                                        name: `RCC-${myPort}`,
+                                        script: `${rccPath}`,
+                                        cron_restart: 0,
+                                        autorestart: false,
+                                        stop_exit_codes: [0],
+                                        args: `-Console -Start -Custom -PlaceId:${gameid} ${myPort}`
+                                        // out_file: `app.strout.log`,
+                                        // error_file: `app.strerr.log`
+                                    }, async function (err, apps) {
+                                        if (err) {
+                                            console.error(err)
+                                            returnPromise(false);
+                                            return;
+                                        }
+                                        let c = 0;
+                                        while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
+                                            await sleep(1000);
+                                            c ++;
+                                        }
+                                        activeJobs[jobId] = self;
+                                        returnPromise(true);
+                                    });
+                                    */
+                                } else {
+                                    // REQUIRES WINE.
+                                    let rccFolder = rccPath.split(path.sep);
+                                    rccFolder = rccFolder.splice(0, rccFolder.length - 1);
+                                    rccFolder = rccFolder.join(path.sep);
+
+                                    /*
+                                    sudo apt install xvfb lightdm
+    
+                                    export DISPLAY=:1
+                                    Xvfb :1 -screen 0 1024x768x16 &
+                                    sleep 1
+    
+                                    #exec gnome-session & # use gnome-session instead of lightdm
+                                    exec lightdm-session &
+                                    */
+
+                                    activeJobs[jobId] = self;
+                                    if (!activeGameJobs[gameid]) {
+                                        activeGameJobs[gameid] = {};
+                                    }
+                                    activeGameJobs[gameid][jobId] = self;
+
+                                    proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
+                                        cwd: rccFolder
+                                    }, (err, stdout, stderr) => {});
+
+                                    returnPromise(true);
+                                    /*
+                                    pm2.start({
+                                        name: `RCC-${myPort}`,
+                                        script: `exec.sh`,
+                                        cron_restart: 0,
+                                        autorestart: false,
+                                        stop_exit_codes: [0],
+                                        args: `${rccPath} -Console -PlaceId:${gameid} -Start -Custom -PlaceId:${gameid} ${myPort}`
+                                        // out_file: `app.strout.log`,
+                                        // error_file: `app.strerr.log`
+                                    }, async function (err, apps) {
+                                        if (err) {
+                                            console.error(err)
+                                            returnPromise(false);
+                                            return;
+                                        }
+                                        let c = 0;
+                                        while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
+                                            await sleep(1000);
+                                            c ++;
+                                        }
+                                        activeJobs[jobId] = self;
+                                        returnPromise(true);
+                                    });
+                                    */
+                                }
+                            });
+                        }
+
+                        self = {
+                            render: async function (itemid) {
+                                await start();
+                                await sleep(1000);
+                                const resp = await execute(await getRCCRenderScript(itemid, myHostPort, jobId, false), 6000000);
+                                console.log(resp);
+                                if (resp == "err|Unknown Error") {
+                                    await stop();
+                                }
+                            },
+                            update: async function () {
+                                return new Promise(async returnPromise => {
+                                    if (myPort == 0) {
+                                        returnPromise(false);
+                                        return;
+                                    }
+                                    MongoClient.connect(mongourl, function (err, db) {
+                                        if (err) throw err;
+                                        const dbo = db.db(dbName);
+                                        dbo.collection("games").findOne({
+                                            gameid: gameid,
+                                            port: myHostPort
+                                        }, async function (err, result) {
+                                            if (err) {
+                                                db.close();
+                                                returnPromise(false);
+                                                return;
+                                            }
+                                            if (result == null) {
+                                                await stop();
+                                                db.close();
+                                                returnPromise(true);
+                                                return;
+                                            }
+                                            db.close();
+                                            returnPromise(false);
+                                        });
+                                    });
+                                });
+                            },
+                            start: start,
+                            stop: stop,
+                            execute: execute,
+                            isAlive: function () {
+                                return myPort != 0;
+                            },
+                            getRccPort: function () {
+                                return myPort;
+                            },
+                            getHostPort: function () {
+                                return myHostPort;
+                            },
+                            getJobId: function () {
+                                return jobId;
+                            }
+                        }
+
+                        returnPromise(self);
+                    });
+                }
             } else {
                 dbo.collection("games").findOne({
                     gameid: gameid,
@@ -2252,6 +2792,10 @@ let userLaunchStatuses = {};
 setInterval(() => {
     ratingsUserIds = {};
 }, 1000 * 60 * 30);
+
+async function renderCatalogItem(itemid) {
+
+}
 
 if (siteConfig.backend.PRODUCTION) {
     process.stdin.resume(); //so the program will not close instantly
@@ -3549,30 +4093,7 @@ module.exports = {
         });
     },
 
-    getCatalogItem: async function (itemid) {
-        return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
-                if (err) throw err;
-                const dbo = db.db(dbName);
-                dbo.collection("catalog").findOne({
-                    itemid: itemid
-                }, function (err, result) {
-                    if (err) {
-                        db.close();
-                        returnPromise(null);
-                        return;
-                    }
-                    if (result != null) {
-                        db.close();
-                        returnPromise(result);
-                    } else {
-                        db.close();
-                        returnPromise(null);
-                    }
-                });
-            });
-        });
-    },
+    getCatalogItem: getCatalogItem,
 
     updateCatalogItemProp: async function (itemid, prop, value) {
         return new Promise(async returnPromise => {
@@ -3634,7 +4155,7 @@ module.exports = {
         });
     },
 
-    getCatalogItems: async function (keyword) {
+    getCatalogItems: async function (keyword, onlyPublic) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -3651,6 +4172,10 @@ module.exports = {
                         return;
                     }
                     db.close();
+                    if (onlyPublic) {
+                        returnPromise(result.filter(item => item.onSale == true));
+                        return;
+                    }
                     returnPromise(result);
                 });
             });
@@ -3678,7 +4203,7 @@ module.exports = {
         });
     },
 
-    getCatalogItems2: async function (startIndex, limit) {
+    getCatalogItems2: async function (startIndex, limit, onlyPublic) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -3690,6 +4215,10 @@ module.exports = {
                         return;
                     }
                     db.close();
+                    if (onlyPublic) {
+                        returnPromise(result.filter(item => item.onSale == true));
+                        return;
+                    }
                     returnPromise(result);
                 });
             });
@@ -5220,6 +5749,28 @@ module.exports = {
         });
     },
 
+    getOwnedGamepasses: async function (userid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("gamepasses").find({
+                    owners: {
+                        $in: [userid]
+                    }
+                }).toArray(function (err, gamepasses) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(gamepasses);
+                });
+            });
+        });
+    },
+
     userOwnsAsset: async function (userid, assetid) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
@@ -5586,6 +6137,32 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
+                });
+            });
+        });
+    },
+
+    getOwnedCatalogItems: async function (userid, itemtype = "") {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("catalog").find({
+                    itemowners: {
+                        $in: [userid]
+                    }
+                }).toArray(function (err, items) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    db.close();
+                    if (itemtype != "") {
+                        returnPromise(items.filter(item => item.itemtype == itemtype));
+                        return;
+                    }
+                    returnPromise(items);
                 });
             });
         });

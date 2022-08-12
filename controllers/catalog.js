@@ -557,9 +557,9 @@ module.exports = {
             let data = []
             let catalogItems = null
             if (keyword){
-                catalogItems = await db.getCatalogItems(keyword)
+                catalogItems = await db.getCatalogItems(keyword, true)
             }else{
-                catalogItems = await db.getCatalogItems2(cursor, limit);
+                catalogItems = await db.getCatalogItems2(cursor, limit, true);
             }
             if (!catalogItems) {
                 res.status(400).json({});
