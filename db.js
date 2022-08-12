@@ -7388,6 +7388,7 @@ module.exports = {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
+                gamename = filterText2(gamename);
                 const dbo = db.db(dbName);
                 dbo.collection("games").updateOne({
                     gameid: gameid
@@ -7415,6 +7416,8 @@ module.exports = {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
+                gamename = filterText2(gamename);
+                description = filterText2(description);
                 const dbo = db.db(dbName);
                 dbo.collection("games").updateOne({
                     gameid: gameid

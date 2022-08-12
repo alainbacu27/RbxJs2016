@@ -1504,7 +1504,7 @@ module.exports = {
                     gamedesc: game.description,
                     creatorid: game.creatorid,
                     creatorname: creator.username,
-                    gamegenre: game.genre,
+                    gamegenre: game.genre || "All",
                     maxPlayers: game.maxplayers,
                     everyonearg: game.access == "Everyone" ? "selected=\"selected\"" : "",
                     friendsarg: game.access == "Friends" ? "selected=\"selected\"" : "",
@@ -1596,6 +1596,44 @@ module.exports = {
             }
             await db.updateGame(gameid, name, allowstudioaccesstoapis, ispublic);
             res.redirect(`/universes/configure?id=${gameid}&isUpdateSuccess=True`);
+        });
+
+        app.post("/universes/doconfigure2", db.requireAuth2, async (req, res) => {
+            const __RequestVerificationToken = req.body.__RequestVerificationToken;
+            let user = await db.getUserByCsrfToken(__RequestVerificationToken);
+            if (!user) {
+                user = req.user;
+            }
+            const gameid = parseInt(req.body.Id);
+            if (typeof gameid == "undefined") {
+                res.status(400).send();
+                return;
+            }
+            if (!user) {
+                res.redirect(`/places/${gameid}/update?isUpdateSuccess=False`);
+                return;
+            }
+            const name = req.body.Name;
+            const gamedesc = req.body.Description;
+            const gamegenre = req.body.Genre;
+            const game = await db.getGame(gameid);
+            const ispublic = game.isPublic;
+            if (game == null) {
+                res.redirect(`/places/${gameid}/update?isUpdateSuccess=False`);
+                return;
+            }
+            if (game.creatorid != user.userid) {
+                res.redirect(`/places/${gameid}/update?isUpdateSuccess=False`);
+                return;
+            }
+
+            if (!Object.values(db.genres).includes(gamegenre)){
+                res.redirect(`/places/${gameid}/update?isUpdateSuccess=False`);
+                return;
+            }
+
+            await db.updateGameStudio(gameid, name, gamedesc, ispublic, gamegenre);
+            res.redirect(`/places/${gameid}/update?isUpdateSuccess=True`);
         });
 
         app.get("/universes/configure", db.requireAuth, async (req, res) => {
@@ -2785,11 +2823,7 @@ module.exports = {
             }
             res.status(400).send();
         });
-
-        app.get("/places/:placeid/settings", (req, res) => {
-            res.json({});
-        });
-
+        
         app.get("/install/GetInstallerCdns.ashx", async (req, res) => {
             res.json(db.getSiteConfig().shared.installerCdns);
         });
