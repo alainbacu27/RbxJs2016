@@ -6,6 +6,7 @@ const querystring = require('querystring');
 const get_ip = require('ipware')().get_ip;
 const mm = require('music-metadata');
 let exec = require('child_process').exec;
+const bcrypt = require("bcryptjs");
 
 module.exports = {
     init: (app, db) => {
@@ -3797,7 +3798,10 @@ module.exports = {
         });
 
         app.get("/my/account", db.requireAuth, async (req, res) => {
-            res.render("account", await db.getRenderObject(req.user));
+            res.render("account", {
+                ...(await db.getRenderObject(req.user)),
+                price: db.formatNumberS(db.getSiteConfig().shared.usernameConfiguration.changeUsernamePrice)
+            });
         });
 
         app.get("/games/refer", async (req, res) => {
@@ -4457,6 +4461,66 @@ module.exports = {
             const itemId = parseInt(req.body.itemId);
             await db.deleteItemFromInventory(req.user.userid, itemId);
             res.send("OK");
+        });
+
+        app.post("/v1/password/change", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.passwordConfiguration.canChangePassword != true){
+                res.status(401).send("Changing usernames is currently disabled.");
+                return;
+            }
+
+            const cpass = req.body.cpass;
+            const npass = req.body.npass;
+
+            if (!bcrypt.compareSync(cpass, await db.getUserProperty(req.user.userid, "password"))) {
+                res.status(401).send("Unauthorized");
+                return;
+            }
+
+            if (await db.setUserProperty(req.user.userid, "password", bcrypt.hashSync(npass, 10))){
+                res.send("OK");
+            }else{
+                res.status(500).send("Something went wrong, please try again.");
+            }
+        });
+        
+        app.post("/v1/username/change", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.usernameConfiguration.canChangeUsername != true){
+                res.status(401).send("Changing usernames is currently disabled.");
+                return;
+            }
+            const username = req.body.username;
+            const cpass = req.body.cpass;
+
+            if (!username || username.length < 3 || username.length > 20) {
+                res.status(400).send("Invalid username");
+                return;
+            }
+
+            if (await db.userExists(username)) {
+                res.status(400).send("Username already exists");
+                return;
+            }
+
+            if (!bcrypt.compareSync(cpass, await db.getUserProperty(req.user.userid, "password"))) {
+                res.status(401).send("Unauthorized");
+                return;
+            }
+
+            const robux = await db.getUserProperty(req.user.userid, "robux");
+            if (robux < db.getSiteConfig().shared.usernameConfiguration.changeUsernamePrice) {
+                res.status(403).send("Not enough robux");
+                return;
+            }
+
+            const finalUsername = db.filterText3(username);
+            
+            if (await db.setUserProperty(req.user.userid, "username", finalUsername)){
+                await db.setUserProperty(req.user.userid, "robux", robux - db.getSiteConfig().shared.usernameConfiguration.changeUsernamePrice);
+                res.send("OK");
+            }else{
+                res.status(500).send("Something went wrong");
+            }
         });
 
         app.get("/game-pass/:id/:name", db.requireAuth, async (req, res) => {

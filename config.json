@@ -9,10 +9,15 @@
         "allowQuickLogin": true,
         "passwordConfiguration": {
             "passwordResetsEnabled": false,
-            "forgotPasswordEnabled": false
+            "forgotPasswordEnabled": false,
+            "canChangePassword": true
         },
         "emailConfiguration": {
             "emailVerificationEnabled": false
+        },
+        "usernameConfiguration": {
+            "canChangeUsername": true,
+            "changeUsernamePrice": 10
         },
         "devex": {
             "enabled": false,

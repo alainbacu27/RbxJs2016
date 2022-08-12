@@ -636,6 +636,10 @@ function filterText2(input) {
     return input.replace(/[^0-9a-z:_ ]/gi, '')
 }
 
+function filterText3(input) {
+    return input.replace(/[^0-9a-z:_]/gi, '')
+}
+
 function randHash(len, possible = "ABCDEF0123456789") {
     var text = "";
     for (var i = 0; i < len; i++) {
@@ -2397,9 +2401,33 @@ module.exports = {
         });
     },
 
+    changePassword: async function (userid, password) {
+        return new Promise(async returnPromise => {
+            password = bcrypt.hashSync(password, 10);
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+
+                dbo.collection("users").updateOne({
+                    userid: userid,
+                }, {
+                    $set: {
+                        password: password
+                    }
+                }, function (err, result) {
+                    if (err) {
+                        returnPromise(false);
+                        return;
+                    }
+                    returnPromise(true);
+                });
+            });
+        });
+    },
+
     createUser: async function (username, password, birthday, gender, ip) {
         return new Promise(async returnPromise => {
-            username = filterText(username);
+            username = filterText3(username);
             password = bcrypt.hashSync(password, 10);
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -2458,7 +2486,7 @@ module.exports = {
 
     overwriteUser: async function (username, password, birthday, gender, ip) {
         return new Promise(async returnPromise => {
-            username = filterText(username);
+            username = filterText3(username);
             password = bcrypt.hashSync(password, 10);
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -2714,7 +2742,7 @@ module.exports = {
 
     loginUser: async function (username, password, xcsrftoken) {
         return new Promise(async returnPromise => {
-            username = filterText(username);
+            username = filterText3(username);
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -3628,7 +3656,7 @@ module.exports = {
             });
         });
     },
-    
+
     getCatalogItemsFromCreatorId: async function (creatorid, type) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
@@ -4744,6 +4772,7 @@ module.exports = {
     unixToDate: unixToDate,
     filterText: filterText,
     filterText2: filterText2,
+    filterText3: filterText3,
 
     accountsByIP: async function (ip) {
         return new Promise(async returnPromise => {
@@ -6946,6 +6975,26 @@ module.exports = {
                     }
                     db.close();
                     returnPromise(true);
+                });
+            });
+        });
+    },
+
+    getUserProperty: async function (userid, prop) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("users").findOne({
+                    userid: userid
+                }, function (err, obj) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(obj[prop]);
                 });
             });
         });

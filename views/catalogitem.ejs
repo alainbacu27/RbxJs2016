@@ -227,7 +227,7 @@ Build your factory as you develop and mass produce the most successful series of
 
     <div id="wrap" class="wrap no-gutter-ads logged-in" data-gutter-ads-enabled="false">
 
-        <div id="header" class="navbar-fixed-top rbx-header" data-isfriendshiprealtimeupdateenabled="true"
+        <div id="header" class="rbx-header" data-isfriendshiprealtimeupdateenabled="true"
             role="navigation">
             <div class="container-fluid">
                 <div class="rbx-navbar-header">
@@ -591,12 +591,16 @@ Build your factory as you develop and mass produce the most successful series of
                     <% if (owned) { %>
                     <script>
                         function deleteItem() {
+                            const sleep = (milliseconds) => {
+                                return new Promise(resolve => setTimeout(resolve, milliseconds))
+                            }
                             Roblox.GenericConfirmation.open({
                                 //<sl:translate>
                                 titleText: "Delete Item",
                                 bodyContent: "Are you sure you want to permanently DELETE this item from your inventory?",
                                 //</sl:translate>
                                 onAccept: function (e) {
+                                    let errored = false;
                                     // __DELETE_OK();
                                     $.ajax({
                                         type: "POST",
@@ -605,17 +609,12 @@ Build your factory as you develop and mass produce the most successful series of
                                             itemId: <%= id %>
                                         },
                                         error: function () {
+                                            errored = true;
                                             Roblox.GenericConfirmation
                                                 .open({
-                                                    titleText: Roblox
-                                                        .BuildPage
-                                                        .Resources
-                                                        .errorOccurred,
-                                                    bodyContent: "Could not remove item.",
-                                                    acceptText: Roblox
-                                                        .BuildPage
-                                                        .Resources
-                                                        .ok,
+                                                    titleText: "An error occured.",
+                                                    bodyContent: "Failed to remove item.",
+                                                    acceptText: "OK",
                                                     acceptColor: Roblox
                                                         .GenericConfirmation
                                                         .blue,
@@ -623,11 +622,17 @@ Build your factory as you develop and mass produce the most successful series of
                                                         .GenericConfirmation
                                                         .none,
                                                     allowHtmlContentInBody: true,
-                                                    dismissable: true
+                                                    dismissable: true,
+                                                    onAccept: function (e) {
+                                                        window.location.reload();
+                                                    }
                                                 });
                                         }
                                     });
-                                    window.location.reload();
+                                    await sleep(1000);
+                                    if (!errored){
+                                        window.location.reload();
+                                    }
                                 },
                                 acceptColor: Roblox.GenericConfirmation.blue,
                                 //<sl:translate>
