@@ -683,7 +683,7 @@ function unixToDate(unix) {
     return new Date(unix * 1000);
 }
 
-function formatAMPMFull(date) {
+function formatAMPMFull(date, onlyDate = false) {
     let hours = date.getHours();
     let minutes = date.getMinutes();
     const seconds = date.getSeconds();
@@ -694,7 +694,11 @@ function formatAMPMFull(date) {
     hours = hours % 12;
     hours = hours ? hours : 12; // the hour '0' should be '12'
     minutes = minutes < 10 ? '0' + minutes : minutes;
-    return year + '/' + month + '/' + day + '/' + hours + ':' + minutes + ':' + seconds + ' ' + ampm;
+    let result = year + '/' + month + '/' + day;
+    if (!onlyDate) {
+        result += ' ' + hours + ':' + minutes + ':' + seconds + ' ' + ampm;
+    }
+    return result;
 }
 
 async function findUserByCookie(cookie) {
@@ -1026,7 +1030,7 @@ async function getRenderObject(user, banned = false) {
         userid: user.userid,
         username: user.username,
         isUnder13: toString(await isUserUnder13(user.userid)),
-        accountCreated: timeToString(user.created),
+        accountCreated: timeToString(user.created, true),
         isAdmin: toString(user.isAdmin),
         isMod: toString(user.isMod),
         banned: toString(user.banned),
@@ -1056,7 +1060,7 @@ async function getBlankRenderObject() {
         userid: 0,
         username: "",
         isUnder13: toString(false),
-        accountCreated: 0,
+        accountCreated: timeToString(0, true),
         isAdmin: toString(false),
         isMod: toString(false),
         banned: toString(false),
