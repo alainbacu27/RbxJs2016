@@ -40,8 +40,8 @@
             "showFavoritedGames": true
         },
         "maxGamesPerUser": {
-            "user": 1,
-            "admin": 3
+            "user": 3,
+            "admin": 5
         },
 
         "maxAssetsPerDaily": {
