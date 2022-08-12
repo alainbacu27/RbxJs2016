@@ -397,6 +397,7 @@
 
 
     "PRIVATE": {
-        "PRIVATE_API_KEY": "289198jas7ud8792h8s97ada"
+        "PRIVATE_API_KEY": "289198jas7ud8792h8s97ada",
+        "DATABASE_PASSWORD": ""
     }
 }

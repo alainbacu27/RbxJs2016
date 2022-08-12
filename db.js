@@ -371,13 +371,15 @@ async function getDiskSpace() {
     });
 }
 
-const mongourl = `mongodb://${siteConfig.backend.database.ip}:${siteConfig.backend.database.port}/`;
-
+let mongourl = `mongodb://${siteConfig.backend.database.ip}:${siteConfig.backend.database.port}/`;
+if (siteConfig.PRIVATE.DATABASE_PASSWORD != "") {
+    mongourl = `mongodb://admin:${siteConfig.PRIVATE.DATABASE_PASSWORD}@${siteConfig.backend.database.ip}:${siteConfig.backend.database.port}/`;
+}
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 
-MongoClient.connect(mongourl + dbName, function (err, db) {
+new MongoClient(mongourl, {tls: false}).connect(function (err, db) {
     if (err) throw err;
     db.close();
 });
