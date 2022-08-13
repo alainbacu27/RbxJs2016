@@ -1832,5 +1832,12 @@ publicIp = "${ip}"`
                 "ChatFilter": "whitelist"
             })
         });
+
+        app.get("/api/game/players/:userid", (req, res) => {
+            const userid = req.params.userid;
+            res.json({
+                "ChatFilter": "whitelist"
+            })
+        });
     }
 }

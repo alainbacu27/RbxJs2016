@@ -7598,47 +7598,69 @@ module.exports = {
     getJobsByGameId: getJobsByGameId,
 
     requireAuth: function (req, res, next) {
-        if (typeof req.cookies[".ROBLOSECURITY"] == "undefined" || req.cookies[".ROBLOSECURITY"] == "") {
-            if (req.get("User-Agent") && req.get("User-Agent").toLowerCase().includes("roblox")) {
-                res.redirect("/My/Places.aspx&showlogin=True");
-            } else {
-                res.redirect("https://www.rbx2016.tk/newlogin");
-            }
-            return;
-        }
-        findUserByCookie(req.cookies[".ROBLOSECURITY"]).then(async user => {
-            if (user) {
-                req.user = user;
-                let domain = "www.rbx2016.tk";
-                const under13 = await isUserUnder13(user.userid);
-                if (under13) {
-                    domain = "web.rbx2016.tk";
+        setImmediate(async () => {
+            let ok = false;
+            if (typeof req.headers["x-csrf-token"] !== "undefined") {
+                if (req.headers["x-csrf-token"].length == 128) {
+                    ok = true;
                 }
-                if (user.banned && req.url != "/not-approved") {
-                    res.redirect("https://" + domain + "/not-approved");
-                } else if (req.user.inviteKey == "") {
-                    res.redirect("/authentication/invitekey");
-                } else {
-                    if (under13 && req.get("HOST") == "www.rbx2016.tk") {
-                        res.redirect("https://" + domain + req.url);
-                        return;
-                    } else if (!under13 && req.get("HOST") == "web.rbx2016.tk") {
-                        res.redirect("https://" + domain + req.url);
-                        return;
-                    }
+            }
+            if (ok) {
+                if (!req.get("User-Agent") || !req.get("User-Agent").toLowerCase().includes("roblox")) {
                     if (!req.secure) {
                         res.redirect("https://" + req.get("HOST") + req.url);
                         return;
                     }
+                }
+                const user = await getUserByCsrfToken(req.headers["x-csrf-token"])
+                if (user) {
+                    req.user = user;
                     next();
                 }
-            } else {
+            }
+            
+            if (typeof req.cookies[".ROBLOSECURITY"] == "undefined" || req.cookies[".ROBLOSECURITY"] == "") {
                 if (req.get("User-Agent") && req.get("User-Agent").toLowerCase().includes("roblox")) {
                     res.redirect("/My/Places.aspx&showlogin=True");
                 } else {
                     res.redirect("https://www.rbx2016.tk/newlogin");
                 }
+                return;
             }
+            findUserByCookie(req.cookies[".ROBLOSECURITY"]).then(async user => {
+                if (user) {
+                    req.user = user;
+                    let domain = "www.rbx2016.tk";
+                    const under13 = await isUserUnder13(user.userid);
+                    if (under13) {
+                        domain = "web.rbx2016.tk";
+                    }
+                    if (user.banned && req.url != "/not-approved") {
+                        res.redirect("https://" + domain + "/not-approved");
+                    } else if (req.user.inviteKey == "") {
+                        res.redirect("/authentication/invitekey");
+                    } else {
+                        if (under13 && req.get("HOST") == "www.rbx2016.tk") {
+                            res.redirect("https://" + domain + req.url);
+                            return;
+                        } else if (!under13 && req.get("HOST") == "web.rbx2016.tk") {
+                            res.redirect("https://" + domain + req.url);
+                            return;
+                        }
+                        if (!req.secure) {
+                            res.redirect("https://" + req.get("HOST") + req.url);
+                            return;
+                        }
+                        next();
+                    }
+                } else {
+                    if (req.get("User-Agent") && req.get("User-Agent").toLowerCase().includes("roblox")) {
+                        res.redirect("/My/Places.aspx&showlogin=True");
+                    } else {
+                        res.redirect("https://www.rbx2016.tk/newlogin");
+                    }
+                }
+            });
         });
     },
 
@@ -7704,19 +7726,41 @@ module.exports = {
     },
 
     requireAuth2: function (req, res, next) {
-        if (typeof req.cookies[".ROBLOSECURITY"] == "undefined") {
-            next();
-            return;
-        }
-        if (req.cookies[".ROBLOSECURITY"] == "") {
-            next();
-            return;
-        }
-        findUserByCookie(req.cookies[".ROBLOSECURITY"]).then(user => {
-            if (user) {
-                req.user = user;
+        setImmediate(async () => {
+            let ok = false;
+            if (typeof req.headers["x-csrf-token"] !== "undefined") {
+                if (req.headers["x-csrf-token"].length == 128) {
+                    ok = true;
+                }
             }
-            next();
+            if (ok) {
+                if (!req.get("User-Agent") || !req.get("User-Agent").toLowerCase().includes("roblox")) {
+                    if (!req.secure) {
+                        res.redirect("https://" + req.get("HOST") + req.url);
+                        return;
+                    }
+                }
+                const user = await getUserByCsrfToken(req.headers["x-csrf-token"])
+                if (user) {
+                    req.user = user;
+                    next();
+                }
+            }
+    
+            if (typeof req.cookies[".ROBLOSECURITY"] == "undefined") {
+                next();
+                return;
+            }
+            if (req.cookies[".ROBLOSECURITY"] == "") {
+                next();
+                return;
+            }
+            findUserByCookie(req.cookies[".ROBLOSECURITY"]).then(user => {
+                if (user) {
+                    req.user = user;
+                }
+                next();
+            });
         });
     },
 

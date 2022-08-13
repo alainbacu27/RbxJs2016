@@ -907,6 +907,22 @@ module.exports = {
             res.send();
         });
 
+        app.get("/latency-measurements/get-servers-to-ping", (req, res) => {
+            res.send();
+        });
+
+        app.post("/device/initialize", (req, res) => {
+            res.json({
+                "browserTrackerId": 0,
+                "appDeviceIdentifier": null
+            })
+        });
+
+        app.get("/mobileapi/check-app-version", (req, res) => {
+            const appVersion = req.query.appVersion;
+            res.json({"data":{"UpgradeAction":"None"}});
+        });
+
         app.get("/newlogin", db.requireNonAuth, async (req, res) => {
             res.render("login", {
                 ...await db.getBlankRenderObject(),
@@ -948,6 +964,11 @@ module.exports = {
             res.json({
                 "data": 0
             });
+        });
+
+        app.get("/game/logout.aspx", db.requireAuth, async (req, res) => {
+            res.setHeader('x-csrf-token', await db.generateUserCsrfToken(req.user.userid));
+            res.json({});
         });
 
         app.post("/authentication/logout", db.requireAuth2, async (req, res) => {
@@ -5703,6 +5724,33 @@ module.exports = {
         });
 
         app.post("/client-status/set", db.requireAuth, async (req, res) => {
+            const status = req.query.status;
+            if (status.length > 254) {
+                res.send("false");
+                return;
+            }
+            res.send("true")
+        });
+
+        app.post("/api/client-status/set", db.requireAuth, async (req, res) => {
+            const status = req.query.status;
+            if (status.length > 254) {
+                res.send("false");
+                return;
+            }
+            res.send("true")
+        });
+
+        app.get("/client-status/set", db.requireAuth, async (req, res) => {
+            const status = req.query.status;
+            if (status.length > 254) {
+                res.send("false");
+                return;
+            }
+            res.send("true")
+        });
+
+        app.get("/api/client-status/set", db.requireAuth, async (req, res) => {
             const status = req.query.status;
             if (status.length > 254) {
                 res.send("false");
