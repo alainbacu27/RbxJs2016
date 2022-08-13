@@ -915,7 +915,12 @@ module.exports = {
             res.json({
                 "browserTrackerId": 0,
                 "appDeviceIdentifier": null
-            })
+            });
+        });
+
+        app.post("/game/sessions/report", (req, res) => {
+            console.error(req);
+            res.send();
         });
 
         app.get("/mobileapi/check-app-version", (req, res) => {
@@ -4390,7 +4395,14 @@ module.exports = {
                         let someJobs = "";
                         for (let i = 0; i < jobs.length; i++) {
                             const jobId = jobs[i];
-                            someJobs += `<option value="${jobId}">${jobId}</option>`
+                            const job = await db.getJob(jobId);
+                            let gameid = job.getGameId();
+                            if (gameid == 0) {
+                                gameid = "?";
+                            }else{
+                                gameid = gameid.toString();
+                            }
+                            someJobs += `<option value="${gameid}: ${jobId}">${jobId}</option>`
                         }
                         res.render(`admin/${page}`, {
                             ...await db.getRenderObject(req.user),
@@ -5857,14 +5869,6 @@ module.exports = {
                     "black": ""
                 }
             });
-        });
-
-        app.get("/Error/Dmp.ashx", (req, res) => {
-            res.send();
-        });
-
-        app.get("/Error/Grid.ashx", (req, res) => {
-            res.send();
         });
 
         app.get("/setup/domain.pem", (req, res) => {

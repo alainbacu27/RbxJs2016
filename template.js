@@ -155,7 +155,13 @@ const corsOptions = {
 }
 app.use(cors(corsOptions))
 
-app.use(express.json());
+app.use(function(req, res, next) {
+    if (req.path.toLowerCase().startsWith("/error")){
+        next();
+    }else{
+        express.json()(req, res, next);
+    }
+});
 app.use(express.urlencoded({
     limit: '50mb',
     extended: true

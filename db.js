@@ -642,6 +642,10 @@ function filterText3(input) {
     return input.replace(/[^0-9a-z:_]/gi, '')
 }
 
+function filterText4(input) {
+    return input.replace(/[^0-9a-z:_()\[\]"'\n ]/gi, '')
+}
+
 function randHash(len, possible = "ABCDEF0123456789") {
     var text = "";
     for (var i = 0; i < len; i++) {
@@ -2114,6 +2118,9 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                             },
                             getJobId: function () {
                                 return jobId;
+                            },
+                            getGameId: function () {
+                                return gameid;
                             }
                         }
 
@@ -2437,6 +2444,9 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                             },
                             getJobId: function () {
                                 return jobId;
+                            },
+                            getGameId: function () {
+                                return gameid;
                             }
                         }
 
@@ -2756,6 +2766,9 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                         },
                         getJobId: function () {
                             return jobId;
+                        },
+                        getGameId: function () {
+                            return gameid;
                         }
                     }
 
@@ -3697,10 +3710,10 @@ module.exports = {
         });
     },
 
-    sign: function (content) {
+    sign: function (content, isMobile = false) {
         const ALGORITHM = "sha1"; // Accepted: any result of crypto.getHashes(), check doc dor other options
         const SIGNATURE_FORMAT = "base64"; // Accepted: hex, latin1, base64
-        const privateKey = fs.readFileSync(__dirname + "/internal/privatekey.pem", "utf8");
+        const privateKey = fs.readFileSync(__dirname + (isMobile ? "/internal/mobile_privatekey.pem" : "/internal/privatekey.pem"), "utf8");
         const sign = crypto.createSign(ALGORITHM);
         sign.update(content);
         const signature = sign.sign(privateKey, SIGNATURE_FORMAT);
@@ -5309,6 +5322,7 @@ module.exports = {
     filterText: filterText,
     filterText2: filterText2,
     filterText3: filterText3,
+    filterText4: filterText4,
 
     accountsByIP: async function (ip) {
         return new Promise(async returnPromise => {
@@ -6308,6 +6322,7 @@ module.exports = {
     createGame: async function (gamename, gamedescription, creatorid, iconthumbnail = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", thumbnail = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {
             gamename = filterText2(gamename);
+            gamedescription = filterText4(gamedescription);
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -7421,7 +7436,7 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 gamename = filterText2(gamename);
-                description = filterText2(description);
+                description = filterText4(description);
                 const dbo = db.db(dbName);
                 dbo.collection("games").updateOne({
                     gameid: gameid

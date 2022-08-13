@@ -873,10 +873,21 @@ Build your factory as you develop and mass produce the most successful series of
                         <div class="game-play-buttons" data-autoplay="false">
 
                             <% if (canPlay) { %>
-                            <div id="MultiplayerVisitButton" class="VisitButton VisitButtonPlayGLI"
+                                <div id="MultiplayerVisitButton" class="VisitButton VisitButtonPlayGLI"
                                 placeid="<%= gameid %>" data-action="play" data-is-membership-level-ok="true">
                                 <a class="btn-primary-lg">Play</a>
                             </div>
+                            <div id="MultiplayerVisitButtonAndroid" style="display: none;">
+                                <a class="btn-primary-lg" href="/games/start?placeid=<%= gameid %>&accessCode=&gameInstanceId=" id="AndroidPlayButton">Play</a>
+                            </div>
+                            <script>
+                                const userAgent = navigator.userAgent.toLowerCase();
+                                const Android = userAgent.indexOf("android") > -1;
+                                if (Android){
+                                    document.getElementById("MultiplayerVisitButton").style.display = "none";
+                                    document.getElementById("MultiplayerVisitButtonAndroid").style.display = "block";
+                                }
+                            </script>
                             <% }else { %>
                                 <% if (isPlayServiceDown) { %>
                                     Sorry, games are temporarily disabled.

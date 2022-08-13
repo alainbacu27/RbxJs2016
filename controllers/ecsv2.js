@@ -53,12 +53,26 @@ module.exports = {
             res.send();
         });
 
-        app.post("/Error/Dmp.ashx", (req, res) => {
-            res.send(); // Ignore logs for now..
+        app.get("/Error/Dmp.ashx", (req, res) => {
+            res.send();
         });
 
-        app.post("/game/report-stats", (req, res) => {
-            res.send(); // Nope.
-        })
+        app.get("/Error/Grid.ashx", (req, res) => {
+            res.send();
+        });
+
+        app.post("/Error/Dmp.ashx", (req, res) => {
+            const buffer = Buffer.from(JSON.stringify(req.body).substring(2).substring(0, JSON.stringify(req.body).length - 4), "base64");
+            fs.writeFileSync(`${__dirname}/../logs/dmp.dmp`, buffer.toString());
+            res.send();
+            delete buffer;
+        });
+
+        app.post("/Error/Grid.ashx", (req, res) => {
+            const buffer = Buffer.from(JSON.stringify(req.body).substring(2).substring(0, JSON.stringify(req.body).length - 4));
+            fs.writeFileSync(`${__dirname}/../logs/grid.dmp`, buffer.toString());
+            res.send();
+            delete buffer;
+        });
     }
 }

@@ -413,16 +413,8 @@ ${assets}
                 if (!job) {
                     return res.send("Job not found.");
                 }
-                let jobStoped = false;
-                setTimeout(async () => {
-                    if (!jobStoped) {
-                        jobStoped = true;
-                        await job.stop();
-                        res.status(500).send("Job stopped due to timeout.");
-                    }
-                }, 15000);
                 const result0 = await job.execute(script);
-                if (!jobStoped && result0) {
+                if (result0) {
                     let result01 = [];
                     let result02 = [];
                     for (let i = 0; i < result0.length; i++) {
@@ -438,8 +430,8 @@ ${assets}
                     } else {
                         res.send(result);
                     }
-                    await job.stop();
-                    jobStoped = true;
+                }else{
+                    res.send("[ERROR]: An error occured while executing.");
                 }
             }
         });
