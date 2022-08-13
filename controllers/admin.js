@@ -397,7 +397,16 @@ ${assets}
                 return;
             }
             const fflag = req.body.fflag;
-            const value = req.body.value;
+            let value = req.body.value;
+            if (value.toLowerCase() == "false"){
+                value = false
+            }else if (value.toLowerCase() == "true"){
+                value = true
+            }else if (parseInt(number)){
+                value = parseInt(number)
+            }else if (parseFloat(number)){
+                value = parseFloat(number)
+            }
             const platform = req.body.platform;
             if (!platform) {
                 const files = fs.readdirSync(path.resolve(__dirname + "/../FFlags"));
@@ -406,7 +415,7 @@ ${assets}
                         const fp = path.resolve(__dirname + "/../FFlags/" + file)
                         const data = JSON.parse(fs.readFileSync(fp, "utf8"));
                         data[fflag] = value;
-                        fs.writeFileSync(fp, JSON.stringify(data));
+                        fs.writeFileSync(fp, JSON.stringify(data, null, 4));
                     }
                 }
             } else {
@@ -422,7 +431,7 @@ ${assets}
                 }
                 const data = JSON.parse(fs.readFileSync(fp, "utf8"));
                 data[fflag] = value;
-                fs.writeFileSync(fp, JSON.stringify(data));
+                fs.writeFileSync(fp, JSON.stringify(data, null, 4));
                 res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/fflags");
             }
         });
@@ -433,7 +442,16 @@ ${assets}
                 return;
             }
             const fflag = req.body.fflag;
-            const value = req.body.value;
+            let value = req.body.value;
+            if (value.toLowerCase() == "false"){
+                value = false
+            }else if (value.toLowerCase() == "true"){
+                value = true
+            }else if (parseInt(number)){
+                value = parseInt(number)
+            }else if (parseFloat(number)){
+                value = parseFloat(number)
+            }
             const bp = path.resolve(__dirname + "/../") + path.sep;
             const fp = path.resolve(bp + "config.json");
             if (!fp.startsWith(bp)) {
@@ -445,8 +463,8 @@ ${assets}
                 return;
             }
             const data = JSON.parse(fs.readFileSync(fp, "utf8"));
-            data[fflag] = value;
-            fs.writeFileSync(fp, JSON.stringify(data));
+            data.shared[fflag] = value;
+            fs.writeFileSync(fp, JSON.stringify(data, null, 4));
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/config");
         });
 
@@ -566,7 +584,7 @@ ${assets}
                 return;
             }
             const data = JSON.parse(fs.readFileSync(fp, "utf8"));
-            res.send(data[fflag]);
+            res.send(data.shared[fflag]);
         });
     }
 }
