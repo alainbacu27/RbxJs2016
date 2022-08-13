@@ -405,7 +405,7 @@ ${assets}
                     if (file.endsWith(".json")) {
                         const fp = path.resolve(__dirname + "/../FFlags/" + file)
                         const data = JSON.parse(fs.readFileSync(fp, "utf8"));
-                        data.applicationSettings[fflag] = value;
+                        data[fflag] = value;
                         fs.writeFileSync(fp, JSON.stringify(data));
                     }
                 }
@@ -421,10 +421,33 @@ ${assets}
                     return;
                 }
                 const data = JSON.parse(fs.readFileSync(fp, "utf8"));
-                data.applicationSettings[fflag] = value;
+                data[fflag] = value;
                 fs.writeFileSync(fp, JSON.stringify(data));
                 res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/fflags");
             }
+        });
+
+        app.post("/v1/admin/setconfig", db.requireAuth, db.requireAdmin, async (req, res) => {
+            if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
+                res.status(400).send();
+                return;
+            }
+            const fflag = req.body.fflag;
+            const value = req.body.value;
+            const bp = path.resolve(__dirname + "/../") + path.sep;
+            const fp = path.resolve(bp + "config.json");
+            if (!fp.startsWith(bp)) {
+                res.status(400).send();
+                return;
+            }
+            if (!fs.existsSync(fp)) {
+                res.status(404).send("Configuration File Not Found.");
+                return;
+            }
+            const data = JSON.parse(fs.readFileSync(fp, "utf8"));
+            data[fflag] = value;
+            fs.writeFileSync(fp, JSON.stringify(data));
+            res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/config");
         });
 
         app.post("/v1/admin/rccrunscript", db.requireAuth, db.requireAdmin, async (req, res) => {
@@ -523,7 +546,27 @@ ${assets}
                 return;
             }
             const data = JSON.parse(fs.readFileSync(fp, "utf8"));
-            res.send(data.applicationSettings[fflag]);
+            res.send(data[fflag]);
+        });
+
+        app.post("/v1/admin/getconfig", db.requireAuth, db.requireAdmin, async (req, res) => {
+            if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
+                res.status(400).send();
+                return;
+            }
+            const fflag = req.body.fflag;
+            const bp = path.resolve(__dirname + "/../") + path.sep;
+            const fp = path.resolve(bp + "config.json");
+            if (!fp.startsWith(bp)) {
+                res.status(400).send();
+                return;
+            }
+            if (!fs.existsSync(fp)) {
+                res.status(404).send("Configuration File Not Found.");
+                return;
+            }
+            const data = JSON.parse(fs.readFileSync(fp, "utf8"));
+            res.send(data[fflag]);
         });
     }
 }

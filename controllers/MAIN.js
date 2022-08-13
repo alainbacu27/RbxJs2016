@@ -4260,6 +4260,9 @@ module.exports = {
                 <li>
                     <b>Configuration</b>
                     <ul>
+                    <li>
+                            <a href="${admiPath}/config">Config Settings</a>
+                        </li>
                         <li>
                             <a href="${admiPath}/fflags">FFlag Settings</a>
                         </li>
