@@ -157,6 +157,8 @@
         "fallbackToRobloxAssets": true,
         "robloxAssetsUsingR": true,
 
+        "maxGiveTix": 1000,
+
         "disabledApis": ["template"],
         "productInfoEnabled": true,
         "productInfoEnabled2": true,

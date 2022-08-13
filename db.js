@@ -7557,7 +7557,6 @@ module.exports = {
         });
     },
 
-
     setUserProperty: async function (userid, prop, value) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {

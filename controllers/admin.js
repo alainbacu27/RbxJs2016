@@ -30,6 +30,75 @@ module.exports = {
             res.send("Asset Approved!");
         });
 
+        app.post("/v1/admin/settix", db.requireAuth, db.requireAdmin, async (req, res) => {
+            if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
+                res.status(400).send();
+                return;
+            }
+            const userid = parseInt(req.body.userid);
+            const tix = parseInt(req.body.tix);
+            await db.setUserProperty(userid, "tix", tix);
+            res.send("OK");
+        });
+
+        app.post("/v1/admin/addtix", db.requireAuth, db.requireAdmin, async (req, res) => {
+            if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
+                res.status(400).send();
+                return;
+            }
+            const userid = parseInt(req.body.userid);
+            const user = await db.getUser(userid);
+            if (!user){
+                res.status(400).send("User not found.");
+                return;
+            }
+            const amount = parseInt(req.body.amount);
+            const tix = await db.getUserProperty(userid, "tix");
+            await db.setUserProperty(userid, "tix", tix + amount);
+            res.send("OK");
+        });
+
+        app.post("/v1/admin/gettix", db.requireAuth, db.requireAdmin, async (req, res) => {
+            if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
+                res.status(400).send();
+                return;
+            }
+            const userid = parseInt(req.body.userid);
+            const user = await db.getUser(userid);
+            if (!user){
+                res.status(400).send("User not found.");
+                return;
+            }
+            const tix = await db.getUserProperty(userid, "tix");
+            res.send(tix.toString());
+        });
+
+        app.post("/v1/useradmin/givetix", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
+                res.status(400).send();
+                return;
+            }
+            const userid = parseInt(req.body.userid);
+            const user = await db.getUser(userid);
+            if (!user){
+                res.status(400).send("User not found.");
+                return;
+            }
+            const give = parseInt(req.body.amount);
+            if (amount < 0 || amount > db.getSiteConfig().backend.maxGiveTix){
+                res.status(400).send(`You can only give between 0 and ${db.getSiteConfig().backend.maxGiveTix} tix!`);
+                return;
+            }
+            if (req.user.tix < amount){
+                res.status(400).send("You do not have enough tix to give!");
+                return;
+            }
+            const tix = await db.getUserProperty(userid, "tix");
+            await db.setUserProperty(req.user.userid, "tix", req.user.tix - amount);
+            await db.setUserProperty(userid, "tix", tix + give);
+            res.send(tix.toString());
+        });
+
         app.get("/v1/admin/unapprovedAssets", async (req, res) => {
             let limit = parseInt(req.query.limit) || 100;
             if (limit < 0) {
