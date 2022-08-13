@@ -109,7 +109,7 @@ module.exports = {
                 return;
             }
             const assetid = parseInt(req.body.assetid);
-            await db.deleteAsset(req.user.userid, assetid);
+            await db.deleteAsset(assetid);
             res.send("Asset Deleted!");
         });
 
