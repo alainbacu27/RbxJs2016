@@ -4402,7 +4402,7 @@ module.exports = {
                             }else{
                                 gameid = gameid.toString();
                             }
-                            someJobs += `<option value="${gameid}: ${jobId}">${jobId}</option>`
+                            someJobs += `<option value="${jobId}">${gameid}: ${jobId}</option>`
                         }
                         res.render(`admin/${page}`, {
                             ...await db.getRenderObject(req.user),
