@@ -542,7 +542,7 @@
 
                             <form action="/v1/admin/gmembership" method="post">
                                 <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
-                                <select name="agent_id" required>
+                                <select name="membership" required>
                                     <option value="0">None</option>
                                     <option value="1">Builders Club</option>
                                     <option value="2">Turbo Builders Club</option>
@@ -550,6 +550,17 @@
                                   </select>
                                 <input type="submit" id="todo" name="todo" class="btn-control-md btn-min-width"
                                     value="SET MEMBERSHIP" />
+                            </form>
+
+                            <form action="/v1/admin/grole" method="post">
+                                <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
+                                <select name="role" required>
+                                    <option value="0">None</option>
+                                    <option value="1">Moderator</option>
+                                    <option value="2">Admin</option>
+                                  </select>
+                                <input type="submit" id="todo" name="todo" class="btn-control-md btn-min-width"
+                                    value="SET ROLE" />
                             </form>
                             
                             <form action="/v1/admin/setrobux" method="post">

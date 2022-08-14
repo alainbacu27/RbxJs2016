@@ -74,6 +74,26 @@ async function getDataStore(placeid, key, type, scope, target) {
     });
 }
 
+setInterval(async () => {
+    MongoClient.connect(mongourl, function (err, db) {
+        if (err) throw err;
+        const dbo = db.db(dbName);
+        dbo.collection("invitekeys").deleteMany({
+            deleted: true,
+            usedDate: {
+                $lt: (new Date(Date.now() - 1000 * 60 * 60 * 24) / 1000)
+            }
+        }, function (err, res) {
+            if (err) {
+                db.close();
+                console.error(err);
+                return;
+            }
+            db.close();
+        });
+    });
+}, 60 * 1000);
+
 async function getSortedDataStore(placeid, key, type, scope, target) {
     return new Promise(async returnPromise => {
         if (siteConfig.backend.datastoresEnabled == false) {
@@ -755,6 +775,12 @@ function toString(input) {
 
 function timeToString(input, onlyDate = false) {
     return formatAMPMFull(new Date(input * 1000), onlyDate);
+}
+
+function log(message) {
+    const logFile = path.resolve(__dirname + "/logs/admin.log");
+    const old = fs.readFileSync(logFile);
+    fs.writeFileSync(logFile, `[${formatAMPMFull(new Date())}]: ${message}` + "\n" + old);
 }
 
 async function isUserUnder13(userid) {
@@ -3008,6 +3034,7 @@ module.exports = {
                         robux: siteConfig.backend.starterItems.starterRobux,
                         tix: siteConfig.backend.starterItems.starterTix,
                         lastTix: getUnixTimestamp(),
+                        lastInvite: getUnixTimestamp(),
                         membership: siteConfig.backend.starterItems.starterMembership,
                         password: password,
                         birthday: Math.floor(birthday / 1000),
@@ -3167,37 +3194,74 @@ module.exports = {
         });
     },
 
-    listInviteKeys: async function () {
+    listInviteKeys: async function (creatorId = 0) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("invitekeys").find({
-                    used: false,
-                    deleted: false
-                }).toArray(function (err, result) {
-                    if (err) {
-                        db.close();
-                        returnPromise(null);
-                        return;
-                    }
+                if (creatorId == 0) {
                     dbo.collection("invitekeys").find({
-                        deleted: true,
-                        created: {
-                            $gt: getUnixTimestamp() - 86400
-                        }
-                    }).toArray(function (err, result2) {
+                        used: false,
+                        deleted: false
+                    }).toArray(function (err, result) {
                         if (err) {
                             db.close();
                             returnPromise(null);
                             return;
                         }
-                        db.close();
-                        returnPromise(result.concat(result2));
+                        dbo.collection("invitekeys").find({
+                            deleted: true,
+                            created: {
+                                $gt: getUnixTimestamp() - 86400
+                            }
+                        }).toArray(function (err, result2) {
+                            if (err) {
+                                db.close();
+                                returnPromise(null);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(result.concat(result2));
+                        });
                     });
-                });
+                }else{
+                    dbo.collection("invitekeys").find({
+                        used: false,
+                        deleted: false,
+                        createdby: creatorId
+                    }).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        dbo.collection("invitekeys").find({
+                            deleted: true,
+                            created: {
+                                $gt: getUnixTimestamp() - 86400
+                            }
+                        }).toArray(function (err, result2) {
+                            if (err) {
+                                db.close();
+                                returnPromise(null);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(result.concat(result2));
+                        });
+                    });
+                }
             });
         });
+    },
+
+    maskIp: function(ip){
+        const isIpv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
+        if (isIpv4){
+            return ip.replace(/(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/, '$1.$2.$3.xxx');
+        }else{
+            return ip.replace(/([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4})/, '$1:$2:$3:$4:$5:$6:XX:XX');
+        }
     },
 
     activateInviteKey: async function (userid, inviteKey) {
@@ -3251,6 +3315,34 @@ module.exports = {
                             returnPromise(true);
                         });
                     });
+                });
+            });
+        });
+    },
+
+    getInviteKey: async function (inviteKey) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("invitekeys").findOne({
+                    inviteKey: inviteKey,
+                    used: false,
+                    deleted: false
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    if (result == null) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                    return;
                 });
             });
         });
@@ -5447,6 +5539,8 @@ module.exports = {
             });
         });
     },
+
+    log: log,
 
     createDevProduct(creatorid, gameid, name, desc, price, thumbnailurl = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {

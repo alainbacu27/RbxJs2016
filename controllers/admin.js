@@ -6,7 +6,7 @@ const querystring = require('querystring');
 
 module.exports = {
     init: (app, db) => {
-        app.post("/v1/admin/ban", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/ban", db.requireAuth, db.requireMod, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -16,6 +16,22 @@ module.exports = {
             const reason = req.body.reason;
             const item = req.body.item;
             const todo = req.body.todo;
+            const user = await db.getUser(userid);
+            if (req.user.isMod){
+                if (user && (user.isMod || user.isAdmin)){
+                    res.status(401).send("You cannot ban that person. Lacking sufficient permissions.");
+                    return;
+                }
+            }
+            if (user && user.isAdmin){
+                res.status(401).send("You cannot ban that person. Lacking sufficient permissions.");
+                return;
+            }
+            if (!user || user.isBanned){
+                res.status(400).send("User not found or already banned.");
+                return;
+            }
+            db.log(`${req.user.userid} has banned ${user.username} (${user.userid}) for the reason: ${reason}`);
             await db.banUser(userid, modnote, reason, item);
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });
@@ -26,6 +42,7 @@ module.exports = {
                 return;
             }
             const assetid = parseInt(req.body.assetid);
+            db.log(`${req.user.userid} has approved asset ${assetid}.`);
             await db.approveAsset(req.user.userid, assetid);
             res.send("Asset Approved!");
         });
@@ -37,6 +54,7 @@ module.exports = {
             }
             const userid = parseInt(req.body.userid);
             const tix = parseInt(req.body.tix);
+            db.log(`${req.user.userid} setting ${userid}'s tix to ${tix}.`);
             await db.setUserProperty(userid, "tix", tix);
             res.send("OK");
         });
@@ -54,6 +72,7 @@ module.exports = {
             }
             const amount = parseInt(req.body.amount);
             const tix = await db.getUserProperty(userid, "tix");
+            db.log(`${req.user.userid} adding ${tix} tix to user ${userid}.`);
             await db.setUserProperty(userid, "tix", tix + amount);
             res.send("OK");
         });
@@ -84,7 +103,7 @@ module.exports = {
                 res.status(400).send("User not found.");
                 return;
             }
-            const give = parseInt(req.body.amount);
+            const amount = parseInt(req.body.amount);
             if (amount < 0 || amount > db.getSiteConfig().backend.maxGiveTix){
                 res.status(400).send(`You can only give between 0 and ${db.getSiteConfig().backend.maxGiveTix} tix!`);
                 return;
@@ -95,8 +114,8 @@ module.exports = {
             }
             const tix = await db.getUserProperty(userid, "tix");
             await db.setUserProperty(req.user.userid, "tix", req.user.tix - amount);
-            await db.setUserProperty(userid, "tix", tix + give);
-            res.send(tix.toString());
+            await db.setUserProperty(userid, "tix", tix + amount);
+            res.send(`Sucessfully gave "${user.username}" (userid: ${user.userid}), ${amount} tix!`);
         });
 
         app.get("/v1/admin/unapprovedAssets", async (req, res) => {
@@ -178,19 +197,18 @@ module.exports = {
                 return;
             }
             const assetid = parseInt(req.body.assetid);
+            db.log(`User ${req.user.userid} deleting asset ${assetid}.`);
             await db.deleteAsset(assetid);
             res.send("Asset Deleted!");
         });
 
-        app.post("/v1/admin/unban", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/unban", db.requireAuth, db.requireMod, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
             }
             const userid = parseInt(req.body.userid);
-            const modnote = req.body.modnote;
-            const reason = req.body.reason;
-            const item = req.body.item;
+            db.log(`User ${req.user.userid} unbanning user ${userid}.`);
             await db.unbanUser(userid);
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });
@@ -216,9 +234,11 @@ module.exports = {
             await db.setMaintenance(maintenance, maintenance_finishtime);
             if (maintenance) {
                 const code = db.uuidv4();
+                db.log(`Maintenance enabled by ${req.user.userid}, code: ${code}`);
                 await db.setMaintenanceWhitelistCode(code);
                 res.send(code);
             } else {
+                db.log(`Maintenance disabled by ${req.user.userid}.`);
                 await db.setMaintenanceWhitelistCode("");
                 db.resetMaintenanceModeWhitelistedIps();
                 res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
@@ -231,6 +251,11 @@ module.exports = {
                 return;
             }
             const msg = req.body.msg;
+            if (msg == ""){
+                db.log(`User ${req.user.userid} removing message.`);
+            }else{
+                db.log(`User ${req.user.userid} publishing message: ${msg}`);
+            }
             await db.setConfig("roblox_message", msg);
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });
@@ -240,6 +265,7 @@ module.exports = {
                 res.status(400).send();
                 return;
             }
+            db.log(`User ${req.user.userid} restarting arbiter.`);
             const jobs = await db.getJobs();
             for (let i = 0; i < jobs.length; i++) {
                 const job = await db.getJob(jobs[i]);
@@ -248,30 +274,44 @@ module.exports = {
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/restartarbiter")
         });
 
-        app.post("/v1/admin/cinvitekey", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/cinvitekey", db.requireAuth, db.requireMod, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
             }
+            if (req.user.isMod){
+                if (req.user.lastInvite && db.getUnixTimestamp() - req.user.lastInvite < db.getSiteConfig().shared.ADMIN_InviteCooldown){
+                    res.status(401).send(`You cannot invite another user until ${db.timeToString(req.user.lastInvite + db.getSiteConfig().shared.ADMIN_InviteCooldown)}.`);
+                    return;
+                }
+            }
+            db.log("Invite key requested by user " + req.user.userid.toString());
+            await db.setUserProperty(req.user.userid, "lastInvite", db.getUnixTimestamp());
             const key = await db.createInviteKey(req.user.userid);
             res.send(key);
         });
 
-        app.post("/v1/admin/dinvitekey", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/dinvitekey", db.requireAuth, db.requireMod, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
             }
             const key = req.body.key;
+            const ik = await db.getInviteKey(key);
+            if (!req.user.isAdmin && ik && ik.createdby != req.user.userid){
+                res.status(401).send("You cannot delete this invite key.");
+                return;
+            }
             const deleted = await db.deleteInviteKey(key);
             if (deleted) {
+                db.log("Invite key \"" + key + "\" deleted by user " + req.user.userid.toString());
                 res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/invitekeys");
             } else {
                 res.status(404).send("Key not found");
             }
         });
 
-        app.post("/v1/admin/renameuser", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/renameuser", db.requireAuth, db.requireMod, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -282,6 +322,15 @@ module.exports = {
             if (!user) {
                 return res.status(404).send("User not found");
             }
+            if (user.userid != req.user.userid && (req.user.isAdmin || req.user.isMod)) {
+                return res.status(401).send("You cannot rename this user.");
+            }
+                
+            if (await db.userExists(username)){
+                res.status(400).send("Username already exists");
+                return;
+            }
+            db.log(`User ${req.user.userid} renaming user ${userid} to ${username}.`);
             await db.setUserProperty(userid, "username", username);
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/usermoderation")
         });
@@ -300,11 +349,46 @@ module.exports = {
             if (membership < 0 || membership > 3) {
                 return res.status(400).send("Invalid membership");
             }
+            db.log(`User ${req.user.userid} changing user ${userid}'s membership to ${membership}.`);
             await db.setUserProperty(userid, "membership", membership);
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/usermoderation")
         });
 
-        app.post("/v1/admin/userinfo", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/grole", db.requireAuth, db.requireAdmin, async (req, res) => {
+            if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
+                res.status(400).send();
+                return;
+            }
+            const userid = parseInt(req.body.userid);
+            const role = parseInt(req.body.role);
+            const user = await db.getUser(userid);
+            if (!user) {
+                return res.status(404).send("User not found");
+            }
+            if (role < 0 || role > 2) {
+                return res.status(400).send("Invalid role");
+            }
+            if (user.isAdmin && req.user.userid != 1){
+                return res.status(401).send("You cannot change this user's role.");
+            }
+            db.log(`User ${req.user.userid} changing user ${userid}'s role to ${role}.`);
+            switch (role) {
+                case 0:
+                    await db.setUserProperty(userid, "isMod", false);
+                    await db.setUserProperty(userid, "isAdmin", false);
+                    break;
+                case 1:
+                    await db.setUserProperty(userid, "isMod", true);
+                    await db.setUserProperty(userid, "isAdmin", false);
+                    break;
+                case 2:
+                    await db.setUserProperty(userid, "isMod", false);
+                    await db.setUserProperty(userid, "isAdmin", true);
+            }
+            res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/usermoderation");
+        });
+
+        app.post("/v1/admin/userinfo", db.requireAuth, db.requireMod, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -355,7 +439,7 @@ User Info:<p></p>
 ㅤㅤ- Robux: ${db.formatNumber(user.robux)}<p></p>
 ㅤㅤ- Tix: ${db.formatNumber(user.tix)}<p></p>
 ㅤㅤ[Signup/Dates]<p></p>
-ㅤㅤ- Signup IP: ${user.ip}<p></p>
+ㅤㅤ- Signup IP: ${req.user.isAdmin ? user.ip : db.maskIp(user.ip)}<p></p>
 ㅤㅤㅤㅤ- Created: ${db.unixToDate(user.created).toISOString()}<p></p>
 ㅤㅤ[Other]<p></p>
 ㅤㅤ- Last Online: ${db.unixToDate(user.lastOnline).toISOString()}<p></p>
@@ -373,20 +457,32 @@ ${assets}
         });
 
 
-        app.post("/v1/admin/linvitekeys", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/linvitekeys", db.requireAuth, db.requireMod, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
             }
-            const keys = await db.listInviteKeys();
             let out = "";
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                if (key.deleted) {
-                    out += `${key.inviteKey} | Creator: ${key.createdby} | Created: ${db.unixToDate(key.created).toISOString()} | DELETED : ${db.unixToDate(key.usedDate).toISOString()}<p></p>`;
-                    continue;
+            if (req.user.isMod){
+                const keys = await db.listInviteKeys(req.user.userid);
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
+                    if (key.deleted) {
+                        out += `${key.inviteKey} | Created: ${db.unixToDate(key.created).toISOString()} | DELETED : ${db.unixToDate(key.usedDate).toISOString()}<p></p>`;
+                        continue;
+                    }
+                    out += `${key.inviteKey} | Created: ${db.unixToDate(key.created).toISOString()}<p></p>`;
                 }
-                out += `${key.inviteKey} | Creator: ${key.createdby} | Created: ${db.unixToDate(key.created).toISOString()}<p></p>`;
+            }else{
+                const keys = await db.listInviteKeys();
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
+                    if (key.deleted) {
+                        out += `${key.inviteKey} | Creator: ${key.createdby} | Created: ${db.unixToDate(key.created).toISOString()} | DELETED : ${db.unixToDate(key.usedDate).toISOString()}<p></p>`;
+                        continue;
+                    }
+                    out += `${key.inviteKey} | Creator: ${key.createdby} | Created: ${db.unixToDate(key.created).toISOString()}<p></p>`;
+                }
             }
             res.send(out);
         });
@@ -462,6 +558,7 @@ ${assets}
                 res.status(404).send("Configuration File Not Found.");
                 return;
             }
+            db.log(`User ${req.user.userid} setting ${fflag} to ${value}`);
             const data = JSON.parse(fs.readFileSync(fp, "utf8"));
             data.shared[fflag] = value;
             fs.writeFileSync(fp, JSON.stringify(data, null, 4));

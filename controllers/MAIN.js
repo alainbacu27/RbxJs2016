@@ -4251,6 +4251,9 @@ module.exports = {
                         <li>
                             <a href="${admiPath}/statistics">Statistics</a>
                         </li>
+                        <li>
+                            <a href="${admiPath}/logs">Logs</a>
+                        </li>
                     </ul>
                 </li>
                 <li>
@@ -4267,6 +4270,9 @@ module.exports = {
                         </li>
                         <li>
                             <a href="${admiPath}/restartarbiter">Restart Arbiter</a>
+                        </li>
+                        <li>
+                            <a href="${admiPath}/clearlogs">Clear Logs</a>
                         </li>
                     </ul>
                 </li>
@@ -4334,6 +4340,17 @@ module.exports = {
                 }
                 if (!req.user.isAdmin && !db.getSiteConfig().shared.MODS_ACCESS.includes(page)) {
                     res.status(403).render("403", await db.getRenderObject(req.user));
+                    return;
+                }
+                if (req.params.page == "logs") {
+                    const logs = fs.readFileSync(path.resolve(__dirname, "../logs/admin.log"), "utf8");
+                    const lines = logs.split("\n");
+                    res.send(lines.splice(lines.length - 7500, lines.length).join("<br>"));
+                    return;
+                }else if (req.params.page == "clearlogs") {
+                    fs.writeFileSync(path.resolve(__dirname, "../logs/admin.log"), "");
+                    db.log(`User ${req.user.userid} cleared the admin logs.`);
+                    res.redirect(admiPath);
                     return;
                 }
                 if (fs.existsSync(fp) && page != "index") {

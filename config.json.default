@@ -49,6 +49,8 @@
             "user": 15
         },
 
+        "ADMIN_InviteCooldown": 86400,
+
         "assetsEnabled": true,
 
         "users": {
@@ -103,7 +105,7 @@
         "ADMIN_AdminCanExecuteJobScripts": true,
         "ADMIN_AdminCanExecuteNewJobScripts": true,
 
-        "MODS_ACCESS": ["index", "assetmoderation", "statistics"],
+        "MODS_ACCESS": ["index", "assetmoderation", "statistics", "usermoderation", "invitekeys", "logs"],
 
         "CLIENT_DOWNLOAD_AVAIlABLE": true,
 

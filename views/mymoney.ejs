@@ -569,7 +569,8 @@ Build your factory as you develop and mass produce the most successful series of
 
             <div id="RepositionBody">
                 <div id="Body" class="body-width">
-                    <h2>W.I.P</h2>
+                    <h2>Transactions (W.I.P)</h2>
+                    <hr>
                     <form action="/v1/convert/tix" method="post">
                         <input type="number" name="tix" placeholder="Tix Amount" value="">
                         <input type="submit" value="Convert To Robux">
@@ -581,6 +582,14 @@ Build your factory as you develop and mass produce the most successful series of
                     <p>
                         Current Exchange Rate: <span><%= tixExchangeRate %> Tix = 1 Robux</span>
                     </p>
+                    <hr>
+                    <h3>Give tix (NOTICE: Transactions are irreversible.)</h3>
+                    <form action="/v1/useradmin/givetix" method="post">
+                        <input type="number" name="userid" placeholder="UserId to give to" value="">
+                        <input type="number" name="amount" placeholder="Tix Amount" value="">
+                        <input type="submit" value="Give Tix">
+                    </form>
+                    <hr>
                 </div>
             </div>
         </div>
