@@ -5,6 +5,7 @@ const fetch = require('node-fetch');
 const querystring = require('querystring');
 const AdmZip = require('adm-zip');
 const mime = require('mime');
+const detectContentType = require('detect-content-type')
 
 module.exports = {
     init: (app, db) => {
@@ -44,15 +45,13 @@ module.exports = {
                         if (entry.isDirectory) {
                             continue;
                         }
-                        const fp2 = path.resolve(`${__dirname}/../temp/${db.uuidv4()}.tmp`);
                         const fn = entry.entryName;
                         const fd = entry.getData();
                         let outputId = 0;
                         if (!isNaN(parseInt(fn.split(".")[0]))){
                             outputId = parseInt(fn.split(".")[0]);
                         }
-                        fs.writeFileSync(fp2, fd);
-                        const mimetype = mime.lookup(fp2);
+                        const mimetype = detectContentType(Buffer.from(fd));
                         if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg" || mimetype == "image/bmp" || mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg" || mimetype == "video/webm" || mimetype == "model/obj") {
                             if (fd.length > 5.5 * 1024 * 1024) {
                                 req.uploadedFiles.push(`?: ${fn} (FAILED: Too big filesize)`);
@@ -68,8 +67,8 @@ module.exports = {
                                 assetId = outputId;
                             }
                             const fp3 =`${__dirname}/../assets/${assetId}.asset`;
-                            fs.renameSync(fp2, fp3);
-                            if (mimetype == "model/obj"){
+                            fs.writeFileSync(fp3, fd);
+                            if (db.isObjFile(fd)){
                                 await db.convertMesh(fp2);
                             }
                             req.uploadedFiles.push(`${assetId}: ${fn} (SUCCESS)`);

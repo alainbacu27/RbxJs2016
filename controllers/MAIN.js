@@ -2458,11 +2458,7 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "application/octet-stream") {
-                    if (file.data.toString().startsWith("MZ�������ÿÿ��") || file.data.toString().startsWith("ÐÏà¡±á��������")) {
-                        res.status(400).send("Only listed formats are allowed!");
-                        return;
-                    }
+                if (file.mimetype == "application/octet-stream" && db.isObjFile(file.data)) {
                     const fp0 = `${__dirname}/../temp/${db.uuidv4()}.asset`;
                     await req.files.file.mv(fp0);
                     const s = await db.convertMesh(fp0);

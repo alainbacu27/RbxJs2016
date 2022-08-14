@@ -4006,6 +4006,26 @@ module.exports = {
         });
     },
 
+    isObjFile: function(data){
+        if((data instanceof Buffer)){
+            data = data.toString();
+        }
+        if (data.startsWith("MZ�������ÿÿ��") || data.startsWith("ÐÏà¡±á��������")) {
+            res.status(400).send("Only listed formats are allowed!");
+            return;
+        }
+        // Check if data matches a .obj file
+        const lines = data.split("\n");
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith("v ")) {
+                if (lines[i].split(" ").length == 4) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    },
+
     getCatalogItemsByCreatorId: async function (creatorid) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
