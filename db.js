@@ -4062,7 +4062,7 @@ module.exports = {
                         return;
                     }
                     const lastId = config.assets + 1;
-                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`)) {
+                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
                         lastId++;
                     }
                     dbo.collection("config").updateOne({}, {
@@ -5357,7 +5357,7 @@ module.exports = {
                         return;
                     }
                     const lastId = config.assets + 1;
-                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`)) {
+                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
                         lastId++;
                     }
                     dbo.collection("config").updateOne({}, {
@@ -5441,7 +5441,7 @@ module.exports = {
                         return;
                     }
                     const lastId = config.assets + 1;
-                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`)) {
+                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
                         lastId++;
                     }
                     dbo.collection("config").updateOne({}, {
@@ -6248,7 +6248,7 @@ module.exports = {
                         return;
                     }
                     const lastId = config.assets + 1;
-                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`)) {
+                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
                         lastId++;
                     }
                     dbo.collection("config").updateOne({}, {
@@ -6333,7 +6333,7 @@ module.exports = {
                         return;
                     }
                     const lastId = config.assets + 1;
-                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`)) {
+                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
                         lastId++;
                     }
                     dbo.collection("config").updateOne({}, {

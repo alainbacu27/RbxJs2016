@@ -44,9 +44,15 @@ module.exports = {
                         if (entry.isDirectory) {
                             continue;
                         }
+                        const fp2 = path.resolve(`${__dirname}/../temp/${db.uuidv4()}.tmp`);
                         const fn = entry.entryName;
                         const fd = entry.getData();
-                        const mimetype = mime.lookup(fn);
+                        let outputId = 0;
+                        if (!isNaN(parseInt(fn.split(".")[0]))){
+                            outputId = parseInt(fn.split(".")[0]);
+                        }
+                        fs.writeFileSync(fp2, fd);
+                        const mimetype = mime.lookup(fp2);
                         if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg" || mimetype == "image/bmp" || mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg" || mimetype == "video/webm" || mimetype == "model/obj") {
                             if (fd.length > 5.5 * 1024 * 1024) {
                                 req.uploadedFiles.push(`?: ${fn} (FAILED: Too big filesize)`);
@@ -56,14 +62,21 @@ module.exports = {
                                 req.uploadedFiles.push(`?: ${fn} (FAILED: Too long filename)`);
                                 continue;
                             }
-                            const assetId = await db.createAsset(req.user.userid, fn.split(".")[0], "", (mimetype == "image/png" || mimetype == "image/jpeg" || mimetype == "image/bmp") ? "Decal" : (mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg") ? "Audio" : mimetype == "video/webm" ? "Video" : mimetype == "model/obj" ? "Mesh" : "Unknown", true);
-                            const fp =`${__dirname}/../assets/${assetId}.asset`;
-                            fs.writeFileSync(fp, fd);
+                            let assetId = await db.createAsset(req.user.userid, fn.split(".")[0], "", (mimetype == "image/png" || mimetype == "image/jpeg" || mimetype == "image/bmp") ? "Decal" : (mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "audio/ogg") ? "Audio" : mimetype == "video/webm" ? "Video" : mimetype == "model/obj" ? "Mesh" : "Unknown", true);
+                            if (outputId != 0){
+                                await db.setAssetProperty(assetId, "id", outputId);
+                                assetId = outputId;
+                            }
+                            const fp3 =`${__dirname}/../assets/${assetId}.asset`;
+                            fs.renameSync(fp2, fp3);
                             if (mimetype == "model/obj"){
-                                await db.convertMesh(fp);
+                                await db.convertMesh(fp2);
                             }
                             req.uploadedFiles.push(`${assetId}: ${fn} (SUCCESS)`);
                         } else {
+                            try{
+                                fs.unlinkSync(fp2);
+                            }catch {}
                             req.uploadedFiles.push(`?: ${fn} (FAILED: Invalid file type)`);
                         }
                     }
