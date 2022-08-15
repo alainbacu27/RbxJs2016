@@ -322,7 +322,7 @@ module.exports = {
             if (!user) {
                 return res.status(404).send("User not found");
             }
-            if (user.userid != req.user.userid && (req.user.isAdmin || req.user.isMod)) {
+            if (user.isMod && !req.user.isAdmin && !user.isAdmin && req.user.userid != user.userid) {
                 return res.status(401).send("You cannot rename this user.");
             }
                 
