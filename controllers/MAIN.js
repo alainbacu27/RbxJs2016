@@ -959,7 +959,7 @@ module.exports = {
                 });
                 return;
             }
-            const isBadUsername = badUsernames.includes(username.toLowerCase());
+            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
             if (isBadUsername) {
                 res.json({
                     "data": 2
@@ -1076,7 +1076,7 @@ module.exports = {
             const referralData = data.referralData;
             const username = data.username;
 
-            const isBadUsername = badUsernames.includes(username.toLowerCase());
+            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
             if (isBadUsername) {
                 res.status(400).send("Bad username.");
                 return;
@@ -5870,9 +5870,10 @@ module.exports = {
         app.post("/moderation/filtertext", (req, res) => {
             const text = req.body.text;
             const userid = req.body.userId;
+            
             res.json({
                 "data": {
-                    "white": text,
+                    "white": db.censorText(text),
                     "black": ""
                 }
             });
@@ -5883,7 +5884,7 @@ module.exports = {
             const userid = req.body.userId;
             res.json({
                 "data": {
-                    "white": text,
+                    "white": db.censorText(text),
                     "black": ""
                 }
             });

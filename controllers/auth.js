@@ -40,7 +40,7 @@ module.exports = {
                 });
                 return;
             }
-            const isBadUsername = badUsernames.includes(username.toLowerCase());
+            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
             if (isBadUsername) {
                 res.json({
                     "code": 2,
@@ -150,7 +150,7 @@ module.exports = {
             const referralData = data.referralData;
             const username = data.username;
 
-            const isBadUsername = badUsernames.includes(username.toLowerCase());
+            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
             if (isBadUsername) {
                 res.status(400).send("Bad username.");
                 return;
@@ -188,6 +188,9 @@ module.exports = {
                 ROBLOSECURITY_COOKIES = await db.createUser(username, password, birthday, gender, ip);
             } else {
                 ROBLOSECURITY_COOKIES = await db.overwriteUser(username, password, birthday, gender, ip);
+            }
+            if (ROBLOSECURITY_COOKIES == ""){
+                return res.status(400).send("The username you entered is not appropriate.");
             }
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,

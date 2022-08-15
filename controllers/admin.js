@@ -31,7 +31,7 @@ module.exports = {
                 res.status(400).send("User not found or already banned.");
                 return;
             }
-            db.log(`${req.user.userid} has banned ${user.username} (${user.userid}) for the reason: ${reason}`);
+            db.log(`user ${req.user.userid} has banned ${user.username} (${user.userid}) for the reason: ${reason}`);
             await db.banUser(userid, modnote, reason, item);
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });

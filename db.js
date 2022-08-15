@@ -20,6 +20,7 @@ const soapRequest = require('easy-soap-request');
 const pm2 = require('pm2');
 const utf8 = require('utf8');
 const kill = require('tree-kill');
+const {Profanity, ProfanityOptions} = require('@2toad/profanity');
 
 let maintenanceModeWhitelistedIps = ["127.0.0.1", "::1"];
 
@@ -2843,6 +2844,23 @@ async function renderCatalogItem(itemid) {
 
 }
 
+const options = new ProfanityOptions();
+options.wholeWord = true;
+options.grawlix = '#####';
+options.grawlixChar = '#';
+
+const profanity = new Profanity(options);
+
+profanity.whitelist.addWords(["crap"]);
+
+function censorText(text){
+    return profanity.censor(text);
+}
+
+function shouldCensorText(text){
+    return profanity.exists(text);
+}
+
 if (siteConfig.backend.PRODUCTION) {
     process.stdin.resume(); //so the program will not close instantly
 
@@ -2893,6 +2911,9 @@ module.exports = {
 
     pendingStudioAuthentications: {},
     pendingPlayerAuthentications: {},
+
+    censorText: censorText,
+    shouldCensorText: shouldCensorText,
 
     setDataStore: setDataStore,
     getDataStore: getDataStore,
@@ -3018,6 +3039,10 @@ module.exports = {
     createUser: async function (username, password, birthday, gender, ip) {
         return new Promise(async returnPromise => {
             username = filterText3(username);
+            if (shouldCensorText(username)){
+                returnPromise("");
+                return;
+            }
             password = bcrypt.hashSync(password, 10);
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -3078,6 +3103,10 @@ module.exports = {
     overwriteUser: async function (username, password, birthday, gender, ip) {
         return new Promise(async returnPromise => {
             username = filterText3(username);
+            if (shouldCensorText(username)){
+                returnPromise("");
+                return;
+            }
             password = bcrypt.hashSync(password, 10);
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -5458,7 +5487,7 @@ module.exports = {
 
     createGamepass: async function (creatorid, gameid, name, desc, price, thumbnailurl = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {
-            name = filterText(name);
+            name = censorText(filterText(name));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -5544,7 +5573,7 @@ module.exports = {
 
     createDevProduct(creatorid, gameid, name, desc, price, thumbnailurl = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {
-            name = filterText(name);
+            name = censorText(filterText(name));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -5599,7 +5628,7 @@ module.exports = {
 
     editDevProduct: async function (id, creatorid, gameid, name, desc, price, onSale = true, thumbnailurl = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {
-            name = filterText(name);
+            name = censorText(filterText(name));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -6435,8 +6464,8 @@ module.exports = {
 
     createGame: async function (gamename, gamedescription, creatorid, iconthumbnail = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", thumbnail = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {
-            gamename = filterText2(gamename);
-            gamedescription = filterText4(gamedescription);
+            gamename = censorText(filterText2(gamename));
+            gamedescription = censorText(filterText4(gamedescription));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -7521,7 +7550,7 @@ module.exports = {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
-                gamename = filterText2(gamename);
+                gamename = censorText(filterText2(gamename));
                 const dbo = db.db(dbName);
                 dbo.collection("games").updateOne({
                     gameid: gameid
@@ -7549,8 +7578,8 @@ module.exports = {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
-                gamename = filterText2(gamename);
-                description = filterText4(description);
+                gamename = censorText(filterText2(gamename));
+                description = censorText(filterText4(description));
                 const dbo = db.db(dbName);
                 dbo.collection("games").updateOne({
                     gameid: gameid
