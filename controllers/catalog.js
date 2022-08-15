@@ -588,7 +588,7 @@ module.exports = {
             for (let i = 0; i < items.length; i++) {
                 const item0 = items[i];
                 const item = await db.getCatalogItem(item0.id);
-                if (!item) {
+                if (!item || item.deleted) {
                     continue;
                 }
                 const itemcreator = await db.getUser(item.itemcreatorid);

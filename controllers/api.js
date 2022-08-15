@@ -230,7 +230,7 @@ module.exports = {
                 });
                 return;
             }
-            if (item && (typeof assettype === "undefined" || assettype === "item")) {
+            if (item && !item.deleted && (typeof assettype === "undefined" || assettype === "item")) {
                 const itemcreator = await db.getUser(item.itemcreatorid);
                 res.json({
                     "TargetId": item.itemid,
@@ -384,7 +384,7 @@ module.exports = {
                 });
                 return;
             }
-            if (item && (typeof assettype === "undefined" || assettype === "item")) {
+            if (item && !item.deleted && (typeof assettype === "undefined" || assettype === "item")) {
                 const itemcreator = await db.getUser(item.itemcreatorid);
                 res.json({
                     "TargetId": item.itemid,

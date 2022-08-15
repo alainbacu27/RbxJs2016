@@ -155,7 +155,7 @@ module.exports = {
             }
 
             const item = await db.getCatalogItem(id);
-            if (item) {
+            if (item && !item.deleted) {
                 const bp = path.resolve(__dirname + "/../thumbnails/") + path.sep;
                 const fp = path.resolve(bp + id.toString() + ".asset");
                 if (!fp.startsWith(bp)) {

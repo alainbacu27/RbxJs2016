@@ -2851,7 +2851,7 @@ options.grawlixChar = '#';
 
 const profanity = new Profanity(options);
 
-profanity.whitelist.addWords(["crap"]);
+profanity.whitelist.addWords(["crap", "asset"]);
 
 function censorText(text){
     return profanity.censor(text);
@@ -3031,7 +3031,32 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    returnPromise(true);
+                    dbo.collection("games").updateOne({
+                        gameid: assetid,
+                    }, {
+                        $set: {
+                            deleted: true
+                        }
+                    }, function (err, result) {
+                        if (err) {
+                            returnPromise(false);
+                            return;
+                        }
+                        dbo.collection("catalog").updateOne({
+                            itemid: assetid,
+                        }, {
+                            $set: {
+                                deleted: true
+                            }
+                        }, function (err, result) {
+                            if (err) {
+                                returnPromise(false);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(true);
+                        });
+                    });
                 });
             });
         });
@@ -4263,7 +4288,8 @@ module.exports = {
                             itemoffsafedeadline: null,
                             itemgenre: "All",
                             onSale: false,
-                            currency: 1
+                            currency: 1,
+                            deleted: false
                         }, function (err, res) {
                             if (err) {
                                 db.close();
@@ -4350,7 +4376,8 @@ module.exports = {
                     itemname: {
                         $regex: keyword,
                         $options: "i"
-                    }
+                    },
+                    deleted: false
                 }).toArray(function (err, result) {
                     if (err) {
                         db.close();
@@ -4394,7 +4421,7 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("catalog").find({}).skip(startIndex).limit(limit).toArray(function (err, result) {
+                dbo.collection("catalog").find({deleted: false}).skip(startIndex).limit(limit).toArray(function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(null);
@@ -4417,7 +4444,7 @@ module.exports = {
                 if (err) throw err;
                 const dbo = db.db(dbName);
                 dbo.collection("catalog").deleteOne({
-                    itemid: itemid
+                    deleted: true
                 }, function (err, res) {
                     if (err) {
                         db.close();
@@ -6480,8 +6507,44 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    db.close();
-                    returnPromise(true);
+                    dbo.collection("assets").updateOne({
+                        id: assetid,
+                    }, {
+                        $set: {
+                            deleted: true
+                        }
+                    }, function (err, result) {
+                        if (err) {
+                            returnPromise(false);
+                            return;
+                        }
+                        dbo.collection("games").updateOne({
+                            gameid: assetid,
+                        }, {
+                            $set: {
+                                deleted: false
+                            }
+                        }, function (err, result) {
+                            if (err) {
+                                returnPromise(false);
+                                return;
+                            }
+                            dbo.collection("catalog").updateOne({
+                                itemid: assetid,
+                            }, {
+                                $set: {
+                                    deleted: false
+                                }
+                            }, function (err, result) {
+                                if (err) {
+                                    returnPromise(false);
+                                    return;
+                                }
+                                db.close();
+                                returnPromise(true);
+                            });
+                        });
+                    });
                 });
             });
         });

@@ -3630,7 +3630,7 @@ module.exports = {
             const json = JSON.parse(params);
             const assetid = parseInt(json[0]["assetId"]);
             let item = await db.getCatalogItem(assetid);
-            if (!item) {
+            if (!item || item.deleted) {
                 item = await db.getGamepass(assetid);
                 if (!item) {
                     res.status(400).json({});
@@ -4080,7 +4080,7 @@ module.exports = {
             }
             const id = parseInt(req.params.id);
             let asset = await db.getCatalogItem(id);
-            if (!asset) {
+            if (!asset || asset.deleted) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -4186,7 +4186,7 @@ module.exports = {
         app.get("/catalog/:itemid", db.requireAuth, async (req, res) => {
             const itemid = parseInt(req.params.itemid);
             const item = await db.getCatalogItem(itemid);
-            if (!item) {
+            if (!item || item.deleted) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -4208,7 +4208,7 @@ module.exports = {
             }
             const itemid = parseInt(req.params.itemid);
             const item = await db.getCatalogItem(itemid);
-            if (!item) {
+            if (!item || item.deleted) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -5023,7 +5023,7 @@ module.exports = {
 
                 if (!gamepass) {
                     const item = await db.getCatalogItem(productId);
-                    if (!item) {
+                    if (!item || item.deleted) {
                         res.status(404).json({});
                         return;
                     }
@@ -5337,7 +5337,7 @@ module.exports = {
             const gamepass = await db.getGamepass(itemId);
             if (!gamepass) {
                 const item = await db.getCatalogItem(itemId);
-                if (!item) {
+                if (!item || item.deleted) {
                     res.status(404).send("Invalid item ID");
                     return;
                 }
@@ -5372,7 +5372,7 @@ module.exports = {
                 const asset = await db.getAsset(itemId);
                 if (!asset) {
                     const item = await db.getCatalogItem(itemId);
-                    if (!item) {
+                    if (!item || item.deleted) {
                         res.status(404).json({});
                         return;
                     }
