@@ -2845,7 +2845,7 @@ async function renderCatalogItem(itemid) {
 }
 
 const options = new ProfanityOptions();
-options.wholeWord = true;
+options.wholeWord = false;
 options.grawlix = '#####';
 options.grawlixChar = '#';
 
@@ -2855,6 +2855,29 @@ profanity.whitelist.addWords(["crap"]);
 
 function censorText(text){
     return profanity.censor(text);
+}
+
+function getBadWords(text){
+    const censored = profanity.censor(text);
+    let badWords = [];
+    for (let i = 0; i < censored.length; i++) {
+        if (censored[i] == '#') {
+            let word = "";
+            while (censored[i] == '#') {
+                word += text[i];
+                i++;
+            }
+            badWords.push(word.substring(0, word.length - 1));
+        }
+    }
+    return badWords;
+}
+
+function getGoodWords(text, badWords){
+    for (let badWord in badWords) {
+        text = text.replaceAll(badWords[badWord], "#####");   
+    }
+    return text;
 }
 
 function shouldCensorText(text){
@@ -2914,6 +2937,8 @@ module.exports = {
 
     censorText: censorText,
     shouldCensorText: shouldCensorText,
+    getBadWords: getBadWords,
+    getGoodWords: getGoodWords,
 
     setDataStore: setDataStore,
     getDataStore: getDataStore,

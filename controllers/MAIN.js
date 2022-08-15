@@ -5871,10 +5871,12 @@ module.exports = {
             const text = req.body.text;
             const userid = req.body.userId;
             
+            const badWords = db.getBadWords(text);
+
             res.json({
                 "data": {
-                    "white": db.censorText(text),
-                    "black": ""
+                    "white": db.getGoodWords(text, badWords),
+                    "black": badWords.join(" ")
                 }
             });
         });
@@ -5882,10 +5884,13 @@ module.exports = {
         app.post("//moderation/filtertext", (req, res) => {
             const text = req.body.text;
             const userid = req.body.userId;
+
+            const badWords = db.getBadWords(text);
+
             res.json({
                 "data": {
-                    "white": db.censorText(text),
-                    "black": ""
+                    "white": db.getGoodWords(text, badWords),
+                    "black": badWords.join(" ")
                 }
             });
         });

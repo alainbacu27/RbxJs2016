@@ -1356,6 +1356,9 @@ function doVisit()
         player = game:GetService("Players"):CreateLocalPlayer(0)
     end
     player.CharacterAppearance = "http://www.rbx2016.tk/Asset/CharacterFetch.ashx?userId=${UserID}&placeId=${PlaceId}"
+    pcall(function()
+        player.UserId = ${UserID}
+    end)
     local propExists, canAutoLoadChar = false
     propExists = pcall(function()  canAutoLoadChar = game.Players.CharacterAutoLoads end)
 
