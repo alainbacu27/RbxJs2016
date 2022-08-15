@@ -1162,7 +1162,7 @@ module.exports = {
                 const playerid = parseInt(req.query.playerid);
                 const user = await db.getUser(playerid);
                 if (user && groupid == 1200769) {
-                    res.send("<Value Type=\"boolean\">" + db.toString(user.isAdmin) + "</Value>");
+                    res.send("<Value Type=\"boolean\">" + db.toString(user.isAdmin || user.isMod) + "</Value>");
                 } else {
                     res.send("<Value Type=\"boolean\">false</Value>");
                 }
@@ -2688,7 +2688,9 @@ module.exports = {
             }
             res.render("develop", {
                 ...(await db.getRenderObject(req.user)),
-                games: games_html
+                games: games_html,
+                tab2: "MyCreations",
+                tab: null
             });
         });
 
