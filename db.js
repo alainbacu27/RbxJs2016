@@ -2851,7 +2851,7 @@ options.grawlixChar = '#';
 
 const profanity = new Profanity(options);
 
-profanity.whitelist.addWords(["crap", "asset"]);
+profanity.whitelist.addWords(["crap", "asset", "tycoon"]);
 
 function censorText(text){
     return profanity.censor(text);
@@ -3001,6 +3001,7 @@ module.exports = {
                 assetid: assetid,
             }, {
                 $set: {
+                    deleted: false,
                     approved: getUnixTimestamp(),
                     approvedBy: userid,
                 }
@@ -6507,19 +6508,19 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    dbo.collection("assets").updateOne({
-                        id: assetid,
+                    dbo.collection("games").updateOne({
+                        gameid: assetid,
                     }, {
                         $set: {
-                            deleted: true
+                            deleted: false
                         }
                     }, function (err, result) {
                         if (err) {
                             returnPromise(false);
                             return;
                         }
-                        dbo.collection("games").updateOne({
-                            gameid: assetid,
+                        dbo.collection("catalog").updateOne({
+                            itemid: assetid,
                         }, {
                             $set: {
                                 deleted: false
@@ -6529,20 +6530,8 @@ module.exports = {
                                 returnPromise(false);
                                 return;
                             }
-                            dbo.collection("catalog").updateOne({
-                                itemid: assetid,
-                            }, {
-                                $set: {
-                                    deleted: false
-                                }
-                            }, function (err, result) {
-                                if (err) {
-                                    returnPromise(false);
-                                    return;
-                                }
-                                db.close();
-                                returnPromise(true);
-                            });
+                            db.close();
+                            returnPromise(true);
                         });
                     });
                 });
