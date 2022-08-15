@@ -42,7 +42,7 @@ module.exports = {
                 return;
             }
             const assetid = parseInt(req.body.assetid);
-            db.log(`${req.user.userid} has approved asset ${assetid}.`);
+            db.log(`User ${req.user.userid} has approved asset ${assetid}.`);
             await db.approveAsset(req.user.userid, assetid);
             res.send("Asset Approved!");
         });
