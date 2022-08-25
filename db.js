@@ -4139,7 +4139,7 @@ module.exports = {
                             }
                         }
 
-                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)).sort((a,b) => a.playing - b.playing));
+                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)).sort((a,b) => b.playing - a.playing));
                         db.close();
                         return;
                     }
