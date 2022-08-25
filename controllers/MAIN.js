@@ -4587,7 +4587,7 @@ module.exports = {
             if (Keyword) {
                 games = await db.findGames(Keyword);
             } else {
-                games = await db.getPublicGames();
+                games = await db.getPublicGames(true, true);
             }
             let genre = "All"
             if (GenreID) {

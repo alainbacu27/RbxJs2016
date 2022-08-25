@@ -4096,7 +4096,7 @@ module.exports = {
         });
     },
 
-    getPublicGames: async function (dontShowBannedResults = true) {
+    getPublicGames: async function (dontShowBannedResults = true, sortByPlayers = false) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, async function (err, db) {
                 if (err) throw err;
@@ -4139,7 +4139,7 @@ module.exports = {
                             }
                         }
 
-                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)));
+                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)).sort((a,b) => a.playing - b.playing));
                         db.close();
                         return;
                     }
