@@ -941,23 +941,25 @@
                                         <div class="container-header">
                                             <h3>Roblox Badges (<%= abadgescount %>)</h3>
                                         </div>
-                                        <div class="btn-secondary-md " id="seebtn" style="width: 5.5em; height: 1.5em; float: right; margin-top: -2em;">
-                                            <a style="position: relative; bottom: 0.45em; font-size: 0.85em;" id="seebtnt">See More</a>
-                                        </div>
-                                        <script>
-                                            const btn = document.getElementById("seebtn");
-                                            const btnt = document.getElementById("seebtnt");
-                                            btn.onclick = function() {
-                                                const extraBadgerow = document.getElementById("badgerow-2");
-                                                if (btnt.innerText == "See More") {
-                                                    extraBadgerow.style.display = "block";
-                                                    btnt.innerText = "See Less";
-                                                } else {
-                                                    extraBadgerow.style.display = "none";
-                                                    btnt.innerText = "See More";
+                                        <% if (abadgescount > 6){ %>
+                                            <div class="btn-secondary-md " id="seebtn" style="width: 5.5em; height: 1.5em; float: right; margin-top: -2em;">
+                                                <a style="position: relative; bottom: 0.45em; font-size: 0.85em;" id="seebtnt">See More</a>
+                                            </div>
+                                            <script>
+                                                const btn = document.getElementById("seebtn");
+                                                const btnt = document.getElementById("seebtnt");
+                                                btn.onclick = function() {
+                                                    const extraBadgerow = document.getElementById("badgerow-2");
+                                                    if (btnt.innerText == "See More") {
+                                                        extraBadgerow.style.display = "block";
+                                                        btnt.innerText = "See Less";
+                                                    } else {
+                                                        extraBadgerow.style.display = "none";
+                                                        btnt.innerText = "See More";
+                                                    }
                                                 }
-                                            }
-                                        </script>
+                                            </script>
+                                        <% } %>
                                         <div class="section-content">
                                             <div class="row d-none d-lg-flex">
                                                 <div class="col-12">
