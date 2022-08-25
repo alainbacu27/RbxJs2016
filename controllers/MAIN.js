@@ -599,6 +599,7 @@ module.exports = {
                 ausername: user.username,
                 auserdesc: user.description,
                 aUserIsPremium: user.isPremium,
+                acreated: user.created,
 
                 auserfriends: (await db.getFriends(user.userid)).length,
                 auserfollowing: 0, // TODO

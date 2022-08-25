@@ -719,7 +719,7 @@ function formatAMPMFull(date, onlyDate = false) {
     let minutes = date.getMinutes();
     const seconds = date.getSeconds();
     const year = date.getFullYear();
-    const month = date.getMonth();
+    const month = date.getMonth() + 1;
     const day = date.getDate();
     const ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12;
