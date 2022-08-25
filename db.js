@@ -20,7 +20,7 @@ const soapRequest = require('easy-soap-request');
 const pm2 = require('pm2');
 const utf8 = require('utf8');
 const kill = require('tree-kill');
-const {Profanity, ProfanityOptions} = require('@2toad/profanity');
+const Profanity = require('profanity-js');
 
 let maintenanceModeWhitelistedIps = ["127.0.0.1", "::1"];
 
@@ -400,7 +400,9 @@ const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 
-new MongoClient(mongourl, {tls: false}).connect(function (err, db) {
+new MongoClient(mongourl, {
+    tls: false
+}).connect(function (err, db) {
     if (err) throw err;
     db.close();
 });
@@ -656,15 +658,19 @@ function filterText(input) {
 }
 
 function filterText2(input) {
-    return input.replace(/[^0-9a-z:_ ]/gi, '')
+    return input.replace(/[^0-9a-z:_\- ]/gi, '')
 }
 
 function filterText3(input) {
-    return input.replace(/[^0-9a-z:_]/gi, '')
+    return input.replace(/[^0-9a-z:\-_]/gi, '')
 }
 
 function filterText4(input) {
-    return input.replace(/[^0-9a-z:_()\[\]"'\n ]/gi, '')
+    return input.replace(/[^0-9a-z:_\-()\[\]"'\n\t.,/-`^*+!?" ]/gi, '')
+}
+
+function filterText5(input) {
+    return input.replace(/[^0-9a-z:_()\[\]"'\- ]/gi, '')
 }
 
 function randHash(len, possible = "ABCDEF0123456789") {
@@ -1718,7 +1724,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
         local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)`;
     } else {
         const item = getCatalogItem(itemid);
-        if (!item){
+        if (!item) {
             script = `local url = "http://www.rbx2016.tk"
         game:GetService("ScriptContext").ScriptsDisabled = true
         local plr = game.Players:CreateLocalPlayer(0)
@@ -1754,13 +1760,13 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
         
         local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)
         `;
-        }else{
+        } else {
             let loadCode = ""
-            if (item.itemtype == "Shirt"){
+            if (item.itemtype == "Shirt") {
                 loadCode = `local shirt = Instance.new("Shirt")
                 shirt.ShirtTemplate = "rbxassetid://${item.itemdecalid}"
                 shirt.Parent = plr.Character`;
-            }else if (item.itemtype == "Pants"){
+            } else if (item.itemtype == "Pants") {
                 loadCode = `local pants = Instance.new("Pants")
                 pants.PantsTemplate = "rbxassetid://${item.itemdecalid}"
                 pants.Parent = plr.Character`;
@@ -2844,20 +2850,18 @@ async function renderCatalogItem(itemid) {
 
 }
 
-const options = new ProfanityOptions();
-options.wholeWord = false;
-options.grawlix = '#####';
-options.grawlixChar = '#';
+const badWords = require("./badwords.js");
 
-const profanity = new Profanity(options);
+const profanity = new Profanity('', {
+    placeHolder: "#",
+    wordsList: badWords,
+});
 
-profanity.whitelist.addWords(["crap", "asset", "tycoon"]);
-
-function censorText(text){
+function censorText(text) {
     return profanity.censor(text);
 }
 
-function getBadWords(text){
+function getBadWords(text) {
     const censored = profanity.censor(text);
     let badWords = [];
     for (let i = 0; i < censored.length; i++) {
@@ -2873,15 +2877,15 @@ function getBadWords(text){
     return badWords;
 }
 
-function getGoodWords(text, badWords){
+function getGoodWords(text, badWords) {
     for (let badWord in badWords) {
-        text = text.replaceAll(badWords[badWord], "#####");   
+        text = text.replaceAll(badWords[badWord], "#".repeat(badWords[badWord].length));
     }
     return text;
 }
 
-function shouldCensorText(text){
-    return profanity.exists(text);
+function shouldCensorText(text) {
+    return profanity.isProfane(text);
 }
 
 if (siteConfig.backend.PRODUCTION) {
@@ -3087,10 +3091,10 @@ module.exports = {
         });
     },
 
-    createUser: async function (username, password, birthday, gender, ip) {
+    createUser: async function (username, password, birthday, gender, ip, inviteKey="") {
         return new Promise(async returnPromise => {
             username = filterText3(username);
-            if (shouldCensorText(username)){
+            if (shouldCensorText(username)) {
                 returnPromise("");
                 return;
             }
@@ -3133,7 +3137,7 @@ module.exports = {
                         playing: 0,
                         editing: 0,
                         lastStudio: 0,
-                        inviteKey: "",
+                        inviteKey: inviteKey,
                         favoritedGames: [],
                         recentlyPlayedGames: [],
                         placeVisits: 0,
@@ -3151,10 +3155,10 @@ module.exports = {
         });
     },
 
-    overwriteUser: async function (username, password, birthday, gender, ip) {
+    overwriteUser: async function (username, password, birthday, gender, ip, inviteKey="") {
         return new Promise(async returnPromise => {
             username = filterText3(username);
-            if (shouldCensorText(username)){
+            if (shouldCensorText(username)) {
                 returnPromise("");
                 return;
             }
@@ -3190,7 +3194,7 @@ module.exports = {
                     loginCode: "",
                     seenLoginCode: "",
                     playing: 0,
-                    inviteKey: "",
+                    inviteKey: inviteKey,
 
                     theme: "Light"
                 };
@@ -3304,7 +3308,7 @@ module.exports = {
                             returnPromise(result.concat(result2));
                         });
                     });
-                }else{
+                } else {
                     dbo.collection("invitekeys").find({
                         used: false,
                         deleted: false,
@@ -3335,16 +3339,16 @@ module.exports = {
         });
     },
 
-    maskIp: function(ip){
+    maskIp: function (ip) {
         const isIpv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
-        if (isIpv4){
+        if (isIpv4) {
             return ip.replace(/(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/, '$1.$2.$3.xxx');
-        }else{
+        } else {
             return ip.replace(/([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4}):([0-9a-f]{4})/, '$1:$2:$3:$4:$5:$6:XX:XX');
         }
     },
 
-    activateInviteKey: async function (userid, inviteKey) {
+    checkInviteKey: async function (inviteKey) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -3364,36 +3368,49 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    dbo.collection("users").updateOne({
-                        userid: userid
+                    returnPromise(result != null)
+                });
+            });
+        });
+    },
+
+    activateInviteKey: async function (inviteKey) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("invitekeys").findOne({
+                    inviteKey: inviteKey,
+                    used: false,
+                    deleted: false
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    if (result == null) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    dbo.collection("invitekeys").updateOne({
+                        inviteKey: inviteKey,
+                        used: false,
+                        deleted: false
                     }, {
                         $set: {
-                            inviteKey: inviteKey
+                            used: true,
+                            usedDate: getUnixTimestamp()
                         }
                     }, function (err, res) {
                         if (err) {
                             db.close();
-                            returnPromise(false);
+                            returnPromise(null);
                             return;
-                        }
-                        dbo.collection("invitekeys").updateOne({
-                            inviteKey: inviteKey,
-                            used: false,
-                            deleted: false
-                        }, {
-                            $set: {
-                                used: true,
-                                usedDate: getUnixTimestamp()
-                            }
-                        }, function (err, res) {
-                            if (err) {
-                                db.close();
-                                returnPromise(null);
-                                return;
-                            };
-                            db.close();
-                            returnPromise(true);
-                        });
+                        };
+                        db.close();
+                        returnPromise(true);
                     });
                 });
             });
@@ -4156,6 +4173,7 @@ module.exports = {
     },
 
     findGames: async function (gameName) {
+        gameName = filterText5(gameName);
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -4178,8 +4196,8 @@ module.exports = {
         });
     },
 
-    isObjFile: function(data){
-        if((data instanceof Buffer)){
+    isObjFile: function (data) {
+        if ((data instanceof Buffer)) {
             data = data.toString();
         }
         if (data.startsWith("MZ�������ÿÿ��") || data.startsWith("ÐÏà¡±á��������")) {
@@ -4422,7 +4440,9 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("catalog").find({deleted: false}).skip(startIndex).limit(limit).toArray(function (err, result) {
+                dbo.collection("catalog").find({
+                    deleted: false
+                }).skip(startIndex).limit(limit).toArray(function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(null);
@@ -5517,6 +5537,7 @@ module.exports = {
     filterText2: filterText2,
     filterText3: filterText3,
     filterText4: filterText4,
+    filterText5: filterText5,
 
     accountsByIP: async function (ip) {
         return new Promise(async returnPromise => {
@@ -6541,7 +6562,7 @@ module.exports = {
 
     createGame: async function (gamename, gamedescription, creatorid, iconthumbnail = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", thumbnail = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {
-            gamename = censorText(filterText2(gamename));
+            gamename = censorText(filterText5(gamename));
             gamedescription = censorText(filterText4(gamedescription));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -7627,7 +7648,7 @@ module.exports = {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
-                gamename = censorText(filterText2(gamename));
+                gamename = censorText(filterText5(gamename));
                 const dbo = db.db(dbName);
                 dbo.collection("games").updateOne({
                     gameid: gameid
@@ -7655,7 +7676,7 @@ module.exports = {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
-                gamename = censorText(filterText2(gamename));
+                gamename = censorText(filterText5(gamename));
                 description = censorText(filterText4(description));
                 const dbo = db.db(dbName);
                 dbo.collection("games").updateOne({
@@ -7852,13 +7873,17 @@ module.exports = {
                     next();
                 }
             }
-            
+
             if (typeof req.cookies[".ROBLOSECURITY"] == "undefined" || req.cookies[".ROBLOSECURITY"] == "") {
                 if (req.get("User-Agent") && req.get("User-Agent").toLowerCase().includes("roblox")) {
                     res.redirect("/My/Places.aspx&showlogin=True");
                 } else {
                     res.redirect("https://www.rbx2016.tk/newlogin");
                 }
+                return;
+            }
+            if (req.cookies[".ROBLOSECURITY"].startsWith("<pending>")){
+                res.redirect("/authentication/invitekey");
                 return;
             }
             findUserByCookie(req.cookies[".ROBLOSECURITY"]).then(async user => {
@@ -7980,12 +8005,16 @@ module.exports = {
                     next();
                 }
             }
-    
+
             if (typeof req.cookies[".ROBLOSECURITY"] == "undefined") {
                 next();
                 return;
             }
             if (req.cookies[".ROBLOSECURITY"] == "") {
+                next();
+                return;
+            }
+            if (req.cookies[".ROBLOSECURITY"].startsWith("<pending>")){
                 next();
                 return;
             }

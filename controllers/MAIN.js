@@ -925,7 +925,11 @@ module.exports = {
 
         app.get("/mobileapi/check-app-version", (req, res) => {
             const appVersion = req.query.appVersion;
-            res.json({"data":{"UpgradeAction":"None"}});
+            res.json({
+                "data": {
+                    "UpgradeAction": "None"
+                }
+            });
         });
 
         app.get("/newlogin", db.requireNonAuth, async (req, res) => {
@@ -1015,11 +1019,8 @@ module.exports = {
         });
 
         app.get("/authentication/invitekey", db.requireAuth2, async (req, res) => {
-            if (!req.user) {
-                res.status(400).render("400", await db.getBlankRenderObject());
-                return;
-            }
-            if (req.user.inviteKey != "") {
+            const pendingObj = req.cookies[".ROBLOSECURITY"] || "";
+            if (!pendingObj.startsWith("<pending>") && (req.user && req.user.inviteKey != "")) {
                 res.redirect("/games");
                 return;
             }
@@ -1031,25 +1032,116 @@ module.exports = {
         });
 
         app.post("/login/resetpasswordbyusername", db.requireAuth2, async (req, res) => {
-            if (!req.user) {
+            if (req.user) {
                 res.status(400).json({
                     "success": false,
-                    "message": "You are not logged in"
+                    "message": "You are already verified."
                 });
                 return;
             }
-            const username = req.body.username; // Invite key
-            const valid = await db.activateInviteKey(req.user.userid, username);
+            const inviteKey = req.body.username; // Invite key
+            const valid = await db.checkInviteKey(inviteKey);
             if (!valid) {
                 return res.json({
                     "success": false,
                     "message": "Sorry, you have inserted a invalid invite key. Make sure you have typed it correctly and remember that keys are case sensitive!"
                 });
             }
-            res.json({
-                "success": true,
-                "message": ""
-            });
+
+            let username = "";
+            let password = "";
+
+            const pendingObj = req.cookies[".ROBLOSECURITY"] || "";
+            if (pendingObj.startsWith("<pending>")) {
+                const s = pendingObj.split("|");
+                username = s[1];
+                password = s[2];
+
+                const birthday = new Date(Date.parse(s[3]));
+                const gender = db.getSiteConfig().shared.users.gendersEnabled ? parseInt(s[4]) : 1; // 1 = none, 2 = Boy, 3 = Girl
+                if (gender < 1 || gender > 3) {
+                    return res.json({
+                        "success": false,
+                        "message": "Sorry, your selected geneder was not valid and your account could not be created, please try signing up again."
+                    });
+                }
+                const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
+                if (isBadUsername) {
+                    return res.json({
+                        "success": false,
+                        "message": "Sorry, your selected username was not valid and your account could not be created, please try signing up again."
+                    });
+                }
+                if (await db.userExists(username)) {
+                    return res.json({
+                        "success": false,
+                        "message": "Sorry, your selected username was already taken and your account could not be created, please try signing up again."
+                    });
+                }
+
+                if (db.getSiteConfig().shared.users.canBeUnder13 == false && new Date() - birthday < 13 * 365 * 24 * 60 * 60 * 1000) {
+                    return res.json({
+                        "success": false,
+                        "message": "Sorry, but you must be over 13 years of age to create an account."
+                    });
+                }
+
+                const ip = get_ip(req).clientIp;
+                if (ip != "127.0.0.1" && ip != "::1" && await db.accountsByIP(ip).length >= db.getSiteConfig().backend.maxAccountsPerIP) {
+                    return res.json({
+                        "success": false,
+                        "message": "Sorry, but you have created too many accounts and your account could not be created, please try signing up again."
+                    });
+                }
+                if (typeof username != "string") {
+                    return res.json({
+                        "success": false,
+                        "message": "Sorry, something went wrong, please try signing up again."
+                    });
+                }
+                if (username.length > 25) {
+                    return res.json({
+                        "success": false,
+                        "message": "Sorry, but your username is too long, please try signing up again with a shorter username (maximum 25 characters)."
+                    });
+                }
+                const valid2 = await db.activateInviteKey(inviteKey);
+                if (!valid2) {
+                    return res.json({
+                        "success": false,
+                        "message": "Sorry, the invite key you insterted failed to activate. Please try again later."
+                    });
+                }
+                const ROBLOSECURITY_COOKIES = await db.createUser(username, password, birthday, gender, ip, inviteKey);
+                res.cookie('.ROBLOSECURITY', "delete", {
+                    maxAge: -1,
+                    path: "/",
+                    domain: "rbx2016.tk",
+                    httpOnly: true
+                });
+                res.cookie('.ROBLOSECURITY', ROBLOSECURITY_COOKIES, {
+                    maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
+                    path: "/",
+                    domain: "rbx2016.tk",
+                    httpOnly: true
+                });
+
+                res.json({
+                    "success": true,
+                    "message": ""
+                });
+            } else {
+                res.cookie('.ROBLOSECURITY', "delete", {
+                    maxAge: -1,
+                    path: "/",
+                    domain: "rbx2016.tk",
+                    httpOnly: true
+                });
+                return res.json({
+                    "success": false,
+                    "message": "Invalid signup data, Please try signing up again."
+                });
+            }
         });
 
         app.post("/signup/v1", async (req, res) => {
@@ -1099,22 +1191,22 @@ module.exports = {
             if (typeof username != "string") {
                 return res.status(400).send();
             }
-            if (username.length > 50) {
+            if (username.length > 25) {
                 return res.status(400).send();
             }
-            const ROBLOSECURITY_COOKIES = await db.createUser(username, password, birthday, gender, ip);
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
                 domain: "rbx2016.tk",
                 httpOnly: true
             });
-            res.cookie('.ROBLOSECURITY', ROBLOSECURITY_COOKIES, {
+            res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
                 domain: "rbx2016.tk",
                 httpOnly: true
             });
+
             res.send();
         });
 
@@ -1653,7 +1745,7 @@ module.exports = {
                 return;
             }
 
-            if (!Object.values(db.genres).includes(gamegenre)){
+            if (!Object.values(db.genres).includes(gamegenre)) {
                 res.redirect(`/places/${gameid}/update?isUpdateSuccess=False`);
                 return;
             }
@@ -2847,7 +2939,7 @@ module.exports = {
             }
             res.status(400).send();
         });
-        
+
         app.get("/install/GetInstallerCdns.ashx", async (req, res) => {
             res.json(db.getSiteConfig().shared.installerCdns);
         });
@@ -3991,7 +4083,7 @@ module.exports = {
             const itemid = req.body.id;
             const base64Data = data.replace(/^data:image\/png;base64,/, "");
 
-            fs.writeFile(`../thumbnails/${itemid}.asset`, base64Data, 'base64', function(err) {
+            fs.writeFile(`../thumbnails/${itemid}.asset`, base64Data, 'base64', function (err) {
                 console.error(err);
             });
         });
@@ -4000,17 +4092,19 @@ module.exports = {
             const userId = parseInt(req.query.userId);
             const placeId = parseInt(req.query.placeId);
 
-            if (userId == 0){
+            if (userId == 0) {
                 res.json({
                     "resolvedAvatarType": "R6",
                     "equippedGearVersionIds": [],
                     "backpackGearVersionIds": [],
-                    "assetAndAssetTypeIds": [/*
-                    {
-                        "assetId": 0,
-                        "assetTypeId": 0
-                    }
-                */],
+                    "assetAndAssetTypeIds": [
+                        /*
+                                            {
+                                                "assetId": 0,
+                                                "assetTypeId": 0
+                                            }
+                                        */
+                    ],
                     "animationAssetIds": {},
                     "bodyColors": {
                         "headColorId": 194,
@@ -4042,12 +4136,14 @@ module.exports = {
                 "resolvedAvatarType": "R6",
                 "equippedGearVersionIds": [],
                 "backpackGearVersionIds": [],
-                "assetAndAssetTypeIds": [/*
-                {
-                    "assetId": 0,
-                    "assetTypeId": 0
-                }
-            */],
+                "assetAndAssetTypeIds": [
+                    /*
+                                    {
+                                        "assetId": 0,
+                                        "assetTypeId": 0
+                                    }
+                                */
+                ],
                 "animationAssetIds": {},
                 "bodyColors": {
                     "headColorId": 194,
@@ -4349,7 +4445,7 @@ module.exports = {
                     const lines = logs.split("\n");
                     res.send(lines.splice(lines.length - 7500, lines.length).join("<br>"));
                     return;
-                }else if (req.params.page == "clearlogs") {
+                } else if (req.params.page == "clearlogs") {
                     fs.writeFileSync(path.resolve(__dirname, "../logs/admin.log"), "");
                     db.log(`User ${req.user.userid} cleared the admin logs.`);
                     res.redirect(admiPath);
@@ -4417,7 +4513,7 @@ module.exports = {
                             let gameid = job.getGameId();
                             if (gameid == 0) {
                                 gameid = "?";
-                            }else{
+                            } else {
                                 gameid = gameid.toString();
                             }
                             someJobs += `<option value="${jobId}">${gameid}: ${jobId}</option>`
@@ -4556,6 +4652,13 @@ module.exports = {
         });
 
         app.get("/login/RequestAuth.ashx", db.requireAuth2, async (req, res) => {
+            if (!req.user) {
+                return res.status(403).send("User is not authorized.");
+            }
+            res.send("http://www.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
+        });
+
+        app.get("//login/RequestAuth.ashx", db.requireAuth2, async (req, res) => {
             if (!req.user) {
                 return res.status(403).send("User is not authorized.");
             }
@@ -5870,7 +5973,7 @@ module.exports = {
         app.post("/moderation/filtertext", (req, res) => {
             const text = req.body.text;
             const userid = req.body.userId;
-            
+
             const badWords = db.getBadWords(text);
 
             res.json({

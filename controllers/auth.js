@@ -123,6 +123,7 @@ module.exports = {
         });
 
         app.post('/v2/signup', async (req, res) => {
+            const isEligibleForHideAdsAbTest = req.body.isEligibleForHideAdsAbTest;
             if (db.getSiteConfig().shared.allowSignup == false) {
                 res.status(401).render("401", await db.getBlankTemplateData());
                 return;
@@ -135,15 +136,10 @@ module.exports = {
                 return;
             }
             const birthday = new Date(Date.parse(data.birthday));
-            const context = data.context;
+            const context = req.body.context; // RollerCoasterSignupForm
             const gender = db.getSiteConfig().shared.users.gendersEnabled ? parseInt(data.gender) : 1; // 1 = none, 2 = Boy, 3 = Girl
             if (gender < 1 || gender > 3) {
                 res.status(400).send("Invalid gender");
-                return;
-            }
-            const isTosAgreementBoxChecked = data.isTosAgreementBoxChecked;
-            if (!isTosAgreementBoxChecked) {
-                res.status(401).send("TOS Not accepted.");
                 return;
             }
             const password = data.password;
@@ -155,14 +151,9 @@ module.exports = {
                 res.status(400).send("Bad username.");
                 return;
             }
-            let shouldDeleteOldUser = false;
             if (await db.userExists(username)) {
-                if (db.getUserFromUsername(username).inviteKey != "") {
-                    shouldDeleteOldUser = true;
-                } else {
-                    res.status(400).send("Username already taken.");
-                    return;
-                }
+                res.status(400).send("Username already taken.");
+                return;
             }
 
             if (db.getSiteConfig().shared.users.canBeUnder13 == false && new Date() - birthday < 13 * 365 * 24 * 60 * 60 * 1000) {
@@ -175,22 +166,11 @@ module.exports = {
                 res.status(401).send("Too many accounts.");
                 return;
             }
-            let ROBLOSECURITY_COOKIES = "";
             if (typeof username != "string") {
                 return res.status(400).send();
             }
-            if (username.length < 3){
+            if (username.length > 25) {
                 return res.status(400).send();
-            }else if (username.length > 50){
-                return res.status(400).send();
-            }
-            if (!shouldDeleteOldUser) {
-                ROBLOSECURITY_COOKIES = await db.createUser(username, password, birthday, gender, ip);
-            } else {
-                ROBLOSECURITY_COOKIES = await db.overwriteUser(username, password, birthday, gender, ip);
-            }
-            if (ROBLOSECURITY_COOKIES == ""){
-                return res.status(400).send("The username you entered is not appropriate.");
             }
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
@@ -198,12 +178,13 @@ module.exports = {
                 domain: "rbx2016.tk",
                 httpOnly: true
             });
-            res.cookie('.ROBLOSECURITY', ROBLOSECURITY_COOKIES, {
+            res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
                 domain: "rbx2016.tk",
                 httpOnly: true
             });
+
             res.send();
         });
 
