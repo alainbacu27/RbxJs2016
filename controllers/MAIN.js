@@ -574,6 +574,12 @@ module.exports = {
             })
         });
 
+        app.get("/Badges.aspx", db.requireAuth2, async (req, res) => {
+            res.render("badges", {
+                ...(await db.getRenderObject(req.user))
+            });
+        });
+
         app.get("/users/:userid/profile", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canViewUsers == false) {
                 res.status(404).render("404", await db.getRenderObject(req.user));
@@ -593,12 +599,146 @@ module.exports = {
 
             const presenceType = (user.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (user.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? ((user.lastOnline || 0) > (db.getUnixTimestamp() - 60) && user.playing != 0 && user.playing != null) ? 2 : 1 : 0;
 
+            if (!user.badges) {
+                user.badges = []
+            }
+
+            if (user.isAdmin || user.isMod) {
+                if (!user.badges.includes("admin")) {
+                    user.badges.push("admin")
+                }
+            }
+
+            if (db.getUnixTimestamp() - user.created > 31536000) {
+                if (!user.badges.includes("veteran")) {
+                    user.badges.push("veteran")
+                }
+            }
+
+            if (await db.getFriends(user.userid).length >= 20) {
+                if (!user.badges.includes("friendship")) {
+                    user.badges.push("friendship")
+                }
+            }
+
+            const games = await db.getGamesByCreatorId(user.userid);
+            for (const game of games) {
+                if (game.visits >= 100) {
+                    if (!user.badges.includes("homestead")) {
+                        user.badges.push("homestead")
+                    }
+                } else if (game.visits >= 1000) {
+                    if (!user.badges.includes("bricksmith")) {
+                        user.badges.push("bricksmith")
+                    }
+                }
+            }
+
+            let badgesHtml = `<div class="row" id="badgerow-1">
+            `;
+
+            let hasSecondRow = false;
+
+            for (let i = 0; i < user.badges.length; i++) {
+                const badge = user.badges[i];
+                if (i > 6 && !hasSecondRow) {
+                    hasSecondRow = true;
+                    badgesHtml += `</div><div class="row" id="badgerow-2" style="display: none;">`;
+                }
+                switch (badge) {
+                    case "admin":
+                    case "administrator":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                    <div class="imageWrapper-0-2-99"><span
+                            class="icon-administrator"></span></div>
+                    <p class="label-0-2-98 mb-0 text-dark">Administrator</p>
+                </a></div>`
+                        break;
+                    case "veteran":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                    <div class="imageWrapper-0-2-99"><span
+                            class="icon-veteran"></span></div>
+                    <p class="label-0-2-98 mb-0 text-dark">Veteran</p>
+                </a></div>`;
+                        break;
+                    case "friendship":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                        <div class="imageWrapper-0-2-99"><span
+                                class="icon-friendship"></span></div>
+                        <p class="label-0-2-98 mb-0 text-dark">Friendship</p>
+                    </a></div>`;
+                        break;
+                    case "inviter":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                        <div class="imageWrapper-0-2-99"><span
+                                class="icon-inviter"></span></div>
+                        <p class="label-0-2-98 mb-0 text-dark">Inviter</p>
+                    </a></div>`;
+                        break;
+                    case "homestead":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                        <div class="imageWrapper-0-2-99"><span
+                                class="icon-homestead"></span></div>
+                        <p class="label-0-2-98 mb-0 text-dark">Homestead</p>
+                    </a></div>`;
+                        break;
+                    case "bricksmith":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                        <div class="imageWrapper-0-2-99"><span
+                                class="icon-bricksmith"></span></div>
+                        <p class="label-0-2-98 mb-0 text-dark">Bricksmith</p>
+                    </a></div>`;
+                        break;
+                    case "combat initiation":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                        <div class="imageWrapper-0-2-99"><span
+                                class="icon-combat-initiation"></span></div>
+                        <p class="label-0-2-98 mb-0 text-dark">Combat Initiation
+                        </p>
+                    </a></div>`;
+                        break;
+                    case "warrior":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                        <div class="imageWrapper-0-2-99"><span
+                                class="icon-warrior"></span></div>
+                        <p class="label-0-2-98 mb-0 text-dark">Warrior</p>
+                    </a></div>`;
+                        break;
+                    case "bloxxer":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                        <div class="imageWrapper-0-2-99"><span
+                                class="icon-bloxxer"></span></div>
+                        <p class="label-0-2-98 mb-0 text-dark">Bloxxer</p>
+                    </a></div>`;
+                        break;
+                    case "club":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                        <div class="imageWrapper-0-2-99"><span
+                                class="icon-welcome-to-the-club"></span></div>
+                        <p class="label-0-2-98 mb-0 text-dark">Welcome To The
+                            Club</p>
+                    </a></div>`;
+                        break;
+                    case "official model maker":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                        <div class="imageWrapper-0-2-99"><span
+                                class="icon-official-model-maker"></span></div>
+                        <p class="label-0-2-98 mb-0 text-dark">Official Model
+                            Maker</p>
+                    </a></div>`;
+                        break;
+                }
+            }
+
+            badgesHtml += `</div>`;
+
             res.render("profile", {
                 ...(await db.getRenderObject(req.user)),
                 auserid: user.userid,
                 ausername: user.username,
                 auserdesc: user.description,
                 aUserIsPremium: user.isPremium,
+                abadgescount: user.badges != null ? user.badges.length : 0,
                 acreated: db.timeToString(user.created, true),
 
                 auserfriends: (await db.getFriends(user.userid)).length,
@@ -622,6 +762,8 @@ module.exports = {
                 isviewblocked: db.toString(await db.areBlocked(req.user.userid, user.userid)), // TODO
                 mayimpersonate: db.toString(user.userid == req.user.userid), // TODO
                 mayupdatestatus: db.toString(user.userid == req.user.userid), // TODO
+
+                badgesHtml: badgesHtml,
 
                 placeVisits: user.placeVisits,
 

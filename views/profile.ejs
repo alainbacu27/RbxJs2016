@@ -57,10 +57,7 @@
     <link rel='stylesheet' href='https://static.rbx2016.tk/css/page___9b1354f6392e505305c1aa8a1f7931d6_m.css' />
 
 
-
-
-    
-<script type='text/javascript' src='/js/jquery-1.11.1.min.js'></script>
+    <script type='text/javascript' src='/js/jquery-1.11.1.min.js'></script>
     <script type='text/javascript'>
         window.jQuery || document.write("<script type='text/javascript' src='/js/jquery/jquery-1.11.1.js'><\/script>")
     </script>
@@ -306,8 +303,7 @@
                                     </a>
                                 </li>
                                 <% if (isAdmin == "true" || isMod == "true") { %>
-                                    <li><a class="rbx-menu-item"
-                                        href="https://www.rbx2016.tk/admi">Admin</a></li>
+                                <li><a class="rbx-menu-item" href="https://www.rbx2016.tk/admi">Admin</a></li>
                                 <% } %>
                                 <li><a class="rbx-menu-item" href="https://www.rbx2016.tk/Help/Builderman.aspx"
                                         target="_blank">Help</a></li>
@@ -317,18 +313,18 @@
                         </div>
                     </li>
                     <li id="navbar-tix" class="navbar-icon-item">
-                            <a id="nav-tix-icon" class="rbx-menu-item" data-original-title="" title="">
-                                <span class="icon-nav-tix roblox-popover-close" id="nav-tix"></span>
-                                <span class="rbx-text-navbar-right" id="nav-tix-amount"><%= tixFormatted %></span>
-                            </a>
-                            <script>
-                                var tixIcon = document.getElementById('nav-tix-icon');
-                                tixIcon.addEventListener('click', function() {
-                                    window.location.replace("https://www.rbx2016.tk/My/Money.aspx#/#Summary_tab");
-                                });
-                            </script>
-                        </li>
-                        <li id="navbar-robux" class="navbar-icon-item">
+                        <a id="nav-tix-icon" class="rbx-menu-item" data-original-title="" title="">
+                            <span class="icon-nav-tix roblox-popover-close" id="nav-tix"></span>
+                            <span class="rbx-text-navbar-right" id="nav-tix-amount"><%= tixFormatted %></span>
+                        </a>
+                        <script>
+                            var tixIcon = document.getElementById('nav-tix-icon');
+                            tixIcon.addEventListener('click', function () {
+                                window.location.replace("https://www.rbx2016.tk/My/Money.aspx#/#Summary_tab");
+                            });
+                        </script>
+                    </li>
+                    <li id="navbar-robux" class="navbar-icon-item">
                         <a id="nav-robux-icon" class="rbx-menu-item" data-toggle="popover" data-bind="popover-robux"
                             data-original-title="" title="">
                             <span class="icon-nav-robux roblox-popover-close" id="nav-robux"></span>
@@ -939,14 +935,38 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-
-
-
-
-
-
+                                    <div class="container-header">
+                                        <h3>Roblox Badges (<%= abadgescount %>)</h3>
+                                    </div>
+                                    <div class="btn-secondary-md " id="seebtn" style="width: 5.5em; height: 1.5em; float: right; margin-top: -2em;">
+                                        <a style="position: relative; bottom: 0.45em; font-size: 0.85em;" id="seebtnt">See More</a>
+                                    </div>
+                                    <script>
+                                        const btn = document.getElementById("seebtn");
+                                        const btnt = document.getElementById("seebtnt");
+                                        btn.onclick = function() {
+                                            const extraBadgerow = document.getElementById("badgerow-2");
+                                            if (btnt.innerText == "See More") {
+                                                extraBadgerow.style.display = "block";
+                                                btnt.innerText = "See Less";
+                                            } else {
+                                                extraBadgerow.style.display = "none";
+                                                btnt.innerText = "See More";
+                                            }
+                                        }
+                                    </script>
+                                    </div>
+                                    <div class="section-content">
+                                        <div class="row d-none d-lg-flex">
+                                            <div class="col-12">
+                                                <div class="card pt-4 pb-4 pe-4 ps-4">
+                                                    <%- badgesHtml %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
 
                                 <div class="section profile-statistics">
                                     <h3>Statistics</h3>
@@ -973,9 +993,9 @@
                             </div>
                             <div class="tab-pane" id="creations" profile-empty-tab>
                                 <% if (games == "") { %>
-                                    <div class="col-xs-12 section-content-off section-content">
-                                        <%= ausername %> has no creations.
-                                    </div>
+                                <div class="col-xs-12 section-content-off section-content">
+                                    <%= ausername %> has no creations.
+                                </div>
                                 <% }else { %>
                                 <div class="profile-game" ng-controller="profileGridController"
                                     ng-init="init('game-cards','game-container')">
@@ -1013,11 +1033,11 @@
                                         switcher itemscount="switcher.games.itemsCount"
                                         currpage="switcher.games.currPage">
                                         <% if (games2 != ""){ %>
-                                            <ul class="slide-items-container switcher-items hlist">
+                                        <ul class="slide-items-container switcher-items hlist">
 
-                                                <%- games2 %>
-    
-                                            </ul>
+                                            <%- games2 %>
+
+                                        </ul>
                                         <% } %>
                                     </div>
                                 </div>

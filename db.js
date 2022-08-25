@@ -3142,6 +3142,7 @@ module.exports = {
                         recentlyPlayedGames: [],
                         placeVisits: 0,
                         firstDailyAssetUpload: 0,
+                        badges: [],
 
                         theme: "Light"
                     };
@@ -3195,6 +3196,7 @@ module.exports = {
                     seenLoginCode: "",
                     playing: 0,
                     inviteKey: inviteKey,
+                    badges: [],
 
                     theme: "Light"
                 };
