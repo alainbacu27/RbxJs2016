@@ -49,7 +49,7 @@
             "user": 15
         },
 
-        "ADMIN_InviteCooldown": 86400,
+        "ADMIN_InviteCooldown": 3600,
 
         "assetsEnabled": true,
 
