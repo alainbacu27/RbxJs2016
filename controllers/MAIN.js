@@ -2249,6 +2249,7 @@ module.exports = {
             const game_template = fs.readFileSync(__dirname + "/../views/template_mygame.ejs").toString();
             let games_html = "";
             for (let i = 0; i < games.length; i++) {
+                if (i > 50) break;
                 const game = games[i];
                 games_html += game_template.toString().replaceAll("<%= gameid %>", game.gameid).replaceAll("<%= gamename %>", game.gamename).replaceAll("<%= gamename2 %>", db.filterText2(game.gamename).replaceAll(" ", "-")).replaceAll("<%= gameiconthumbnail %>", game.iconthumbnail).replaceAll("<%= placeActive %>", game.isPublic ? "place-active" : "place-inactive").replaceAll("<%= pubtext %>", game.isPublic ? "Public" : "Private");
             }
@@ -2261,6 +2262,7 @@ module.exports = {
                 game = publicPlaces[0];
             }
             for (let i = 0; i < publicPlaces.length; i++) {
+                if (i > 50) break;
                 const game = publicPlaces[i];
                 publicPlacesHtml += `<option value="${game.gameid}"
                 data-universe-id="${game.gameid}">
@@ -2273,6 +2275,7 @@ module.exports = {
                 let gamepasses = await db.getGamepasses(game.gameid);
                 gamepasses = gamepasses.reverse();
                 for (let i = 0; i < gamepasses.length; i++) {
+                    if (i > 50) break;
                     const gamepass = gamepasses[i];
                     const created = db.unixToDate(gamepass.created);
                     const updated = db.unixToDate(gamepass.updated);
@@ -2321,6 +2324,7 @@ module.exports = {
                 let assets = await db.getAssets(req.user.userid, "Decal");
                 assets = assets.reverse();
                 for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
                     const asset = assets[i];
                     // if (asset.deleted) continue;
                     const created = db.unixToDate(asset.created);
@@ -2370,6 +2374,7 @@ module.exports = {
                 let assets = await db.getAssets(req.user.userid, "Audio");
                 assets = assets.reverse();
                 for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
                     const asset = assets[i];
                     // if (asset.deleted) continue;
                     const created = db.unixToDate(asset.created);
@@ -2419,6 +2424,7 @@ module.exports = {
                 let assets = await db.getAssets(req.user.userid, "Mesh");
                 assets = assets.reverse();
                 for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
                     const asset = assets[i];
                     // if (asset.deleted) continue;
                     const created = db.unixToDate(asset.created);
@@ -2468,6 +2474,7 @@ module.exports = {
                 let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "Shirt");
                 assets = assets.reverse();
                 for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
                     const asset = assets[i];
                     // if (asset.deleted) continue;
                     const created = db.unixToDate(asset.created);
