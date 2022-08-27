@@ -656,10 +656,24 @@ module.exports = {
             const cpuUsage = parseInt(req.query.cpuUsage);
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
-            if (!isCloudEdit) {
-                await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-            } else {
-                await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+            const players = parseInt(req.query.players);
+            if (players > 0){
+                if (!isCloudEdit) {
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                } else {
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                }
+            }else{
+                const game = await db.getGame(placeId);
+                if (game == null) {
+                    res.status(400).send()
+                    return;
+                }
+                const games = await db.getJobsByGameId(placeId);
+                for (let i = 0; i < games.length; i++) {
+                    const job = await db.getJob(games[i]);
+                    await job.stop();
+                }
             }
             res.json({
                 "status": 1,
@@ -686,6 +700,7 @@ module.exports = {
             const clientCount = parseInt(req.query.clientCount) || (id0.length > 6 ? parseInt(id0[6]) : null);
             const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
             const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
+            const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
             /*
             const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
@@ -702,11 +717,25 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (!isCloudEdit) {
-                await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-            } else {
-                await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+            if (players > 0){
+                if (!isCloudEdit) {
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                } else {
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                }
+            }else{
+                const game = await db.getGame(placeId);
+                if (game == null) {
+                    res.status(400).send()
+                    return;
+                }
+                const games = await db.getJobsByGameId(placeId);
+                for (let i = 0; i < games.length; i++) {
+                    const job = await db.getJob(games[i]);
+                    await job.stop();
+                }
             }
+            
             const script = `
 `
             const signature = db.sign(script);
@@ -732,6 +761,7 @@ module.exports = {
             const clientCount = parseInt(req.query.clientCount) || (id0.length > 6 ? parseInt(id0[6]) : null);
             const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
             const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
+            const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
             /*
             const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
@@ -748,10 +778,23 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (!isCloudEdit) {
-                await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-            } else {
-                await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+            if (players > 0){
+                if (!isCloudEdit) {
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                } else {
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                }
+            }else{
+                const game = await db.getGame(placeId);
+                if (game == null) {
+                    res.status(400).send()
+                    return;
+                }
+                const games = await db.getJobsByGameId(placeId);
+                for (let i = 0; i < games.length; i++) {
+                    const job = await db.getJob(games[i]);
+                    await job.stop();
+                }
             }
             const script = `
 `
@@ -778,6 +821,7 @@ module.exports = {
             const clientCount = parseInt(req.query.clientCount) || (id0.length > 6 ? parseInt(id0[6]) : null);
             const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
             const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
+            const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
             /*
             const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
@@ -794,10 +838,23 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (!isCloudEdit) {
-                await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-            } else {
-                await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+            if (players > 0){
+                if (!isCloudEdit) {
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                } else {
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                }
+            }else{
+                const game = await db.getGame(placeId);
+                if (game == null) {
+                    res.status(400).send()
+                    return;
+                }
+                const games = await db.getJobsByGameId(placeId);
+                for (let i = 0; i < games.length; i++) {
+                    const job = await db.getJob(games[i]);
+                    await job.stop();
+                }
             }
             const script = `
 `

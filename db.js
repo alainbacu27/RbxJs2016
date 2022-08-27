@@ -1460,12 +1460,20 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     
     settings().Diagnostics.LuaRamLimit = 0
     
+    local plrs = 1
+    local started = false
+
     game:GetService("Players").PlayerAdded:connect(function(plr)
+        if not started then
+            started = true
+        end
+        plrs = #game.Players:GetPlayers()
         print("Player " .. plr.userId .. " added")
         loadfile(url .. "/Game/api/v1/UserJoined?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
     end)
 
     game:GetService("Players").PlayerRemoving:connect(function(plr)
+        plrs = plrs - 1
         print("Player " .. plr.userId .. " leaving")
         loadfile(url .. "/Game/api/v1/UserLeft?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
     end)
@@ -1499,7 +1507,8 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
             publicIp .. 
             "|${port}|" .. 
             tostring(#game:GetService("Players"):GetPlayers()) .. 
-            "|false|Unknown"
+            "|false|Unknown|" ..
+            plrs
             )
             wait(10)
         end
@@ -1573,12 +1582,20 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
         
         settings().Diagnostics.LuaRamLimit = 0
         
+        local plrs = 1
+        local started = false
+
         game:GetService("Players").PlayerAdded:connect(function(plr)
+            if not started then
+                started = true
+            end
+            plrs = #game.Players:GetPlayers()
             print("Player " .. plr.userId .. " added")
             loadfile(url .. "/Game/api/v1/UserJoinedTeamCreate?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
         end)
 
         game:GetService("Players").PlayerRemoving:connect(function(plr)
+            plrs = plrs - 1
             print("Player " .. plr.userId .. " leaving")
             loadfile(url .. "/Game/api/v1/UserLeftTeamCreate?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
         end)
@@ -1612,7 +1629,8 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                 publicIp .. 
                 "|${port}|" .. 
                 tostring(#game:GetService("Players"):GetPlayers()) .. 
-                "|true|Unknown"
+                "|false|Unknown|" ..
+                plrs
                 )
                 wait(10)
             end
