@@ -615,7 +615,7 @@ ${assets}
             } else {
                 const job = await db.getJob(jobid2 && jobid2 != "" ? jobid2 : jobid);
                 if (db.getSiteConfig().backend.ADMIN_AdminCanExecuteJobScripts == false) {
-                    return res.status(404).send("[!]: Executing scirpts on existing instances is disabled.");
+                    return res.status(404).send("[!]: Executing scripts on existing instances is disabled.");
                 }
                 if (!job) {
                     return res.send("Job not found.");

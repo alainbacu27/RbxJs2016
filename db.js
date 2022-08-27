@@ -1369,6 +1369,7 @@ for (let i = 0; i < siteConfig.backend.maxServers; i++) {
 
 function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
     if (!hasExecutedOnce) {
+        console.log("Starting RCC script " + id + " with timeout " + timeout + " seconds");
         return `<?xml version = "1.0" encoding = "UTF-8"?>
     <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://rbx2016.tk/RCCServiceSoap" xmlns:ns1="http://rbx2016.tk/" xmlns:ns3="http://rbx2016.tk/RCCServiceSoap12">
         <SOAP-ENV:Body>
@@ -1385,6 +1386,7 @@ function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
             </SOAP-ENV:Body>
     </SOAP-ENV:Envelope>`;
     } else {
+        console.log("Executing script again");
         return `<?xml version = "1.0" encoding = "UTF-8"?>
         <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://rbx2016.tk/RCCServiceSoap" xmlns:ns1="http://rbx2016.tk/" xmlns:ns3="http://rbx2016.tk/RCCServiceSoap12">
             <SOAP-ENV:Body>
@@ -1828,11 +1830,348 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
 let activeJobs = {};
 let activeGameJobs = {};
 
-async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
+async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume=false, port = 0, hostPort = 0, jobId0 = "") {
     return new Promise(async returnPromise => {
         MongoClient.connect(mongourl, function (err, db) {
             if (err) throw err;
             const dbo = db.db(dbName);
+            if (resume){
+                dbo.collection("games").findOne({
+                    gameid: gameid
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    if (gameid != 0 && result == null) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+
+                    if (activeGameJobs[gameid]) { // For now..
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+
+                    let myPort = port;
+                    let myHostPort = hostPort;
+                    let jobId = jobId0;
+                    let proc = null;
+
+                    let hasExecutedOnce = true;
+
+                    let self = {}
+
+                    async function stop() {
+                        return new Promise(async returnPromise => {
+                            if (myPort == 0) {
+                                returnPromise(null);
+                                return;
+                            }
+                            try {
+                                delete activeJobs[jobId];
+                            } catch {}
+                            try {
+                                delete activeGameJobs[gameid][jobId];
+                            } catch {}
+                            try {
+                                if (Object.keys(activeGameJobs[gameid]).length == 0) {
+                                    delete activeGameJobs[gameid];
+                                }
+                            } catch {}
+
+
+                            availableRCCPorts.push(myPort);
+                            availableGamePorts.push(myHostPort);
+
+                            try {
+                                // proc.stdin.pause();
+                                // proc.kill();
+                                // kill(proc.pid, 'SIGTERM');
+                            } catch {}
+                            pm2.delete(`RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`, (err) => {
+                                if (err) {
+                                    console.error(err);
+                                }
+                                myPort = 0;
+                                myHostPort = 0;
+                                jobId = "";
+                                returnPromise(true);
+                            });
+                            /*
+                            myPort = 0;
+                            myHostPort = 0;
+                            jobId = "";
+                            returnPromise(true);
+                            */
+                        });
+                    }
+
+                    async function execute(script, timeout = 10, connectionTimeout = 1000) {
+                        return new Promise(async returnPromise => {
+                            if (myPort == 0) {
+                                returnPromise(null);
+                                return;
+                            }
+                            const url = `http://127.0.0.1:${myPort}/`;
+                            const headers2 = {
+                                'user-agent': 'RCC-Arbiter',
+                                'Content-Type': 'text/xml;charset=UTF-8',
+                                'soapAction': `https://www.rbx2016.tk/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
+                            };
+                            const xml = utf8.encode(getRCCScriptXml(script, jobId, timeout, hasExecutedOnce));
+                            if (!hasExecutedOnce) {
+                                hasExecutedOnce = true;
+                            }
+
+                            let c = siteConfig.backend.maxGameStartupTime;
+                            while (true) {
+                                try {
+                                    const {
+                                        response
+                                    } = await soapRequest({
+                                        url: url,
+                                        headers: headers2,
+                                        xml: xml,
+                                        timeout: connectionTimeout
+                                    }); // Optional timeout parameter(milliseconds)
+                                    const {
+                                        headers,
+                                        body,
+                                        statusCode
+                                    } = response;
+                                    if (statusCode != 200 && statusCode != 302 && statusCode != 304) {
+                                        returnPromise(false);
+                                        return;
+                                    }
+                                    let result = [];
+                                    let result0 = body.split("<ns1:value>");
+                                    if (result0.length > 1) {
+                                        for (let i = 1; i < result0.length; i++) {
+                                            result.push("ok|" + result0[i].split("</ns1:value>")[0]);
+                                        }
+                                    }
+                                    result0 = body.split("<faultstring>");
+                                    if (result0.length > 1) {
+                                        result.push("err|" + result0[1].split("</faultstring>")[0]);
+                                    }
+                                    returnPromise(result);
+                                    return;
+                                } catch (e) {
+                                    // console.error(e);
+                                    try {
+                                        let result = [];
+                                        let result0 = e.split("<ns1:value>");
+                                        if (result0.length > 1) {
+                                            for (let i = 1; i < result0.length; i++) {
+                                                result.push("ok|" + result0[i].split("</ns1:value>")[0]);
+                                            }
+                                        }
+                                        result0 = e.split("<faultstring>");
+                                        if (result0.length > 1) {
+                                            result.push("err|" + result0[1].split("</faultstring>")[0]);
+                                        }
+                                        await stop();
+                                        returnPromise(result);
+                                        return;
+                                    } catch (e) {
+                                        if (c <= 0) {
+                                            await stop();
+                                            returnPromise(["err|Unknown Error"]);
+                                            return;
+                                        }
+                                        c--;
+                                        await sleep(1000);
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    async function start() {
+                        return new Promise(async returnPromise => {
+                            if (myHostPort != 0) {
+                                // throw new Error("Already Hosting");
+                                returnPromise(false);
+                            }
+                            myPort = availableRCCPorts.shift();
+                            myHostPort = availableGamePorts.shift();
+                            jobId = uuidv4();
+                            if (isWin) {
+                                let rccFolder = rccPath.split(path.sep);
+                                rccFolder = rccFolder.splice(0, rccFolder.length - 1);
+                                rccFolder = rccFolder.join(path.sep);
+
+                                activeJobs[jobId] = self;
+                                if (!activeGameJobs[gameid]) {
+                                    activeGameJobs[gameid] = {};
+                                }
+                                activeGameJobs[gameid][jobId] = self;
+
+                                /*
+                                proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
+                                    cwd: rccFolder
+                                }, (err, stdout, stderr) => {});
+
+                                returnPromise(true);
+                                */
+
+                                pm2.start({
+                                    name: `RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`,
+                                    script: `${rccPath}`,
+                                    cron_restart: 0,
+                                    autorestart: false,
+                                    stop_exit_codes: [0],
+                                    args: `-Console -Start -Custom -PlaceId:${gameid} ${myPort}`
+                                    // out_file: `app.strout.log`,
+                                    // error_file: `app.strerr.log`
+                                }, async function (err, apps) {
+                                    if (err) {
+                                        console.error(err)
+                                        returnPromise(false);
+                                        return;
+                                    }
+                                    /*
+                                    let c = 0;
+                                    while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
+                                        await sleep(1000);
+                                        c ++;
+                                    }
+                                    activeJobs[jobId] = self;
+                                    */
+                                    returnPromise(true);
+                                });
+                            } else {
+                                // REQUIRES WINE.
+                                let rccFolder = rccPath.split(path.sep);
+                                rccFolder = rccFolder.splice(0, rccFolder.length - 1);
+                                rccFolder = rccFolder.join(path.sep);
+
+                                /*
+                                sudo apt install xvfb lightdm
+
+                                export DISPLAY=:1
+                                Xvfb :1 -screen 0 1024x768x16 &
+                                sleep 1
+
+                                #exec gnome-session & # use gnome-session instead of lightdm
+                                exec lightdm-session &
+                                */
+
+                                activeJobs[jobId] = self;
+                                if (!activeGameJobs[gameid]) {
+                                    activeGameJobs[gameid] = {};
+                                }
+                                activeGameJobs[gameid][jobId] = self;
+
+                                /*
+                                proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
+                                    cwd: rccFolder
+                                }, (err, stdout, stderr) => {});
+
+                                returnPromise(true);
+                                */
+                                pm2.start({
+                                    name: `RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`,
+                                    script: `exec.sh`,
+                                    cron_restart: 0,
+                                    autorestart: false,
+                                    stop_exit_codes: [0],
+                                    args: `${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`
+                                    // out_file: `app.strout.log`,
+                                    // error_file: `app.strerr.log`
+                                }, async function (err, apps) {
+                                    if (err) {
+                                        console.error(err)
+                                        returnPromise(false);
+                                        return;
+                                    }
+                                    /*
+                                    let c = 0;
+                                    while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
+                                        await sleep(1000);
+                                        c ++;
+                                    }
+                                    activeJobs[jobId] = self;
+                                    */
+                                    returnPromise(true);
+                                });
+                            }
+                        });
+                    }
+
+                    self = {
+                        host: async function () {
+                            await start();
+                            await sleep(1000);
+                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
+                            if (resp == "err|Unknown Error") {
+                                await stop();
+                            }
+                        },
+                        update: async function () {
+                            return new Promise(async returnPromise => {
+                                if (myPort == 0) {
+                                    returnPromise(false);
+                                    return;
+                                }
+                                MongoClient.connect(mongourl, function (err, db) {
+                                    if (err) throw err;
+                                    const dbo = db.db(dbName);
+                                    dbo.collection("games").findOne({
+                                        gameid: gameid,
+                                        port: myHostPort
+                                    }, async function (err, result) {
+                                        if (err) {
+                                            db.close();
+                                            returnPromise(false);
+                                            return;
+                                        }
+                                        if (result == null) {
+                                            await stop();
+                                            db.close();
+                                            returnPromise(true);
+                                            return;
+                                        }
+                                        db.close();
+                                        returnPromise(false);
+                                    });
+                                });
+                            });
+                        },
+                        start: start,
+                        stop: stop,
+                        execute: execute,
+                        isAlive: function () {
+                            return myPort != 0;
+                        },
+                        getRccPort: function () {
+                            return myPort;
+                        },
+                        getHostPort: function () {
+                            return myHostPort;
+                        },
+                        getJobId: function () {
+                            return jobId;
+                        },
+                        getGameId: function () {
+                            return gameid;
+                        }
+                    }
+
+                    activeJobs[jobId] = self;
+                    if (!activeGameJobs[gameid]) {
+                        activeGameJobs[gameid] = {};
+                    }
+                    activeGameJobs[gameid][jobId] = self;
+
+                    returnPromise(self);
+                });
+                return;
+            }
             if (!isCloudEdit) {
                 if (!isRenderJob) {
                     dbo.collection("games").findOne({
@@ -1890,14 +2229,9 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                 try {
                                     // proc.stdin.pause();
                                     // proc.kill();
-                                    kill(proc.pid, 'SIGTERM');
+                                    // kill(proc.pid, 'SIGTERM');
                                 } catch {}
-                                myPort = 0;
-                                myHostPort = 0;
-                                jobId = "";
-                                returnPromise(true);
-                                /*
-                                pm2.delete(`RCC-${myPort}`, (err) => {
+                                pm2.delete(`RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`, (err) => {
                                     if (err) {
                                         console.error(err);
                                     }
@@ -1906,6 +2240,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                     jobId = "";
                                     returnPromise(true);
                                 });
+                                /*
+                                myPort = 0;
+                                myHostPort = 0;
+                                jobId = "";
+                                returnPromise(true);
                                 */
                             });
                         }
@@ -2011,14 +2350,16 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                     }
                                     activeGameJobs[gameid][jobId] = self;
 
+                                    /*
                                     proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                         cwd: rccFolder
                                     }, (err, stdout, stderr) => {});
 
                                     returnPromise(true);
-                                    /*
+                                    */
+
                                     pm2.start({
-                                        name: `RCC-${myPort}`,
+                                        name: `RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`,
                                         script: `${rccPath}`,
                                         cron_restart: 0,
                                         autorestart: false,
@@ -2032,15 +2373,16 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                             returnPromise(false);
                                             return;
                                         }
+                                        /*
                                         let c = 0;
                                         while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
                                             await sleep(1000);
                                             c ++;
                                         }
                                         activeJobs[jobId] = self;
+                                        */
                                         returnPromise(true);
                                     });
-                                    */
                                 } else {
                                     // REQUIRES WINE.
                                     let rccFolder = rccPath.split(path.sep);
@@ -2064,19 +2406,20 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                     }
                                     activeGameJobs[gameid][jobId] = self;
 
+                                    /*
                                     proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                         cwd: rccFolder
                                     }, (err, stdout, stderr) => {});
 
                                     returnPromise(true);
-                                    /*
+                                    */
                                     pm2.start({
-                                        name: `RCC-${myPort}`,
+                                        name: `RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`,
                                         script: `exec.sh`,
                                         cron_restart: 0,
                                         autorestart: false,
                                         stop_exit_codes: [0],
-                                        args: `${rccPath} -Console -PlaceId:${gameid} -Start -Custom -PlaceId:${gameid} ${myPort}`
+                                        args: `${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`
                                         // out_file: `app.strout.log`,
                                         // error_file: `app.strerr.log`
                                     }, async function (err, apps) {
@@ -2085,15 +2428,16 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                             returnPromise(false);
                                             return;
                                         }
+                                        /*
                                         let c = 0;
                                         while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
                                             await sleep(1000);
                                             c ++;
                                         }
                                         activeJobs[jobId] = self;
+                                        */
                                         returnPromise(true);
                                     });
-                                    */
                                 }
                             });
                         }
@@ -2215,14 +2559,9 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                 try {
                                     // proc.stdin.pause();
                                     // proc.kill();
-                                    kill(proc.pid, 'SIGTERM');
+                                    // kill(proc.pid, 'SIGTERM');
                                 } catch {}
-                                myPort = 0;
-                                myHostPort = 0;
-                                jobId = "";
-                                returnPromise(true);
-                                /*
-                                pm2.delete(`RCC-${myPort}`, (err) => {
+                                pm2.delete(`RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`, (err) => {
                                     if (err) {
                                         console.error(err);
                                     }
@@ -2231,6 +2570,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                     jobId = "";
                                     returnPromise(true);
                                 });
+                                /*
+                                myPort = 0;
+                                myHostPort = 0;
+                                jobId = "";
+                                returnPromise(true);
                                 */
                             });
                         }
@@ -2336,14 +2680,16 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                     }
                                     activeGameJobs[gameid][jobId] = self;
 
+                                    /*
                                     proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                         cwd: rccFolder
                                     }, (err, stdout, stderr) => {});
 
                                     returnPromise(true);
-                                    /*
+                                    */
+                                    
                                     pm2.start({
-                                        name: `RCC-${myPort}`,
+                                        name: `RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`,
                                         script: `${rccPath}`,
                                         cron_restart: 0,
                                         autorestart: false,
@@ -2357,15 +2703,16 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                             returnPromise(false);
                                             return;
                                         }
+                                        /*
                                         let c = 0;
                                         while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
                                             await sleep(1000);
                                             c ++;
                                         }
                                         activeJobs[jobId] = self;
+                                        */
                                         returnPromise(true);
                                     });
-                                    */
                                 } else {
                                     // REQUIRES WINE.
                                     let rccFolder = rccPath.split(path.sep);
@@ -2389,19 +2736,21 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                     }
                                     activeGameJobs[gameid][jobId] = self;
 
+                                    /*
                                     proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                         cwd: rccFolder
                                     }, (err, stdout, stderr) => {});
 
                                     returnPromise(true);
-                                    /*
+                                    */
+
                                     pm2.start({
-                                        name: `RCC-${myPort}`,
+                                        name: `RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`,
                                         script: `exec.sh`,
                                         cron_restart: 0,
                                         autorestart: false,
                                         stop_exit_codes: [0],
-                                        args: `${rccPath} -Console -PlaceId:${gameid} -Start -Custom -PlaceId:${gameid} ${myPort}`
+                                        args: `${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`
                                         // out_file: `app.strout.log`,
                                         // error_file: `app.strerr.log`
                                     }, async function (err, apps) {
@@ -2410,15 +2759,16 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                             returnPromise(false);
                                             return;
                                         }
+                                        /*
                                         let c = 0;
                                         while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
                                             await sleep(1000);
                                             c ++;
                                         }
                                         activeJobs[jobId] = self;
+                                        */
                                         returnPromise(true);
                                     });
-                                    */
                                 }
                             });
                         }
@@ -2539,14 +2889,9 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                             try {
                                 // proc.stdin.pause();
                                 // proc.kill();
-                                kill(proc.pid, 'SIGTERM');
+                                // kill(proc.pid, 'SIGTERM');
                             } catch {}
-                            myPort = 0;
-                            myHostPort = 0;
-                            jobId = "";
-                            returnPromise(true);
-                            /*
-                            pm2.delete(`RCC-${myPort}`, (err) => {
+                            pm2.delete(`RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`, (err) => {
                                 if (err) {
                                     console.error(err);
                                 }
@@ -2555,6 +2900,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                 jobId = "";
                                 returnPromise(true);
                             });
+                            /*
+                            myPort = 0;
+                            myHostPort = 0;
+                            jobId = "";
+                            returnPromise(true);
                             */
                         });
                     }
@@ -2660,14 +3010,15 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                 }
                                 activeGameJobs[gameid][jobId] = self;
 
+                                /*
                                 proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
                                 returnPromise(true);
-                                /*
+                                */
                                 pm2.start({
-                                    name: `RCC-${myPort}`,
+                                    name: `RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`,
                                     script: `${rccPath}`,
                                     cron_restart: 0,
                                     autorestart: false,
@@ -2681,15 +3032,16 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                         returnPromise(false);
                                         return;
                                     }
+                                    /*
                                     let c = 0;
                                     while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
                                         await sleep(1000);
                                         c ++;
                                     }
                                     activeJobs[jobId] = self;
+                                    */
                                     returnPromise(true);
                                 });
-                                */
                             } else {
                                 // REQUIRES WINE.
                                 let rccFolder = rccPath.split(path.sep);
@@ -2712,14 +3064,15 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                 }
                                 activeGameJobs[gameid][jobId] = self;
 
+                                /*
                                 proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                     cwd: rccFolder
                                 }, (err, stdout, stderr) => {});
 
                                 returnPromise(true);
-                                /*
+                                */
                                 pm2.start({
-                                    name: `RCC-${myPort}`,
+                                    name: `RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`,
                                     script: `exec.sh`,
                                     cron_restart: 0,
                                     autorestart: false,
@@ -2733,15 +3086,16 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
                                         returnPromise(false);
                                         return;
                                     }
+                                    /*
                                     let c = 0;
                                     while (c < siteConfig.backend.maxGameStartupTime && (await getGame(gameid)).port == 0) {
                                         await sleep(1000);
                                         c ++;
                                     }
                                     activeJobs[jobId] = self;
+                                    */
                                     returnPromise(true);
                                 });
-                                */
                             }
                         });
                     }
@@ -2811,6 +3165,35 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false) {
         });
     });
 }
+
+console.log("Connecting to PM2...");
+pm2.connect((err) => {
+    if (err) {
+        console.error(err);
+        process.exit(2);
+    }
+    console.log("PM2 Connected.");
+    pm2.list(async (err, list) => {
+        if (err) {
+            console.error(err);
+            process.exit(2);
+        }
+        let jobs = 0;
+        for (let i = 0; i < list.length; i++) {
+            const proc = list[i];
+            if (proc.name.startsWith("RCC-")) {
+                const s = proc.name.split("|");
+                const myPort = s[1];
+                const myHostPort = s[2];
+                const gameId = parseInt(s[3]);
+                const jobId = s[4];
+                await newJob(gameId, false, false, true, myPort, myHostPort, jobId);
+                jobs++;
+            }
+        }
+        console.log("Added " + jobs + " running job(s).");
+    });
+});
 
 async function getJob(jobId) {
     return new Promise(async returnPromise => {
@@ -2894,10 +3277,12 @@ if (siteConfig.backend.PRODUCTION) {
     async function exitHandler(options, exitCode) {
         // if (options.cleanup) console.log('clean');
         // if (exitCode || exitCode === 0) console.log(exitCode);
+        /*
         for (let i = 0; i < Object.keys(activeJobs).length; i++) {
             const job = activeJobs[Object.keys(activeJobs)[i]];
             await job.stop();
         }
+        */
         if (options.exit) process.exit();
     }
 
