@@ -123,6 +123,22 @@ module.exports = {
             });
         });
 
+        app.post("/v1/api/theme/set", db.requireAuth, async (req, res) => {
+            const theme = req.body.theme;
+            const themes = ["light", "dark"];
+            if (!theme || !themes.includes(theme)) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "No theme specified"
+                });
+                return;
+            }
+            await db.setUserProperty(req.user.userid, "theme", theme);
+            res.json({
+                "success": true
+            });
+        });
+
         app.get("/my/messages", db.requireAuth, async (req, res) => {
             res.render("messages", await db.getRenderObject(req.user));
         });

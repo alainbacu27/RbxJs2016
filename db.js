@@ -1083,7 +1083,7 @@ async function getRenderObject(user, banned = false) {
         tix2: banned ? "?" : formatNumberS(user.tix),
         tixFormatted: banned ? "?" : formatNumber(user.tix),
 
-        theme: user.theme && user.theme.toLowerCase() || "light",
+        theme: user.theme && user.theme.toLowerCase() || "",
         gender: user.gender,
         birthday: user.birthday,
 
@@ -1113,7 +1113,7 @@ async function getBlankRenderObject() {
         tix2: "?",
         tixFormatted: "?",
 
-        theme: "light",
+        theme: "",
         gender: 1,
         birthday: 0,
 
@@ -3547,7 +3547,7 @@ module.exports = {
                         firstDailyAssetUpload: 0,
                         badges: [],
 
-                        theme: "Light"
+                        theme: ""
                     };
                     dbo.collection("users").insertOne(myobj, function (err, res) {
                         if (err) throw err;
@@ -3601,7 +3601,7 @@ module.exports = {
                     inviteKey: inviteKey,
                     badges: [],
 
-                    theme: "Light"
+                    theme: ""
                 };
                 dbo.collection("users").updateOne({
                     username: username

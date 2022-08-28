@@ -17,7 +17,7 @@
         },
         "usernameConfiguration": {
             "canChangeUsername": true,
-            "changeUsernamePrice": 10
+            "changeUsernamePrice": 1
         },
         "devex": {
             "enabled": false,

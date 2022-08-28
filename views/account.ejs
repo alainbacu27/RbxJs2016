@@ -56,6 +56,7 @@
 
     <link rel='stylesheet' href='https://static.rbx2016.tk/css/page___9b1354f6392e505305c1aa8a1f7931d6_m.css' />
 
+    <link rel="stylesheet" href="https://static.rbx2016.tk/css/main.css">
     <script type='text/javascript' src='/js/jquery-1.11.1.min.js'></script>
     <script type='text/javascript'>
         window.jQuery || document.write("<script type='text/javascript' src='/js/jquery/jquery-1.11.1.js'><\/script>")
@@ -204,6 +205,36 @@
 
 <body id="rbx-body" class="" data-performance-relative-value="0.000" data-internal-page-name=""
     data-send-event-percentage="0.00">
+
+    <script>
+        // Use matchMedia to check the user preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        const userSystemTheme = prefersDark.matches ? "dark" : "light";
+
+        let theme = "<%= theme %>";
+        if (theme == "") {
+            theme = userSystemTheme;
+        }
+
+        if (theme === "dark") {
+            toggleDarkTheme(true);
+        }
+
+        // Listen for changes to the prefers-color-scheme media query
+        prefersDark.addListener((mediaQuery) => toggleDarkTheme(mediaQuery.matches));
+
+        // Add or remove the "dark" class based on if the media query matches
+        function toggleDarkTheme(shouldAdd) {
+            const heads = document.getElementsByTagName("head");
+            for (let i = 0; i < heads.length; i++) {
+                const head = heads[i];
+                const cssFile = document.createElement('link');
+                cssFile.rel = 'stylesheet';
+                cssFile.href = "/css/dark.css";
+                head.appendChild(cssFile);
+            }
+        }
+    </script>
     <div id="roblox-linkify" data-enabled="true"
         data-regex="(https?\:\/\/)?(?:www\.)?([a-z0-9\-]{2,}\.)*(((m|de|www|web|api|blog|wiki|help|corp|polls|bloxcon|developer|devforum|forum)\.idk16\.cf|robloxlabs\.com)|(www\.shoproblox\.com))((\/[A-Za-z0-9-+&amp;@#\/%?=~_|!:,.;]*)|(\b|\s))"
         data-regex-flags="gm"
@@ -302,8 +333,7 @@
                                     </a>
                                 </li>
                                 <% if (isAdmin == "true" || isMod == "true") { %>
-                                    <li><a class="rbx-menu-item"
-                                        href="https://www.rbx2016.tk/admi">Admin</a></li>
+                                <li><a class="rbx-menu-item" href="https://www.rbx2016.tk/admi">Admin</a></li>
                                 <% } %>
                                 <li><a class="rbx-menu-item" href="https://www.rbx2016.tk/Help/Builderman.aspx"
                                         target="_blank">Help</a></li>
@@ -484,7 +514,7 @@
                 <script type="text/javascript">
                     var Roblox = Roblox || {};
                 </script>
-                
+
                 <div class="profile-container" ng-modules="robloxApp, profile, robloxApp.helpers">
                     <h1>My Settings</h1>
                     <h1></h1>
@@ -648,9 +678,18 @@
                                         <h3>Account Info</h3>
                                     </div>
                                     <div class="section-content">
-                                        <p><span style="opacity: 35%; font-weight:400">Username:</span> <%= username %><button class="pull-right" style="height: 1em; opacity: 75%; font-weight:400; border: none; outline: none; background-color: Transparent" id="EditUsername">Edit</button></p>
-                                        <p><span style="opacity: 35%; font-weight:400">Password:</span> *********<button class="pull-right" style="height: 1em; opacity: 75%; font-weight:400; border: none; outline: none; background-color: Transparent" id="EditPassword">Edit</button></p>
-                                        <p><span style="opacity: 35%; font-weight:400">Email Address:</span> fake-email@exmaple.com<button class="pull-right" style="height: 1em; opacity: 75%; font-weight:400; border: none; outline: none; background-color: Transparent" id="EditEmail">Edit</button></p>
+                                        <p><span style="opacity: 35%; font-weight:400">Username:</span>
+                                            <%= username %><button class="pull-right"
+                                                style="height: 1em; opacity: 75%; font-weight:400; border: none; outline: none; background-color: Transparent"
+                                                id="EditUsername">Edit</button></p>
+                                        <p><span style="opacity: 35%; font-weight:400">Password:</span> *********<button
+                                                class="pull-right"
+                                                style="height: 1em; opacity: 75%; font-weight:400; border: none; outline: none; background-color: Transparent"
+                                                id="EditPassword">Edit</button></p>
+                                        <p><span style="opacity: 35%; font-weight:400">Email Address:</span>
+                                            fake-email@exmaple.com<button class="pull-right"
+                                                style="height: 1em; opacity: 75%; font-weight:400; border: none; outline: none; background-color: Transparent"
+                                                id="EditEmail">Edit</button></p>
                                     </div>
                                 </div>
                                 <div class="section profile-about" ng-controller="profileUtilitiesController">
@@ -659,6 +698,58 @@
                                     </div>
                                     <div class="section-content">
                                         <h3>W.I.P</h3>
+                                    </div>
+                                </div>
+                                <div class="section profile-about" ng-controller="profileUtilitiesController">
+                                    <div class="container-header">
+                                        <h3>Extensions</h3>
+                                    </div>
+                                    <div class="section-content">
+                                        <div class="row mt-1">
+                                            <input class="form-control input-field"
+                                                style="display: inline-block; width: 49.5%; opacity: 80%;" readonly=""
+                                                type="text" value="Website Theme">
+                                            <select id="themeSelector" class="form-control input-field"
+                                                style="display: inline-block; width: 50%;">
+                                                <option value="light">Default</option>
+                                                <option value="dark">Dark Theme</option>
+                                            </select>
+                                            <script>
+                                                const themeSelector = document.getElementById("themeSelector");
+                                                themeSelector.value = "<%= theme %>";
+                                                themeSelector.onchange = function () {
+                                                    const xhr = new XMLHttpRequest();
+                                                    xhr.open("POST", "/v1/api/theme/set");
+                                                    xhr.setRequestHeader("Content-Type",
+                                                        "application/x-www-form-urlencoded");
+                                                    xhr.setRequestHeader("Cookie", document.cookie);
+                                                    xhr.onload = function () {
+                                                        if (xhr.status === 200) {
+                                                            window.location.reload();
+                                                        } else {
+                                                            Roblox.GenericConfirmation
+                                                                .open({
+                                                                    titleText: "Something went wrong.",
+                                                                    bodyContent: "Failed to change theme.",
+                                                                    acceptText: "OK",
+                                                                    acceptColor: Roblox
+                                                                        .GenericConfirmation
+                                                                        .blue,
+                                                                    declineColor: Roblox
+                                                                        .GenericConfirmation
+                                                                        .none,
+                                                                    allowHtmlContentInBody: true,
+                                                                    dismissable: true,
+                                                                    onAccept: function (e) {
+                                                                        window.location.reload();
+                                                                    }
+                                                                });
+                                                        }
+                                                    }
+                                                    xhr.send("theme=" + themeSelector.value);
+                                                }
+                                            </script>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -683,61 +774,62 @@
                                 let cpass = "";
 
                                 const interval = setInterval(() => {
-                                    try{
+                                    try {
                                         username = document.getElementById("NewUsername").value;
                                         cpass = document.getElementById("CurrentPassword").value;
-                                    }catch{}
+                                    } catch {}
                                 }, 1)
-                                
+
                                 Roblox.GenericConfirmation.open({
-                                //<sl:translate>
-                                titleText: "Change Username",
-                                bodyContent: "<input type=\"text\" placeholder=\"Desired Username (3-20 characters)\" id=\"NewUsername\" maxlength=\"20\" style=\"height: 2em\" class=\"form-control\"><p>ㅤ</p><input type=\"password\" placeholder=\"Current Password\" id=\"CurrentPassword\" style=\"height: 2em\" class=\"form-control\">",
-                                //</sl:translate>
-                                onAccept: async function (e) {
-                                    clearInterval(interval);
-                                    let errored = false;
-                                    $.ajax({
-                                        type: "POST",
-                                        url: "/v1/username/change",
-                                        data: {
-                                            username: username,
-                                            cpass: cpass
-                                        },
-                                        error: function () {
-                                            errored = true;
-                                            Roblox.GenericConfirmation
-                                                .open({
-                                                    titleText: "An error occured.",
-                                                    bodyContent: "Failed to change username.",
-                                                    acceptText: "OK",
-                                                    acceptColor: Roblox
-                                                        .GenericConfirmation
-                                                        .blue,
-                                                    declineColor: Roblox
-                                                        .GenericConfirmation
-                                                        .none,
-                                                    allowHtmlContentInBody: true,
-                                                    dismissable: true,
-                                                    onAccept: function (e) {
-                                                        window.location.reload();
-                                                    }
-                                                });
+                                    //<sl:translate>
+                                    titleText: "Change Username",
+                                    bodyContent: "<input type=\"text\" placeholder=\"Desired Username (3-20 characters)\" id=\"NewUsername\" maxlength=\"20\" style=\"height: 2em\" class=\"form-control\"><p>ㅤ</p><input type=\"password\" placeholder=\"Current Password\" id=\"CurrentPassword\" style=\"height: 2em\" class=\"form-control\">",
+                                    //</sl:translate>
+                                    onAccept: async function (e) {
+                                        clearInterval(interval);
+                                        let errored = false;
+                                        $.ajax({
+                                            type: "POST",
+                                            url: "/v1/username/change",
+                                            data: {
+                                                username: username,
+                                                cpass: cpass
+                                            },
+                                            error: function () {
+                                                errored = true;
+                                                Roblox.GenericConfirmation
+                                                    .open({
+                                                        titleText: "An error occured.",
+                                                        bodyContent: "Failed to change username.",
+                                                        acceptText: "OK",
+                                                        acceptColor: Roblox
+                                                            .GenericConfirmation
+                                                            .blue,
+                                                        declineColor: Roblox
+                                                            .GenericConfirmation
+                                                            .none,
+                                                        allowHtmlContentInBody: true,
+                                                        dismissable: true,
+                                                        onAccept: function (e) {
+                                                            window.location
+                                                                .reload();
+                                                        }
+                                                    });
+                                            }
+                                        });
+                                        await sleep(1000);
+                                        if (!errored) {
+                                            window.location.reload();
                                         }
-                                    });
-                                    await sleep(1000);
-                                    if (!errored){
-                                        window.location.reload();
-                                    }
-                                },
-                                acceptColor: Roblox.GenericConfirmation.green,
-                                declineText: "Cancel",
-                                declineColor: Roblox.GenericConfirmation.none,
-                                allowHtmlContentInBody: true,
-                                //<sl:translate>
-                                acceptText: "Buy for R$<%= price %>"
-                                //</sl:translate>
-                            });
+                                    },
+                                    acceptColor: Roblox.GenericConfirmation.green,
+                                    declineText: "Cancel",
+                                    declineColor: Roblox.GenericConfirmation.none,
+                                    allowHtmlContentInBody: true,
+                                    //<sl:translate>
+                                    acceptText: "Buy for R$<%= price %>"
+                                    //</sl:translate>
+                                });
                             };
 
                             document.getElementById("EditPassword").onclick = function () {
@@ -746,56 +838,26 @@
                                 let npass2 = "";
 
                                 const interval = setInterval(() => {
-                                    try{
+                                    try {
                                         cpass = document.getElementById("CurrentPassword").value;
                                         npass = document.getElementById("NewPassword").value;
                                         npass2 = document.getElementById("NewPassword2").value;
-                                    }catch{}
+                                    } catch {}
                                 }, 1)
-                                
+
                                 Roblox.GenericConfirmation.open({
-                                //<sl:translate>
-                                titleText: "Change Password",
-                                bodyContent: "<input type=\"password\" placeholder=\"Current Password\" id=\"CurrentPassword\" style=\"height: 2em\" class=\"form-control\"><p>ㅤ</p><input type=\"password\" placeholder=\"New Password\" id=\"NewPassword\" style=\"height: 2em\" class=\"form-control\"><p>ㅤ</p><input type=\"password\" placeholder=\"Repeat New Password\" id=\"NewPassword2\" style=\"height: 2em\" class=\"form-control\">",
-                                //</sl:translate>
-                                onAccept: async function (e) {
-                                    clearInterval(interval);
+                                    //<sl:translate>
+                                    titleText: "Change Password",
+                                    bodyContent: "<input type=\"password\" placeholder=\"Current Password\" id=\"CurrentPassword\" style=\"height: 2em\" class=\"form-control\"><p>ㅤ</p><input type=\"password\" placeholder=\"New Password\" id=\"NewPassword\" style=\"height: 2em\" class=\"form-control\"><p>ㅤ</p><input type=\"password\" placeholder=\"Repeat New Password\" id=\"NewPassword2\" style=\"height: 2em\" class=\"form-control\">",
+                                    //</sl:translate>
+                                    onAccept: async function (e) {
+                                        clearInterval(interval);
 
-                                    if (npass != npass2){
-                                        Roblox.GenericConfirmation
-                                            .open({
-                                                titleText: "Invalid submission.",
-                                                bodyContent: "Passwords do not match.",
-                                                acceptText: "OK",
-                                                acceptColor: Roblox
-                                                    .GenericConfirmation
-                                                    .blue,
-                                                declineColor: Roblox
-                                                    .GenericConfirmation
-                                                    .none,
-                                                allowHtmlContentInBody: true,
-                                                dismissable: true,
-                                                onAccept: function (e) {
-                                                    window.location.reload();
-                                                }
-                                            });
-                                            return;
-                                    }
-
-                                    let errored = false;
-                                    $.ajax({
-                                        type: "POST",
-                                        url: "/v1/password/change",
-                                        data: {
-                                            cpass: cpass,
-                                            npass: npass
-                                        },
-                                        error: function () {
-                                            errored = true;
+                                        if (npass != npass2) {
                                             Roblox.GenericConfirmation
                                                 .open({
-                                                    titleText: "An error occured.",
-                                                    bodyContent: "Failed to change password.",
+                                                    titleText: "Invalid submission.",
+                                                    bodyContent: "Passwords do not match.",
                                                     acceptText: "OK",
                                                     acceptColor: Roblox
                                                         .GenericConfirmation
@@ -809,21 +871,52 @@
                                                         window.location.reload();
                                                     }
                                                 });
+                                            return;
                                         }
-                                    });
-                                    await sleep(1000);
-                                    if (!errored){
-                                        window.location.reload();
-                                    }
-                                },
-                                acceptColor: Roblox.GenericConfirmation.green,
-                                declineText: "Cancel",
-                                declineColor: Roblox.GenericConfirmation.none,
-                                allowHtmlContentInBody: true,
-                                //<sl:translate>
-                                acceptText: "Update"
-                                //</sl:translate>
-                            });
+
+                                        let errored = false;
+                                        $.ajax({
+                                            type: "POST",
+                                            url: "/v1/password/change",
+                                            data: {
+                                                cpass: cpass,
+                                                npass: npass
+                                            },
+                                            error: function () {
+                                                errored = true;
+                                                Roblox.GenericConfirmation
+                                                    .open({
+                                                        titleText: "An error occured.",
+                                                        bodyContent: "Failed to change password.",
+                                                        acceptText: "OK",
+                                                        acceptColor: Roblox
+                                                            .GenericConfirmation
+                                                            .blue,
+                                                        declineColor: Roblox
+                                                            .GenericConfirmation
+                                                            .none,
+                                                        allowHtmlContentInBody: true,
+                                                        dismissable: true,
+                                                        onAccept: function (e) {
+                                                            window.location
+                                                                .reload();
+                                                        }
+                                                    });
+                                            }
+                                        });
+                                        await sleep(1000);
+                                        if (!errored) {
+                                            window.location.reload();
+                                        }
+                                    },
+                                    acceptColor: Roblox.GenericConfirmation.green,
+                                    declineText: "Cancel",
+                                    declineColor: Roblox.GenericConfirmation.none,
+                                    allowHtmlContentInBody: true,
+                                    //<sl:translate>
+                                    acceptText: "Update"
+                                    //</sl:translate>
+                                });
                             };
                         </script>
                     </div>

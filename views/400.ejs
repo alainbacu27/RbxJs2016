@@ -28,6 +28,7 @@
         href='https://static.rbx2016.tk/css/page___417cd0b19f327b5d8beb1ff56b4dfd82_m.css' />
 
     
+<link rel="stylesheet" href="https://static.rbx2016.tk/css/main.css">
 <script type='text/javascript' src='/js/jquery-1.11.1.min.js'></script>
     <script type='text/javascript'>
         window.jQuery || document.write("<script type='text/javascript' src='/js/jquery/jquery-1.11.1.js'><\/script>")
@@ -159,6 +160,36 @@
 
 <body id="rbx-body" class="" data-performance-relative-value="0.000" data-internal-page-name=""
     data-send-event-percentage="0.00">
+
+    <script>
+        // Use matchMedia to check the user preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        const userSystemTheme = prefersDark.matches ? "dark" : "light";
+
+        let theme = "<%= theme %>";
+        if (theme == ""){
+            theme = userSystemTheme;
+        }
+
+        if (theme === "dark") {
+            toggleDarkTheme(true);
+        }
+
+        // Listen for changes to the prefers-color-scheme media query
+        prefersDark.addListener((mediaQuery) => toggleDarkTheme(mediaQuery.matches));
+
+        // Add or remove the "dark" class based on if the media query matches
+        function toggleDarkTheme(shouldAdd) {
+            const heads = document.getElementsByTagName("head");
+            for (let i = 0; i < heads.length; i++) {
+                const head = heads[i];
+                const cssFile = document.createElement('link');
+                cssFile.rel = 'stylesheet';
+                cssFile.href = "/css/dark.css";
+                head.appendChild(cssFile);
+            }
+        }
+    </script>
     <div id="roblox-linkify" data-enabled="true"
         data-regex="(https?\:\/\/)?(?:www\.)?([a-z0-9\-]{2,}\.)*(((m|de|www|web|api|blog|wiki|help|corp|polls|bloxcon|developer|devforum|forum)\.idk16\.cf|robloxlabs\.com)|(www\.shoproblox\.com))((\/[A-Za-z0-9-+&amp;@#\/%?=~_|!:,.;]*)|(\b|\s))"
         data-regex-flags="gm"
@@ -256,18 +287,18 @@
                                 <ul class="dropdown-menu" role="menu">
                                     <li>
                                         <a class="rbx-menu-item" href="https://www.rbx2016.tk/my/account">
-                                            Settings
+                                            <p>Settings</p>
                                             <span class="notification-blue nav-setting-highlight hidden">0</span>
                                         </a>
                                     </li>
                                     <% if (isAdmin == "true" || isMod == "true") { %>
                                         <li><a class="rbx-menu-item"
-                                            href="https://www.rbx2016.tk/admi">Admin</a></li>
+                                            href="https://www.rbx2016.tk/admi"><p>Admin</p></a></li>
                                     <% } %>
                                     <li><a class="rbx-menu-item" href="https://www.rbx2016.tk/Help/Builderman.aspx"
-                                            target="_blank">Help</a></li>
+                                            target="_blank"><p>Help</p></a></li>
                                     <li><a class="rbx-menu-item" data-behavior="logout"
-                                            data-bind="https://www.rbx2016.tk/authentication/logout">Logout</a></li>
+                                            data-bind="https://www.rbx2016.tk/authentication/logout"><p>Logout</p></a></li>
                                 </ul>
                             </div>
                         </li>
