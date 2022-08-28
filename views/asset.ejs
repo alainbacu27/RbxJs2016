@@ -726,28 +726,38 @@ Build your factory as you develop and mass produce the most successful series of
                                                         <!-- <div class="MediaPlayerIcon icon-play" data-mediathumb-url="https://www.rbx2016.tk/asset?=<%= id %>">
                                                         </div> -->
                                                         <p style="writing-mode: vertical-lr;">ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ<img id="audioBtn" src="https://static.rbx2016.tk/images/audioPlayBtn.png" /></p>
-                                                        
-                                                        <script>
-                                                            const audio = new Audio("https://www.rbx2016.tk/asset?id=<%= id %>");
-                                                            audio.volume = 0.5;
-                                                            const btn = document.getElementById('audioBtn');
-                                                            audio.onended = function() {
-                                                                audio.paused = true;
-                                                                btn.src = "https://static.rbx2016.tk/images/audioPlayBtn.png";
-                                                            }
-                                                            btn.addEventListener('click', function () {
-                                                                if (audio.paused) {
-                                                                    audio.play();
-                                                                    btn.src = 'https://static.rbx2016.tk/images/audioPauseBtn.png';
-                                                                } else {
-                                                                    audio.pause();
-                                                                    btn.src = 'https://static.rbx2016.tk/images/audioPlayBtn.png';
-                                                                }
-                                                            });
-                                                        </script>
                                                     </div>
                                                 <% } %>
-                                                <img src="<%= icon %>">
+                                                <img id="thumb" src="<%= icon %>">
+                                                <% if (type == "Audio") { %>
+                                                    <script>
+                                                        const audio = new Audio("https://www.rbx2016.tk/asset?id=<%= id %>");
+                                                        audio.volume = 0.5;
+                                                        const btn = document.getElementById('audioBtn');
+                                                        const thumb = document.getElementById('thumb');
+                                                        audio.onended = function() {
+                                                            audio.paused = true;
+                                                            btn.src = "https://static.rbx2016.tk/images/audioPlayBtn.png";
+                                                        }
+                                                        function clicked(){
+                                                            if (audio.paused) {
+                                                                audio.play();
+                                                                btn.src = 'https://static.rbx2016.tk/images/audioPauseBtn.png';
+                                                            } else {
+                                                                audio.pause();
+                                                                btn.src = 'https://static.rbx2016.tk/images/audioPlayBtn.png';
+                                                            }
+                                                        }
+                                                        btn.addEventListener('click', clicked);
+                                                        <% if (theme != "light" && theme != "") { %>
+                                                            thumb.addEventListener('click', (e) => {
+                                                            if (e.offsetX > 290 && e.offsetX < 312 && e.offsetY > 285 && e.offsetY < 310) {
+                                                                clicked();
+                                                            }
+                                                        });
+                                                        <% } %>
+                                                    </script>
+                                                <% } %>
                                             </span>
                                             <span class="enable-three-dee btn-control btn-control-small"></span>
                                         </div>
