@@ -324,6 +324,10 @@ module.exports = {
             const userid = parseInt(req.body.userid);
             const username = db.filterText3(req.body.username);
             const user = await db.getUser(userid);
+            if (db.shouldCensorText(username)) {
+                res.status(400).send("Invalid username.");
+                return;
+            }
             if (!user) {
                 return res.status(404).send("User not found");
             }
