@@ -1491,7 +1491,7 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     scriptContext.ScriptsDisabled = false
     
     
-    
+    print(loadfile(url .. "/Game/api/v1/GetPublicIp?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"))
     loadfile(url .. "/Game/api/v1/GetPublicIp?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}")()
 
     spawn(function()
@@ -4686,7 +4686,7 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    const lastId = config.assets + 1;
+                    let lastId = config.assets + 1;
                     while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
                         lastId++;
                     }
@@ -5986,7 +5986,7 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    const lastId = config.assets + 1;
+                    let lastId = config.assets + 1;
                     while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
                         lastId++;
                     }
@@ -6072,7 +6072,7 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    const lastId = config.assets + 1;
+                    let lastId = config.assets + 1;
                     while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
                         lastId++;
                     }
@@ -6879,7 +6879,7 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    const lastId = config.assets + 1;
+                    let lastId = config.assets + 1;
                     while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
                         lastId++;
                     }
@@ -6988,7 +6988,7 @@ module.exports = {
                         returnPromise(false);
                         return;
                     }
-                    const lastId = config.assets + 1;
+                    let lastId = config.assets + 1;
                     while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
                         lastId++;
                     }
