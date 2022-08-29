@@ -5684,7 +5684,7 @@ module.exports = {
                 if (err) throw err;
                 const dbo = db.db(dbName);
                 dbo.collection("users").findOne({
-                    username: {$toLower: username}
+                    username: {$regex: new RegExp(username, "i")}
                 }, function (err, result) {
                     if (err) {
                         db.close();
