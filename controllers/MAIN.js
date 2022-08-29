@@ -417,7 +417,7 @@ module.exports = {
 
         async function getGamesT3(userid) {
             let out = ``;
-            const games = await db.getGamesByCreatorId(userid);
+            const games = await db.getGamesByCreatorId(userid) || [];
             for (let i = 0; i < games.length; i++) {
                 const game = games[i];
                 if (!game.showOnProfile) continue;
@@ -482,7 +482,7 @@ module.exports = {
 
         async function getGamesT4(userid) {
             let out = ``;
-            const games = await db.getGamesByCreatorId(userid);
+            const games = await db.getGamesByCreatorId(userid) || [];
             for (let i = 0; i < games.length; i++) {
                 const game = games[i];
                 if (!game.showOnProfile) continue;
@@ -3988,7 +3988,7 @@ module.exports = {
 <a href="https://www.rbx2016.tk/games/?sortFilter=6" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
             
 <ul class="hlist game-cards ">`;
-            let games = await db.getUserRecentlyPlayedGames(userid);
+            let games = await db.getUserRecentlyPlayedGames(userid) || [];
             if (games.length == 0) {
                 return ``;
             }
@@ -4057,7 +4057,7 @@ module.exports = {
         
         
         <ul class="hlist game-cards ">`;
-            const games = await db.getUserFavoritedGames(userid);
+            const games = await db.getUserFavoritedGames(userid) || [];
             if (games.length == 0) {
                 return ``;
             }
@@ -4951,7 +4951,7 @@ module.exports = {
 
         async function getGamesT1(userid) {
             let out = ``;
-            const games = await db.getGamesByCreatorId(userid);
+            const games = await db.getGamesByCreatorId(userid) || [];
             for (let i = 0; i < games.length; i++) {
                 const game = games[i];
                 const gamename2 = db.filterText2(game.gamename).replaceAll(" ", "-");
@@ -4995,7 +4995,7 @@ module.exports = {
 
         async function getGamesT2(user) {
             let out = ``;
-            const games = await db.getGamesByCreatorId(user.userid);
+            const games = await db.getGamesByCreatorId(user.userid) || [];
             for (let i = 0; i < games.length; i++) {
                 const game = games[i];
                 const gamename2 = db.filterText2(game.gamename).replaceAll(" ", "-");

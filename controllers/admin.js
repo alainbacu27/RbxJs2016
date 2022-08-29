@@ -229,7 +229,7 @@ module.exports = {
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });
 
-        app.post("/v1/admin/maintenance", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/maintenance", db.requireAuth, db.requireMod, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
