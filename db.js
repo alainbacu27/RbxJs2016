@@ -1511,6 +1511,11 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
             plrs
             )
             wait(10)
+            if started then
+                plrs = #game.Players:GetPlayers()
+            else
+                started = true
+            end
         end
     end)
 
@@ -1633,6 +1638,11 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                 plrs
                 )
                 wait(10)
+                if started then
+                    plrs = #game.Players:GetPlayers()
+                else
+                    started = true
+                end
             end
         end)
     
