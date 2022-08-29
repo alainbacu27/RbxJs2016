@@ -17,17 +17,17 @@ module.exports = {
             const item = req.body.item;
             const todo = req.body.todo;
             const user = await db.getUser(userid);
-            if (req.user.isMod){
-                if (user && (user.isMod || user.isAdmin)){
+            if (req.user.isMod) {
+                if (user && (user.isMod || user.isAdmin)) {
                     res.status(401).send("You cannot ban that person. Lacking sufficient permissions.");
                     return;
                 }
             }
-            if (user && user.isAdmin){
+            if (user && user.isAdmin) {
                 res.status(401).send("You cannot ban that person. Lacking sufficient permissions.");
                 return;
             }
-            if (!user || user.isBanned){
+            if (!user || user.isBanned) {
                 res.status(400).send("User not found or already banned.");
                 return;
             }
@@ -66,7 +66,7 @@ module.exports = {
             }
             const userid = parseInt(req.body.userid);
             const user = await db.getUser(userid);
-            if (!user){
+            if (!user) {
                 res.status(400).send("User not found.");
                 return;
             }
@@ -84,7 +84,7 @@ module.exports = {
             }
             const userid = parseInt(req.body.userid);
             const user = await db.getUser(userid);
-            if (!user){
+            if (!user) {
                 res.status(400).send("User not found.");
                 return;
             }
@@ -99,16 +99,20 @@ module.exports = {
             }
             const userid = parseInt(req.body.userid);
             const user = await db.getUser(userid);
-            if (!user){
+            if (!user) {
                 res.status(400).send("User not found.");
                 return;
             }
-            const amount = parseInt(req.body.amount);
-            if (amount < 0 || amount > db.getSiteConfig().backend.maxGiveTix){
-                res.status(400).send(`You can only give between 0 and ${db.getSiteConfig().backend.maxGiveTix} tix!`);
+            if (user.userid == req.user.userid) {
+                res.status(401).send("You cannot give your self tix.");
                 return;
             }
-            if (req.user.tix < amount){
+            const amount = parseInt(req.body.amount);
+            if (amount < 1 || amount > db.getSiteConfig().backend.maxGiveTix) {
+                res.status(400).send(`You can only give between 1 and ${db.getSiteConfig().backend.maxGiveTix} tix!`);
+                return;
+            }
+            if (req.user.tix < amount) {
                 res.status(400).send("You do not have enough tix to give!");
                 return;
             }
@@ -252,9 +256,9 @@ module.exports = {
                 return;
             }
             const msg = req.body.msg;
-            if (msg == ""){
+            if (msg == "") {
                 db.log(`User ${req.user.userid} removing message.`);
-            }else{
+            } else {
                 db.log(`User ${req.user.userid} publishing message: ${msg}`);
             }
             await db.setConfig("roblox_message", msg);
@@ -280,8 +284,8 @@ module.exports = {
                 res.status(400).send();
                 return;
             }
-            if (req.user.isMod){
-                if (req.user.lastInvite && db.getUnixTimestamp() - req.user.lastInvite < db.getSiteConfig().shared.ADMIN_InviteCooldown){
+            if (req.user.isMod) {
+                if (req.user.lastInvite && db.getUnixTimestamp() - req.user.lastInvite < db.getSiteConfig().shared.ADMIN_InviteCooldown) {
                     res.status(401).send(`You cannot invite another user until ${db.timeToString(req.user.lastInvite + db.getSiteConfig().shared.ADMIN_InviteCooldown)}.`);
                     return;
                 }
@@ -299,7 +303,7 @@ module.exports = {
             }
             const key = req.body.key;
             const ik = await db.getInviteKey(key);
-            if (!req.user.isAdmin && ik && ik.createdby != req.user.userid){
+            if (!req.user.isAdmin && ik && ik.createdby != req.user.userid) {
                 res.status(401).send("You cannot delete this invite key.");
                 return;
             }
@@ -318,7 +322,7 @@ module.exports = {
                 return;
             }
             const userid = parseInt(req.body.userid);
-            const username = req.body.username;
+            const username = db.filterText3(req.body.username);
             const user = await db.getUser(userid);
             if (!user) {
                 return res.status(404).send("User not found");
@@ -326,8 +330,8 @@ module.exports = {
             if (user.isMod && !req.user.isAdmin && !user.isAdmin && req.user.userid != user.userid) {
                 return res.status(401).send("You cannot rename this user.");
             }
-                
-            if (await db.userExists(username)){
+
+            if (await db.userExists(username)) {
                 res.status(400).send("Username already exists");
                 return;
             }
@@ -369,7 +373,7 @@ module.exports = {
             if (role < 0 || role > 2) {
                 return res.status(400).send("Invalid role");
             }
-            if (user.isAdmin && req.user.userid != 1){
+            if (user.isAdmin && req.user.userid != 1) {
                 return res.status(401).send("You cannot change this user's role.");
             }
             db.log(`User ${req.user.userid} changing user ${userid}'s role to ${role}.`);
@@ -464,7 +468,7 @@ ${assets}
                 return;
             }
             let out = "";
-            if (req.user.isMod){
+            if (req.user.isMod) {
                 const keys = await db.listInviteKeys(req.user.userid);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
@@ -474,7 +478,7 @@ ${assets}
                     }
                     out += `${key.inviteKey} | Created: ${db.unixToDate(key.created).toISOString()}<p></p>`;
                 }
-            }else{
+            } else {
                 const keys = await db.listInviteKeys();
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
@@ -495,13 +499,13 @@ ${assets}
             }
             const fflag = req.body.fflag;
             let value = req.body.value;
-            if (value.toLowerCase() == "false"){
+            if (value.toLowerCase() == "false") {
                 value = false
-            }else if (value.toLowerCase() == "true"){
+            } else if (value.toLowerCase() == "true") {
                 value = true
-            }else if (parseInt(number)){
+            } else if (parseInt(number)) {
                 value = parseInt(number)
-            }else if (parseFloat(number)){
+            } else if (parseFloat(number)) {
                 value = parseFloat(number)
             }
             const platform = req.body.platform;
@@ -540,13 +544,13 @@ ${assets}
             }
             const fflag = req.body.fflag;
             let value = req.body.value;
-            if (value.toLowerCase() == "false"){
+            if (value.toLowerCase() == "false") {
                 value = false
-            }else if (value.toLowerCase() == "true"){
+            } else if (value.toLowerCase() == "true") {
                 value = true
-            }else if (parseInt(number)){
+            } else if (parseInt(number)) {
                 value = parseInt(number)
-            }else if (parseFloat(number)){
+            } else if (parseFloat(number)) {
                 value = parseFloat(number)
             }
             const bp = path.resolve(__dirname + "/../") + path.sep;
@@ -638,7 +642,7 @@ ${assets}
                     } else {
                         res.send(result);
                     }
-                }else{
+                } else {
                     res.send("[ERROR]: An error occured while executing.");
                 }
             }

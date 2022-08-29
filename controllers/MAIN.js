@@ -2658,6 +2658,10 @@ module.exports = {
                     res.status(400).send("File too large");
                     return;
                 }
+                if (db.getSiteConfig().shared.ShirtUploadCost < 0){
+                    res.status(400).send("Shirts are disabled");
+                    return;
+                }
                 if (req.user.robux < db.getSiteConfig().shared.ShirtUploadCost) {
                     res.status(401).send("You do not have enough Robux to upload a shirt");
                     return;

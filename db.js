@@ -5684,7 +5684,7 @@ module.exports = {
                 if (err) throw err;
                 const dbo = db.db(dbName);
                 dbo.collection("users").findOne({
-                    username: username
+                    username: {$toLower: username}
                 }, function (err, result) {
                     if (err) {
                         db.close();
@@ -5858,7 +5858,7 @@ module.exports = {
 
     convertCurrency: async function (userid, from, amount) {
         return new Promise(async returnPromise => {
-            if (amount <= 0) {
+            if (isNaN(amount) || amount < 0) {
                 returnPromise(false);
                 return;
             }
