@@ -2791,13 +2791,13 @@ module.exports = {
                     cols="62" tabindex="3"></textarea>
             </div>
             <div class="form-row submit-buttons">
-                <a id="upload-button" class="btn-medium btn-primary btn-level-element "
+                <a id="upload-button" class="btn-medium btn-primary "
                     tabindex="4">Preview<span class=></span></a>
                 <span id="loading-container"><img
                         src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
-                <div id="upload-fee-item-result-error" class="status-error btn-level-element ${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}
+                <div id="upload-fee-item-result-error" class="status-error ${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}
                 </div>
-                <div id="upload-fee-item-result-success" class="status-confirm btn-level-element ${isUploaded ? "" : "hidden"}">
+                <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                     <div><a id="upload-fee-confirmation-link" target="_top">Pass</a> successfully created!</div>
                 </div>
             </div>`;
@@ -2814,10 +2814,10 @@ module.exports = {
                     <span id="name-error" class="error"></span>
                 </div>
                     <div class="form-row submit-buttons">
-                                <a id="upload-button" class="btn-medium btn-primary btn-level-element " data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
+                                <a id="upload-button" class="btn-medium btn-primary " data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
                                         <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
-                <div id="upload-fee-item-result-error" class="status-error btn-level-element hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
-                <div id="upload-fee-item-result-success" class="status-confirm btn-level-element ${isUploaded ? "" : "hidden"}">
+                <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+                <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                     <div><a id="upload-fee-confirmation-link" target="_top">Audio</a> successfully created!</div>
                 </div>
             </div>`;
@@ -2833,10 +2833,10 @@ module.exports = {
                 <span id="name-error" class="error"></span>
             </div>
                 <div class="form-row submit-buttons">
-                            <a id="upload-button" class="btn-medium btn-level-element  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
+                            <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
                                     <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
-            <div id="upload-fee-item-result-error" class="status-error btn-level-element hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
-            <div id="upload-fee-item-result-success" class="status-confirm btn-level-element ${isUploaded ? "" : "hidden"}">
+            <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+            <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                 <div><a id="upload-fee-confirmation-link" target="_top">Mesh</a> successfully created!</div>
             </div>
             </div>`;
@@ -2852,10 +2852,10 @@ module.exports = {
                 <span id="name-error" class="error"></span>
             </div>
                 <div class="form-row submit-buttons">
-                            <a id="upload-button" class="btn-medium btn-level-element  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
+                            <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
                                     <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
-            <div id="upload-fee-item-result-error" class="status-error btn-level-element hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
-            <div id="upload-fee-item-result-success" class="status-confirm btn-level-element ${isUploaded ? "" : "hidden"}">
+            <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+            <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                 <div><a id="upload-fee-confirmation-link" target="_top">Decal</a> successfully created!</div>
             </div>
             </div>`
@@ -2872,10 +2872,10 @@ module.exports = {
                     <span id="name-error" class="error"></span>
                 </div>
                     <div class="form-row submit-buttons">
-                                <a id="upload-button" class="btn-medium btn-level-element  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload for ${db.getSiteConfig().shared.ShirtUploadCost} Robux<span class=""></span></a>
+                                <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload for ${db.getSiteConfig().shared.ShirtUploadCost} Robux<span class=""></span></a>
                                         <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
-                <div id="upload-fee-item-result-error" class="status-error btn-level-element hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
-                <div id="upload-fee-item-result-success" class="status-confirm btn-level-element ${isUploaded ? "" : "hidden"}">
+                <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+                <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                     <div><a id="upload-fee-confirmation-link" target="_top">Shirt</a> successfully created!</div>
                 </div>
                 </div>`

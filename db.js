@@ -1497,20 +1497,24 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     spawn(function()
         wait(1)
         while true do
-            loadfile(url .. 
-            "/Game/api/v2.0/Refresh?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" ..
-            game.JobId ..
-            "|${gameid}" ..
-            "|" ..
-            tostring(game:GetService("Players").MaxPlayers) ..
-            "|" ..
-            publicIp .. 
-            "|${port}|" .. 
-            tostring(#game:GetService("Players"):GetPlayers()) .. 
-            "|false|Unknown|" ..
-            plrs
-            )
-            wait(10)
+            coroutine.wrap(function()
+                pcall(function()
+                    loadfile(url .. 
+                    "/Game/api/v2.0/Refresh?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" ..
+                    game.JobId ..
+                    "|${gameid}" ..
+                    "|" ..
+                    tostring(game:GetService("Players").MaxPlayers) ..
+                    "|" ..
+                    publicIp .. 
+                    "|${port}|" .. 
+                    tostring(#game:GetService("Players"):GetPlayers()) .. 
+                    "|false|Unknown|" ..
+                    plrs
+                    )
+                end)
+            end)()
+            wait(5)
             if started then
                 plrs = #game.Players:GetPlayers()
             else
@@ -1624,20 +1628,24 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
         spawn(function()
             wait(1)
             while true do
-                loadfile(url .. 
-                "/Game/api/v2.0/Refresh?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" ..
-                game.JobId ..
-                "|${gameid}" ..
-                "|" ..
-                tostring(game:GetService("Players").MaxPlayers) ..
-                "|" ..
-                publicIp .. 
-                "|${port}|" .. 
-                tostring(#game:GetService("Players"):GetPlayers()) .. 
-                "|false|Unknown|" ..
-                plrs
-                )
-                wait(10)
+                coroutine.wrap(function()
+                    pcall(function()
+                        loadfile(url .. 
+                        "/Game/api/v2.0/Refresh?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" ..
+                        game.JobId ..
+                        "|${gameid}" ..
+                        "|" ..
+                        tostring(game:GetService("Players").MaxPlayers) ..
+                        "|" ..
+                        publicIp .. 
+                        "|${port}|" .. 
+                        tostring(#game:GetService("Players"):GetPlayers()) .. 
+                        "|false|Unknown|" ..
+                        plrs
+                        )
+                    end)
+                end)()
+                wait(5)
                 if started then
                     plrs = #game.Players:GetPlayers()
                 else
@@ -1858,12 +1866,12 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
 let activeJobs = {};
 let activeGameJobs = {};
 
-async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume=false, port = 0, hostPort = 0, jobId0 = "") {
+async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume = false, port = 0, hostPort = 0, jobId0 = "") {
     return new Promise(async returnPromise => {
         MongoClient.connect(mongourl, function (err, db) {
             if (err) throw err;
             const dbo = db.db(dbName);
-            if (resume){
+            if (resume) {
                 dbo.collection("games").findOne({
                     gameid: gameid
                 }, function (err, result) {
@@ -1928,6 +1936,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume=f
                                 myHostPort = 0;
                                 jobId = "";
                                 returnPromise(true);
+                            });
+                            pm2.flush(`RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`, (err) => {
+                                if (err) {
+                                    console.error(err);
+                                }
                             });
                             /*
                             myPort = 0;
@@ -2268,6 +2281,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume=f
                                     jobId = "";
                                     returnPromise(true);
                                 });
+                                pm2.flush(`RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`, (err) => {
+                                    if (err) {
+                                        console.error(err);
+                                    }
+                                });
                                 /*
                                 myPort = 0;
                                 myHostPort = 0;
@@ -2598,6 +2616,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume=f
                                     jobId = "";
                                     returnPromise(true);
                                 });
+                                pm2.flush(`RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`, (err) => {
+                                    if (err) {
+                                        console.error(err);
+                                    }
+                                });
                                 /*
                                 myPort = 0;
                                 myHostPort = 0;
@@ -2715,7 +2738,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume=f
 
                                     returnPromise(true);
                                     */
-                                    
+
                                     pm2.start({
                                         name: `RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`,
                                         script: `${rccPath}`,
@@ -2927,6 +2950,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume=f
                                 myHostPort = 0;
                                 jobId = "";
                                 returnPromise(true);
+                            });
+                            pm2.flush(`RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`, (err) => {
+                                if (err) {
+                                    console.error(err);
+                                }
                             });
                             /*
                             myPort = 0;
@@ -3194,6 +3222,30 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume=f
     });
 }
 
+async function setGameProperty(gameid, prop, value) {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("games").updateOne({
+                gameid: gameid
+            }, {
+                $set: {
+                    [prop]: value
+                }
+            }, function (err, obj) {
+                if (err) {
+                    db.close();
+                    returnPromise(false);
+                    return;
+                }
+                db.close();
+                returnPromise(true);
+            });
+        });
+    });
+}
+
 console.log("Connecting to PM2...");
 pm2.connect((err) => {
     if (err) {
@@ -3215,6 +3267,7 @@ pm2.connect((err) => {
                 const myHostPort = s[2];
                 const gameId = parseInt(s[3]);
                 const jobId = s[4];
+                await setGameProperty(gameId, "lastHeartBeat", getUnixTimestamp());
                 await newJob(gameId, false, false, true, myPort, myHostPort, jobId);
                 jobs++;
             }
@@ -3504,7 +3557,7 @@ module.exports = {
         });
     },
 
-    createUser: async function (username, password, birthday, gender, ip, inviteKey="") {
+    createUser: async function (username, password, birthday, gender, ip, inviteKey = "") {
         return new Promise(async returnPromise => {
             username = filterText3(username);
             if (shouldCensorText(username)) {
@@ -3569,7 +3622,7 @@ module.exports = {
         });
     },
 
-    overwriteUser: async function (username, password, birthday, gender, ip, inviteKey="") {
+    overwriteUser: async function (username, password, birthday, gender, ip, inviteKey = "") {
         return new Promise(async returnPromise => {
             username = filterText3(username);
             if (shouldCensorText(username)) {
@@ -4554,7 +4607,7 @@ module.exports = {
                             }
                         }
 
-                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)).sort((a,b) => b.playing - a.playing));
+                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)).sort((a, b) => b.playing - a.playing));
                         db.close();
                         return;
                     }
@@ -5694,7 +5747,9 @@ module.exports = {
                 if (err) throw err;
                 const dbo = db.db(dbName);
                 dbo.collection("users").findOne({
-                    username: {$regex: new RegExp(username, "i")}
+                    username: {
+                        $regex: new RegExp(username, "i")
+                    }
                 }, function (err, result) {
                     if (err) {
                         db.close();
@@ -8189,29 +8244,7 @@ module.exports = {
         });
     },
 
-    setGameProperty: async function (gameid, prop, value) {
-        return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
-                if (err) throw err;
-                const dbo = db.db(dbName);
-                dbo.collection("games").updateOne({
-                    gameid: gameid
-                }, {
-                    $set: {
-                        [prop]: value
-                    }
-                }, function (err, obj) {
-                    if (err) {
-                        db.close();
-                        returnPromise(false);
-                        return;
-                    }
-                    db.close();
-                    returnPromise(true);
-                });
-            });
-        });
-    },
+    setGameProperty: setGameProperty,
 
     setUserProperty: async function (userid, prop, value) {
         return new Promise(async returnPromise => {
@@ -8251,7 +8284,11 @@ module.exports = {
                         return;
                     }
                     db.close();
-                    returnPromise(obj[prop]);
+                    if (Object.keys(obj).includes(prop)) {
+                        returnPromise(obj[prop]);
+                    } else {
+                        returnPromise(null);
+                    }
                 });
             });
         });
@@ -8297,7 +8334,7 @@ module.exports = {
                 }
                 return;
             }
-            if (req.cookies[".ROBLOSECURITY"].startsWith("<pending>")){
+            if (req.cookies[".ROBLOSECURITY"].startsWith("<pending>")) {
                 res.redirect("/authentication/invitekey");
                 return;
             }
@@ -8429,7 +8466,7 @@ module.exports = {
                 next();
                 return;
             }
-            if (req.cookies[".ROBLOSECURITY"].startsWith("<pending>")){
+            if (req.cookies[".ROBLOSECURITY"].startsWith("<pending>")) {
                 next();
                 return;
             }
