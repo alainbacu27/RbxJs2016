@@ -6076,6 +6076,10 @@ module.exports = {
             res.send("true")
         });
 
+        app.get('/client-status', db.requireAuth, async (req, res) => {
+            res.send(await db.getUserLaunchStatus2(req.user.userid));
+        });
+
         app.get("/account/settings/account-country", async (req, res) => {
             res.json({
                 "countryName": "USA",
@@ -7288,6 +7292,563 @@ module.exports = {
             res.json({
                 "success": true
             });
+        });
+
+        app.get("/Setting/QuietGet/ClientSharedSettings", (req, res) => {
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientSharedSettings.json").toString()); 
+        });
+        app.get("/Setting/QuietGet/:channel", (req, res) => {
+            const channel = req.params.channel;
+            const bp = path.resolve(`${__dirname}/../FFlags/`) + path.sep;
+            const fp = `${bp}${channel}.json`;
+            if (!fp.startsWith(bp)) {
+                res.status(403).send("Forbidden");
+                return;
+            }
+            if (!fs.existsSync(fp)) {
+                res.status(404).send("Invalid channel.");
+                return;
+            }
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientAppSettings.json").toString()); 
+        });
+
+        app.get("/api/Setting/QuietGet/ClientSharedSettings", (req, res) => {
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientSharedSettings.json").toString()); 
+        });
+        app.get("/api/Setting/QuietGet/:channel", (req, res) => {
+            const channel = req.params.channel;
+            const bp = path.resolve(`${__dirname}/../FFlags/`) + path.sep;
+            const fp = `${bp}${channel}.json`;
+            if (!fp.startsWith(bp)) {
+                res.status(403).send("Forbidden");
+                return;
+            }
+            if (!fs.existsSync(fp)) {
+                res.status(404).send("Invalid channel.");
+                return;
+            }
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientAppSettings.json").toString()); 
+        });
+
+
+
+        app.post("/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+            const apikey = req.query.apiKey;
+            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const gameId = req.query.gameId;
+            const placeId = parseInt(req.query.placeId);
+            const gameCapacity = parseInt(req.query.gameCapacity);
+            const ipAddress = req.query.ipAddress;
+            const port = parseInt(req.query.port);
+            const fps = parseInt(req.query.fps);
+            const heartbeatRate = parseInt(req.query.heartbeatRate);
+            const ping = parseInt(req.query.ping);
+            const physicsLoadAverage = parseInt(req.query.physicsLoadAverage);
+            const physicsEnvironmentSpeed = parseInt(req.query.physicsEnvironmentSpeed);
+            const gameTime = parseInt(req.query.gameTime);
+            const universeId = parseInt(req.query.universeId);
+            const MatchmakingContextId = req.query.MatchmakingContextId;
+            const clientCount = parseInt(req.query.clientCount);
+            const preferredPlayerCapacity = parseInt(req.query.preferredPlayerCapacity);
+            const isCloudEdit = req.query.isCloudEdit == "true";
+            const rccVersion = req.query.rccVersion;
+            const eventSource = req.query.eventSource;
+            const streamingEnabled = req.query.streamingEnabled == "true";
+            const cpuUsage = parseInt(req.query.cpuUsage);
+            const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
+            const seqNum = parseInt(req.query.seqNum);
+            const players = parseInt(req.query.players);
+            if (players > 0){
+                if (!isCloudEdit) {
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                } else {
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                }
+            }else{
+                const game = await db.getGame(placeId);
+                if (game == null) {
+                    res.status(400).send()
+                    return;
+                }
+                const games = await db.getJobsByGameId(placeId);
+                for (let i = 0; i < games.length; i++) {
+                    const job = await db.getJob(games[i]);
+                    await job.stop();
+                }
+            }
+            res.json({
+                "status": 1,
+                "error": null,
+                "message": "Success"
+            });
+        });
+
+        app.post("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+            const apiKky = req.query.apiKey || (id0.length > 0 ? id0[0] : "");
+            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const gameId = req.query.gameId || (id0.length > 1 ? id0[1] : "");
+            const placeId = parseInt(req.query.placeId) || (id0.length > 2 ? parseInt(id0[2]) : null);
+            const gameCapacity = parseInt(req.query.gameCapacity) || (id0.length > 3 ? parseInt(id0[3]) : null);
+            const ipAddress = req.query.ipAddress || (id0.length > 4 ? id0[4] : "");
+            const port = parseInt(req.query.port) || (id0.length > 5 ? parseInt(id0[5]) : null);
+            const clientCount = parseInt(req.query.clientCount) || (id0.length > 6 ? parseInt(id0[6]) : null);
+            const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
+            const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
+            const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
+            /*
+            const fps = parseInt(req.query.fps);
+            const heartbeatRate = parseInt(req.query.heartbeatRate);
+            const ping = parseInt(req.query.ping);
+            const physicsLoadAverage = parseInt(req.query.physicsLoadAverage);
+            const physicsEnvironmentSpeed = parseInt(req.query.physicsEnvironmentSpeed);
+            const gameTime = parseInt(req.query.gameTime);
+            const universeId = parseInt(req.query.universeId);
+            const MatchmakingContextId = req.query.MatchmakingContextId;
+            const eventSource = req.query.eventSource;
+            const streamingEnabled = req.query.streamingEnabled == "true";
+            const preferredPlayerCapacity = parseInt(req.query.preferredPlayerCapacity);
+            const cpuUsage = parseInt(req.query.cpuUsage);
+            const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
+            const seqNum = parseInt(req.query.seqNum);
+            */
+            if (players > 0){
+                if (!isCloudEdit) {
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                } else {
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                }
+            }else{
+                const game = await db.getGame(placeId);
+                if (game == null) {
+                    res.status(400).send()
+                    return;
+                }
+                const games = await db.getJobsByGameId(placeId);
+                for (let i = 0; i < games.length; i++) {
+                    const job = await db.getJob(games[i]);
+                    await job.stop();
+                }
+            }
+            
+            const script = `
+`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
+        app.get("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+            const id0 = req.query.apiKey.split("|");
+            const apikey = (id0.length > 0 ? id0[0] : "");
+            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const gameId = req.query.gameId || (id0.length > 1 ? id0[1] : "");
+            const placeId = parseInt(req.query.placeId) || (id0.length > 2 ? parseInt(id0[2]) : null);
+            const gameCapacity = parseInt(req.query.gameCapacity) || (id0.length > 3 ? parseInt(id0[3]) : null);
+            const ipAddress = req.query.ipAddress || (id0.length > 4 ? id0[4] : "");
+            const port = parseInt(req.query.port) || (id0.length > 5 ? parseInt(id0[5]) : null);
+            const clientCount = parseInt(req.query.clientCount) || (id0.length > 6 ? parseInt(id0[6]) : null);
+            const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
+            const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
+            const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
+            /*
+            const fps = parseInt(req.query.fps);
+            const heartbeatRate = parseInt(req.query.heartbeatRate);
+            const ping = parseInt(req.query.ping);
+            const physicsLoadAverage = parseInt(req.query.physicsLoadAverage);
+            const physicsEnvironmentSpeed = parseInt(req.query.physicsEnvironmentSpeed);
+            const gameTime = parseInt(req.query.gameTime);
+            const universeId = parseInt(req.query.universeId);
+            const MatchmakingContextId = req.query.MatchmakingContextId;
+            const eventSource = req.query.eventSource;
+            const streamingEnabled = req.query.streamingEnabled == "true";
+            const preferredPlayerCapacity = parseInt(req.query.preferredPlayerCapacity);
+            const cpuUsage = parseInt(req.query.cpuUsage);
+            const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
+            const seqNum = parseInt(req.query.seqNum);
+            */
+            if (players > 0){
+                if (!isCloudEdit) {
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                } else {
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                }
+            }else{
+                const game = await db.getGame(placeId);
+                if (game == null) {
+                    res.status(400).send()
+                    return;
+                }
+                const games = await db.getJobsByGameId(placeId);
+                for (let i = 0; i < games.length; i++) {
+                    const job = await db.getJob(games[i]);
+                    await job.stop();
+                }
+            }
+            const script = `
+`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
+        app.get("/Game/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+            const id0 = req.query.apiKey.split("|");
+            const apikey = (id0.length > 0 ? id0[0] : "");
+            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const gameId = req.query.gameId || (id0.length > 1 ? id0[1] : "");
+            const placeId = parseInt(req.query.placeId) || (id0.length > 2 ? parseInt(id0[2]) : null);
+            const gameCapacity = parseInt(req.query.gameCapacity) || (id0.length > 3 ? parseInt(id0[3]) : null);
+            const ipAddress = req.query.ipAddress || (id0.length > 4 ? id0[4] : "");
+            const port = parseInt(req.query.port) || (id0.length > 5 ? parseInt(id0[5]) : null);
+            const clientCount = parseInt(req.query.clientCount) || (id0.length > 6 ? parseInt(id0[6]) : null);
+            const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
+            const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
+            const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
+            /*
+            const fps = parseInt(req.query.fps);
+            const heartbeatRate = parseInt(req.query.heartbeatRate);
+            const ping = parseInt(req.query.ping);
+            const physicsLoadAverage = parseInt(req.query.physicsLoadAverage);
+            const physicsEnvironmentSpeed = parseInt(req.query.physicsEnvironmentSpeed);
+            const gameTime = parseInt(req.query.gameTime);
+            const universeId = parseInt(req.query.universeId);
+            const MatchmakingContextId = req.query.MatchmakingContextId;
+            const eventSource = req.query.eventSource;
+            const streamingEnabled = req.query.streamingEnabled == "true";
+            const preferredPlayerCapacity = parseInt(req.query.preferredPlayerCapacity);
+            const cpuUsage = parseInt(req.query.cpuUsage);
+            const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
+            const seqNum = parseInt(req.query.seqNum);
+            */
+            if (players > 0){
+                if (!isCloudEdit) {
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                } else {
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                }
+            }else{
+                const game = await db.getGame(placeId);
+                if (game == null) {
+                    res.status(400).send()
+                    return;
+                }
+                const games = await db.getJobsByGameId(placeId);
+                for (let i = 0; i < games.length; i++) {
+                    const job = await db.getJob(games[i]);
+                    await job.stop();
+                }
+            }
+            const script = `
+`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
+        app.get("/Game/api/v1/UserJoined", db.requireAuth2, async (req, res) => {
+            const id0 = req.query.apiKey.split("|");
+            const apikey = (id0.length > 0 ? id0[0] : "");
+            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const gameId = (id0.length > 1 ? parseInt(id0[1]) : null);
+            const userId = (id0.length > 2 ? parseInt(id0[2]) : null);
+            await db.userJoinedGame(userId, gameId);
+            const user = await db.getUser(userId);
+            let interval;
+            interval = setInterval(async () => {
+                if (user && user.playing != 0) {
+                    await db.setUserProperty(user.userid, "lastOnline", db.getUnixTimestamp());
+                } else {
+                    clearInterval(interval);
+                }
+            }, 25000);
+            const script = `
+`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
+        app.get("/Game/ChatFilter.ashx", (req, res) => {
+            res.send("False");
+        });
+
+        app.get("/Game/api/v1/UserLeft", db.requireAuth2, async (req, res) => {
+            const id0 = req.query.apiKey.split("|");
+            const apikey = (id0.length > 0 ? id0[0] : "");
+            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const gameId = (id0.length > 1 ? id0[1] : null);
+            const userId = (id0.length > 2 ? id0[2] : null);
+            await db.userLeftGame(userId, gameId);
+            const script = `
+`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
+        app.get("/Game/api/v1/UserJoinedTeamCreate", db.requireAuth2, async (req, res) => {
+            const id0 = req.query.apiKey.split("|");
+            const apikey = (id0.length > 0 ? id0[0] : "");
+            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const gameId = (id0.length > 1 ? parseInt(id0[1]) : null);
+            const userId = (id0.length > 2 ? parseInt(id0[2]) : null);
+            await db.userJoinedTeamCreate(userId, gameId);
+            const script = `
+`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
+        app.get("/Game/api/v1/UserLeftTeamCreate", db.requireAuth2, async (req, res) => {
+            const id0 = req.query.apiKey.split("|");
+            const apikey = (id0.length > 0 ? id0[0] : "");
+            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const gameId = (id0.length > 1 ? id0[1] : null);
+            const userId = (id0.length > 2 ? id0[2] : null);
+            await db.userLeftTeamCreate(userId, gameId);
+            const script = `
+`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
+        app.get("/v1/games/:gameid/social-links/list", (req, res) => {
+            const gameid = parseInt(req.params.gameid);
+            res.json({
+                "data": []
+            });
+        });
+
+        app.get("/Game/ClientPresence.ashx", db.requireAuth2, async (req, res) => {
+            if (db.getSiteConfig().backend.presenceEnabled == false) {
+                res.status(404).render("404", await db.getBlankRenderObject());
+                return;
+            }
+            const placeid = parseInt(req.query.PlaceID);
+            const gameid = req.query.GameID;
+            const userid = parseInt(req.query.UserID);
+            const disconnect = req.query.Disconnect == "true";
+            if (!req.user || req.user.userid != userid) {
+                res.status(401).send();
+                return;
+            }
+            const game = await db.getGame(placeid);
+            if (!game || !game.isPublic || game.port == 0) {
+                res.status(403).send();
+                return;
+            }
+            if (disconnect) {
+                await db.setUserProperty(userid, "playing", 0);
+            } else {
+                await db.setUserProperty(userid, "playing", placeid);
+            }
+            res.send();
+        });
+
+        app.post("/api/v2/CreateOrUpdate", db.requireAuth2, async (req, res) => {
+            const apiKey = req.query.apiKey;
+            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const GameSessions = req.body.GameSessions; // TODO: Keep track of users thru this and make sure to put them in the correct presence.
+            const placeId = parseInt(req.query.placeId);
+            const gameID = req.query.gameID;
+            const port = parseInt(req.query.port);
+
+            const game = await db.getGame(placeId);
+            if (game == null) {
+                res.status(400).send()
+                return;
+            }
+            if (game.lastHeartBeat != 0) {
+                await db.setGameProperty(placeId, "port", port);
+            }
+            res.send();
+        });
+
+        app.get("/api/v1/Close", db.requireAuth2, async (req, res) => {
+            const id0 = req.query.apiKey.split("|");
+            const apikey = (id0.length > 0 ? id0[0] : "");
+            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const placeId = parseInt(req.query.placeId) || (id0.length > 1 ? parseInt(id0[1]) : "");
+            const gameID = req.query.gameID || (id0.length > 2 ? id0[2] : "");
+
+            const game = await db.getGame(placeId);
+            if (game == null) {
+                res.status(400).send()
+                return;
+            }
+            const games = await db.getJobsByGameId(placeId);
+            for (let i = 0; i < games.length; i++) {
+                const job = await db.getJob(games[i]);
+                await job.stop();
+            }
+            const script = `
+`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
+        app.get("/Game/api/v1/Close", db.requireAuth2, async (req, res) => {
+            let id0 = req.query.apiKey.split("|");
+            const apiKey = (id0.length > 0 ? id0[0] : "");
+            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const gameID = req.query.gameID || (id0.length > 1 ? id0[1] : "");
+            const placeId = parseInt(req.query.placeId) || (id0.length > 2 ? parseInt(id0[2]) : null);
+
+            const game = await db.getGame(placeId);
+            if (game == null) {
+                res.status(400).send()
+                return;
+            }
+            const games = await db.getJobsByGameId(placeId);
+            for (let i = 0; i < games.length; i++) {
+                const job = await db.getJob(games[i]);
+                await job.stop();
+            }
+            // await db.setGameProperty(placeId, "port", 0);
+            const script = `
+`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
+        app.post("/studio/pbe", (req, res) => {
+            res.status(202).send();
+        });
+
+        app.post("/timespent/pbe", (Req, res) => {
+            res.status(202).send();
+        })
+
+        app.get("/www/e.png", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            const evt = req.query.evt;
+            if (evt == "pageHeartbeat") {
+                if (req.user && req.user.inviteKey != "" && !req.user.banned && db.getSiteConfig().backend.presenceEnabled == true) {
+                    await db.setUserProperty(req.user.userid, "lastOnline", db.getUnixTimestamp());
+                }
+            } else if ((evt == "clientStartAttempt" || evt == "developIntent") && req.user && req.user.inviteKey != "" && !req.user.banned) {
+                const ctx = req.query.ctx;
+                if (ctx == "PlayButton" && db.getSiteConfig().backend.hostingEnabled == true) {
+                    if (typeof db.pendingPlayerAuthentications[ip] == "object") {
+                        if (!db.pendingPlayerAuthentications[ip].includes(ip)) {
+                            db.pendingPlayerAuthentications[ip].push([db.getUnixTimestamp(), req.user.cookie]);
+                        }
+                    } else {
+                        db.pendingPlayerAuthentications[ip] = [
+                            [db.getUnixTimestamp(), req.user.cookie]
+                        ];
+                    }
+                } else if (ctx == "Edit") {
+                    if (typeof db.pendingStudioAuthentications[ip] == "object") {
+                        if (!db.pendingStudioAuthentications[ip].includes(ip)) {
+                            db.pendingStudioAuthentications[ip].push([db.getUnixTimestamp(), req.user.cookie]);
+                        }
+                    } else {
+                        db.pendingStudioAuthentications[ip] = [
+                            [db.getUnixTimestamp(), req.user.cookie]
+                        ];
+                    }
+                }
+            }
+            res.send();
+        });
+
+        app.get("/studio/e.png", (req, res) => {
+            res.send();
+        });
+
+        app.get("/Error/Dmp.ashx", (req, res) => {
+            res.send();
+        });
+
+        app.get("/Error/Grid.ashx", (req, res) => {
+            res.send();
+        });
+
+        app.post("/Error/Dmp.ashx", (req, res) => {
+            const buffer = Buffer.from(JSON.stringify(req.body).substring(2).substring(0, JSON.stringify(req.body).length - 4), "base64");
+            fs.writeFileSync(`${__dirname}/../logs/dmp.dmp`, buffer.toString());
+            res.send();
+            delete buffer;
+        });
+
+        app.post("/Error/Grid.ashx", (req, res) => {
+            const buffer = Buffer.from(JSON.stringify(req.body).substring(2).substring(0, JSON.stringify(req.body).length - 4));
+            fs.writeFileSync(`${__dirname}/../logs/grid.dmp`, buffer.toString());
+            res.send();
+            delete buffer;
         });
     }
 }

@@ -111,15 +111,34 @@ template.app.get("/internal/:apiKey/RCCService.wsdl", db.requireAuth2, async (re
     }
 });
 
+const subdomain = require('express-subdomain');
+
 const files = fs.readdirSync(__dirname + "/controllers/");
 for (let i = 0; i < files.length; i++) {
     const file = files[i];
     if (file.endsWith(".js")) {
-        if (db.getSiteConfig().backend.disabledApis.includes(file.replace(".js", ""))) {
+        const name = file.replace(".js", "");
+        if (db.getSiteConfig().backend.disabledApis.includes(name)) {
             continue;
         }
+        const router = express.Router();
         const controller = require("./controllers/" + file);
-        controller.init(template.app, db);
+        controller.init(router, db);
+        if (name == "MAIN") {
+            template.app.use(router);
+            continue;
+        }
+        if (name != "assetgame" && router.stack.filter(layer => layer.route && layer.route.path === "/").length == 0) {
+            router.get("/", (req, res) => {
+                res.json({
+                    "message": "OK"
+                });
+            });
+        }
+        template.app.use(subdomain(name, router));
+        if (name == "assetgame") {
+            template.app.use(router);
+        }
     }
 }
 
