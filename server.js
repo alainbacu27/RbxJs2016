@@ -127,7 +127,11 @@ for (let i = 0; i < files.length; i++) {
         const controller = require("./controllers/" + file);
         controller.init(router, db);
         if (name == "MAIN") {
-            template.app.use(router);
+            try {
+                template.app.use(router);
+            } catch (e) { // Don't let errors crash the server
+                console.error(e);
+            }
             continue;
         }
         if (!merged.includes(name) && router.stack.filter(layer => layer.route && layer.route.path === "/").length == 0) {
@@ -137,9 +141,17 @@ for (let i = 0; i < files.length; i++) {
                 });
             });
         }
-        template.app.use(subdomain(name, router));
+        try {
+            template.app.use(subdomain(name, router));
+        } catch (e) { // Don't let errors crash the server
+            console.error(e);
+        }
         if (merged.includes(name)) {
-            template.app.use(router);
+            try {
+                template.app.use(router);
+            } catch (e) { // Don't let errors crash the server
+                console.error(e);
+            }
         }
     }
 }
