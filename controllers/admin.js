@@ -132,6 +132,7 @@ module.exports = {
             const assets = await db.getFirstXUnapprovedAssets(limit);
             let html = `
             <link rel="stylesheet" href="https://static.rbx2016.tk/css/main.css">
+<script type='text/javascript' src='/shut/realtime.js'></script>
 <script type='text/javascript' src='/js/jquery-1.11.1.min.js'></script>
             <script type='text/javascript'>
                 window.jQuery || document.write("<script type='text/javascript' src='/js/jquery/jquery-1.11.1.js'><\\/script>")

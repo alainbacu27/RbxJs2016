@@ -18,50 +18,37 @@ if (!fs.existsSync("./logs/admin.log")) {
     fs.writeFileSync("./logs/admin.log", "");
 }
 
-template.app.use("/", express.static(__dirname + "/public"));
-template.app.use("/", express.static(__dirname + "/public/css"));
-template.app.use("/", express.static(__dirname + "/public/img"));
-template.app.use("/", express.static(__dirname + "/public/js"));
-template.app.use("/", express.static(__dirname + "/public/setup"));
-
-const whitelistedUrls = ["/moderation/filtertext/", "//moderation/filtertext/"]
-template.app.use((req, res, next) => {
-    if (req.path.substr(-1) === '/' && req.path.length > 1 && !whitelistedUrls.includes(req.path)) {
-        const query = req.url.slice(req.path.length)
-        const safepath = req.path.slice(0, -1).replace(/\/+/g, '/')
-        res.redirect(301, safepath + query)
-    } else {
-        next()
-    }
-});
-
-template.app.use(async (req, res, next) => {
-    if (db.getSiteConfig().shared.pages.disabledRoutes.includes(req.url)) {
-        return;
-    }
-    if (db.getSiteConfig().shared.CLIENT_DOWNLOAD_AVAIlABLE == false && (req.url.startsWith("/version-") || req.url.startsWith("/Roblox.apk") || req.url.startsWith("/RobloxPlayerLauncher.exe") || req.url.startsWith("/RobloxStudioLauncherBeta.exe") || req.url.startsWith("/mac") || req.url.startsWith("/Roblox.dmb"))) {
-        res.status(403).send("Forbidden");
-        return;
-    }
-    next();
-});
-
+// Site shutdown handler :o
 template.app.use(db.requireAuth2, async (req, res, next) => {
-    if (!req.user) {
+    const ip = get_ip(req).clientIp;
+    const config = await db.getConfig();
+    if (req.path == "/shut/realtime") {
+        return res.json({
+            ready: config.shutdownTimestamp && config.shutdownTimestamp - db.getUnixTimestamp() < 280
+        });
+    }
+    if (config.shutdownTimestamp && config.shutdownTimestamp - db.getUnixTimestamp() < 280 && !req.path.startsWith("/shut/")) {
+        if (config.shutdownTimestamp - db.getUnixTimestamp() < 0) {
+            if (req.path == "/shutdown") {
+                return res.status(503).render("shutdown_info", {
+                    timestamp: config.shutdownTimestamp,
+                    reason: config.shutdownReason || "because it couldn't be kept up and there was too much work to do. I'm sorry. - Malte0621"
+                });
+            }
+        }
+        if (req.path != "/") {
+            res.redirect("/");
+            return;
+        }
+        res.status(503).render("shutdown", {
+            timestamp: config.shutdownTimestamp
+        });
+    } else {
+        if (config.shutdownTimestamp && (config.shutdownTimestamp - db.getUnixTimestamp() > 280 || config.shutdownTimestamp - db.getUnixTimestamp() < 0) && req.path.startsWith("/shut/") && !req.path == "/shut/ready.mp3") {
+            return res.status(404).render("404", await db.getBlankRenderObject());
+        }
         next();
-        return;
     }
-    if (req.user.inviteKey != "", !req.user.banned && db.getSiteConfig().backend.presenceEnabled == true) {
-        await db.setUserProperty(req.user.userid, "lastOnline", db.getUnixTimestamp());
-        if (db.getSiteConfig().backend.tix.enabled == true && db.getUnixTimestamp() - req.user.lastTix >= db.getSiteConfig().backend.tix.tixEverySeconds) {
-            await db.setUserProperty(req.user.userid, "lastTix", db.getUnixTimestamp());
-            await db.setUserProperty(req.user.userid, "tix", req.user.tix + 10);
-        }
-        if (req.method == "GET" && (!req.url.startsWith("/v1/") && req.url.startsWith("/v1.1/") && !req.url.startsWith("/v2/") && req.url.startsWith("/v3/") && req.url.startsWith("/api/"))) {
-            await db.generateUserCsrfToken(req.user.userid);
-        }
-    }
-    next();
 });
 
 template.app.use(db.requireAuth2, async (req, res, next) => {
@@ -109,6 +96,52 @@ template.app.get("/internal/:apiKey/RCCService.wsdl", db.requireAuth2, async (re
             res.status(404).render("404", await db.getBlankRenderObject());
         }
     }
+});
+
+template.app.use("/", express.static(__dirname + "/public"));
+template.app.use("/", express.static(__dirname + "/public/css"));
+template.app.use("/", express.static(__dirname + "/public/img"));
+template.app.use("/", express.static(__dirname + "/public/js"));
+template.app.use("/", express.static(__dirname + "/public/setup"));
+
+const whitelistedUrls = ["/moderation/filtertext/", "//moderation/filtertext/"]
+template.app.use((req, res, next) => {
+    if (req.path.substr(-1) === '/' && req.path.length > 1 && !whitelistedUrls.includes(req.path)) {
+        const query = req.url.slice(req.path.length)
+        const safepath = req.path.slice(0, -1).replace(/\/+/g, '/')
+        res.redirect(301, safepath + query)
+    } else {
+        next()
+    }
+});
+
+template.app.use(async (req, res, next) => {
+    if (db.getSiteConfig().shared.pages.disabledRoutes.includes(req.url)) {
+        return;
+    }
+    if (db.getSiteConfig().shared.CLIENT_DOWNLOAD_AVAIlABLE == false && (req.url.startsWith("/version-") || req.url.startsWith("/Roblox.apk") || req.url.startsWith("/RobloxPlayerLauncher.exe") || req.url.startsWith("/RobloxStudioLauncherBeta.exe") || req.url.startsWith("/mac") || req.url.startsWith("/Roblox.dmb"))) {
+        res.status(403).send("Forbidden");
+        return;
+    }
+    next();
+});
+
+template.app.use(db.requireAuth2, async (req, res, next) => {
+    if (!req.user) {
+        next();
+        return;
+    }
+    if (req.user.inviteKey != "", !req.user.banned && db.getSiteConfig().backend.presenceEnabled == true) {
+        await db.setUserProperty(req.user.userid, "lastOnline", db.getUnixTimestamp());
+        if (db.getSiteConfig().backend.tix.enabled == true && db.getUnixTimestamp() - req.user.lastTix >= db.getSiteConfig().backend.tix.tixEverySeconds) {
+            await db.setUserProperty(req.user.userid, "lastTix", db.getUnixTimestamp());
+            await db.setUserProperty(req.user.userid, "tix", req.user.tix + 10);
+        }
+        if (req.method == "GET" && (!req.url.startsWith("/v1/") && req.url.startsWith("/v1.1/") && !req.url.startsWith("/v2/") && req.url.startsWith("/v3/") && req.url.startsWith("/api/"))) {
+            await db.generateUserCsrfToken(req.user.userid);
+        }
+    }
+    next();
 });
 
 const subdomain = require('express-subdomain');
