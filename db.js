@@ -2066,6 +2066,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                     cron_restart: 0,
                                     autorestart: false,
                                     stop_exit_codes: [0],
+                                    cwd: rccFolder,
                                     args: `-Console -Start -Custom -PlaceId:${gameid} ${myPort}`
                                     // out_file: `app.strout.log`,
                                     // error_file: `app.strerr.log`
@@ -2121,6 +2122,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                     cron_restart: 0,
                                     autorestart: false,
                                     stop_exit_codes: [0],
+                                    cwd: rccFolder,
                                     args: `${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`
                                     // out_file: `app.strout.log`,
                                     // error_file: `app.strerr.log`
@@ -2410,6 +2412,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                         cron_restart: 0,
                                         autorestart: false,
                                         stop_exit_codes: [0],
+                                        cwd: rccFolder,
                                         args: `-Console -Start -Custom -PlaceId:${gameid} ${myPort}`
                                         // out_file: `app.strout.log`,
                                         // error_file: `app.strerr.log`
@@ -2465,6 +2468,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                         cron_restart: 0,
                                         autorestart: false,
                                         stop_exit_codes: [0],
+                                        cwd: rccFolder,
                                         args: `${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`
                                         // out_file: `app.strout.log`,
                                         // error_file: `app.strerr.log`
