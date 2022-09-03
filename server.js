@@ -113,6 +113,8 @@ template.app.get("/internal/:apiKey/RCCService.wsdl", db.requireAuth2, async (re
 
 const subdomain = require('express-subdomain');
 
+const merged = ["assetgame", "admin"];
+
 const files = fs.readdirSync(__dirname + "/controllers/");
 for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -128,7 +130,7 @@ for (let i = 0; i < files.length; i++) {
             template.app.use(router);
             continue;
         }
-        if (name != "assetgame" && router.stack.filter(layer => layer.route && layer.route.path === "/").length == 0) {
+        if (!merged.includes(name) && router.stack.filter(layer => layer.route && layer.route.path === "/").length == 0) {
             router.get("/", (req, res) => {
                 res.json({
                     "message": "OK"
@@ -136,7 +138,7 @@ for (let i = 0; i < files.length; i++) {
             });
         }
         template.app.use(subdomain(name, router));
-        if (name == "assetgame") {
+        if (merged.includes(name)) {
             template.app.use(router);
         }
     }
