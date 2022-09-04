@@ -7,6 +7,8 @@ const get_ip = require('ipware')().get_ip;
 
 module.exports = {
     init: (app, db) => {
+        const badUsernames = db.getSiteConfig().backend.badUsernames;
+        
         app.get("/ownership/hasasset", async (req, res) => {
             const userId = parseInt(req.query.userId);
             const assetId = parseInt(req.query.assetId);
