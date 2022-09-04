@@ -550,6 +550,72 @@ module.exports = {
             });
         });
 
+        app.post("/signup/v1", async (req, res) => {
+            const isEligibleForHideAdsAbTest = req.body.isEligibleForHideAdsAbTest;
+            if (db.getSiteConfig().shared.allowSignup == false) {
+                res.status(401).render("401", await db.getBlankTemplateData());
+                return;
+            }
+            const data = req.body;
+            try {
+                const birthday = new Date(data.birthday);
+            } catch {
+                res.status(400).send("Invalid birthday");
+                return;
+            }
+            const birthday = new Date(Date.parse(data.birthday));
+            const context = req.body.context; // RollerCoasterSignupForm
+            const gender = db.getSiteConfig().shared.users.gendersEnabled ? parseInt(data.gender) : 1; // 1 = none, 2 = Boy, 3 = Girl
+            if (gender < 1 || gender > 3) {
+                res.status(400).send("Invalid gender");
+                return;
+            }
+            const password = data.password;
+            const referralData = data.referralData;
+            const username = data.username;
+
+            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
+            if (isBadUsername) {
+                res.status(400).send("Bad username.");
+                return;
+            }
+            if (await db.userExists(username)) {
+                res.status(400).send("Username already taken.");
+                return;
+            }
+
+            if (db.getSiteConfig().shared.users.canBeUnder13 == false && new Date() - birthday < 13 * 365 * 24 * 60 * 60 * 1000) {
+                res.status(400).send("You must be 13 years or older to create an account.");
+                return;
+            }
+
+            const ip = get_ip(req).clientIp;
+            if (ip != "127.0.0.1" && ip != "::1" && await db.accountsByIP(ip).length >= db.getSiteConfig().backend.maxAccountsPerIP) {
+                res.status(401).send("Too many accounts.");
+                return;
+            }
+            if (typeof username != "string") {
+                return res.status(400).send();
+            }
+            if (username.length > 25) {
+                return res.status(400).send();
+            }
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.tk",
+                httpOnly: true
+            });
+            res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
+                maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
+                path: "/",
+                domain: "rbx2016.tk",
+                httpOnly: true
+            });
+
+            res.send();
+        });
+
         app.post("/universes/create", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.games.canCreateGames == false) {
                 res.status(404).render("404", await db.getBlankRenderObject());
