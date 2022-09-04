@@ -1763,7 +1763,8 @@
                                 }
 
                                 function unformatTime(formattedTime) {
-                                    const month = formattedTime.substring(0, formattedTime.indexOf(" ")).replaceAll(" ", "");
+                                    const month = formattedTime.substring(0, formattedTime.indexOf(" ")).replaceAll(" ",
+                                        "");
                                     const day = formattedTime.substring(formattedTime.indexOf(" ") + 1,
                                         formattedTime.indexOf(",")).replaceAll(" ", "");
                                     const year = formattedTime.substring(formattedTime.indexOf(",") + 2,
@@ -1820,6 +1821,22 @@
                                         sender.innerText = thisMessage.getElementsByClassName(
                                                 "username-0-2-105")[0]
                                             .innerText;
+                                        const xhr = new XMLHttpRequest();
+                                        xhr.open("GET",
+                                            `/v1/convert/username-to-id?username=${sender.innerText}`);
+                                        xhr.onreadystatechange = function () {
+                                            if (xhr.readyState === 4 && xhr.status === 200) {
+                                                xhr.onload = function () {
+                                                    const response = JSON.parse(xhr.responseText);
+                                                    if (!response.success) {
+                                                        return;
+                                                    }
+                                                    const to = response.id;
+                                                    sender.setAttribute("href", `/users/${to}/profile`);
+                                                }
+                                            }
+                                        }
+                                        xhr.send();
                                         subject.innerText = thisMessage.getElementsByClassName(
                                                 "subject-0-2-106")[0]
                                             .innerText;
