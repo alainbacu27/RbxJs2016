@@ -13,10 +13,23 @@ const AdmZip = require('adm-zip');
 // db.createGame("Testing Place", "A testing game.", 1, "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
 // db.createCatalogItem("Test Item", "DEBUG TESTING ITEM", 0, "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", 41, 1);
 // db.createGamepass(1, 3, "Test Gamepass", "A testing gamepass.", 0, "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
+// db.sendMessage(1, 2, "Welcome", "Welcome to Rbx2016! Enjoy your stay and have fun! :)");
 
 if (!fs.existsSync("./logs/admin.log")) {
     fs.writeFileSync("./logs/admin.log", "");
 }
+
+template.app.use(async (req, res, next) => {
+    if (req.get("Host") === "rbx2016.tk") {
+        if (req.get("X-Forwarded-Proto") === "https") {
+            res.redirect("https://www.rbx2016.tk" + req.url);
+        }else{
+            res.redirect("http://www.rbx2016.tk" + req.url);
+        }
+        return;
+    }
+    next();
+});
 
 // Site shutdown handler :o
 template.app.use(db.requireAuth2, async (req, res, next) => {
@@ -148,6 +161,8 @@ const subdomain = require('express-subdomain');
 
 const merged = ["assetgame", "admin"];
 
+const mainRouter = express.Router();
+
 const files = fs.readdirSync(__dirname + "/controllers/");
 for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -158,15 +173,13 @@ for (let i = 0; i < files.length; i++) {
         }
         const router = express.Router();
         const controller = require("./controllers/" + file);
-        controller.init(router, db);
-        if (name == "MAIN") {
-            try {
-                template.app.use(router);
-            } catch (e) { // Don't let errors crash the server
-                console.error(e);
-            }
+        if (name == "MAIN" || merged.includes(name)) {
+            controller.init(mainRouter, db);
             continue;
+        }else{
+            controller.init(router, db);
         }
+        
         if (!merged.includes(name) && router.stack.filter(layer => layer.route && layer.route.path === "/").length == 0) {
             router.get("/", (req, res) => {
                 res.json({
@@ -179,14 +192,14 @@ for (let i = 0; i < files.length; i++) {
         } catch (e) { // Don't let errors crash the server
             console.error(e);
         }
-        if (merged.includes(name)) {
-            try {
-                template.app.use(router);
-            } catch (e) { // Don't let errors crash the server
-                console.error(e);
-            }
-        }
     }
+}
+
+try {
+    template.app.use(subdomain("www", mainRouter));
+    template.app.use(subdomain("web", mainRouter));
+} catch (e) { // Don't let errors crash the server
+    console.error(e);
 }
 
 const studioFiles = []

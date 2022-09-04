@@ -17,7 +17,7 @@ module.exports = {
                 years += `<option value="${i}">${i}</option>
                 `;
             }
-            res.render("index", {
+            res.render("sitetest/index", {
                 ...await db.getBlankRenderObject(),
                 years: years,
                 signupEnabled: await db.getSiteConfig().shared.allowSignup,
@@ -54,7 +54,7 @@ module.exports = {
                 res.redirect("/My/Places.aspx&showlogin=True");
                 return;
             }
-            res.render("idewelcome", await db.getRenderObject(req.user));
+            res.render("sitetest/idewelcome", await db.getRenderObject(req.user));
         });
 
         app.get("/account/signupredir", (req, res) => {
@@ -62,7 +62,7 @@ module.exports = {
         })
 
         app.get("/info/roblox-badges", db.requireAuth, async (req, res) => {
-            res.render("robloxbadges", await db.getRenderObject(req.user))
+            res.render("sitetest/robloxbadges", await db.getRenderObject(req.user))
         });
 
         app.get("/users/friends", db.requireAuth, async (req, res) => {
@@ -70,7 +70,7 @@ module.exports = {
                 res.status(400).render("404", await db.getRenderObject(req.user));
                 return;
             }
-            res.render("friends", {
+            res.render("sitetest/friends", {
                 ...await db.getRenderObject(req.user),
                 auserid: req.user.userid,
             });
@@ -87,7 +87,7 @@ module.exports = {
                 res.status(404).render("404", await dbgetRenderObject(req.user));
                 return;
             }
-            res.render("friends", {
+            res.render("sitetest/friends", {
                 ...await db.getRenderObject(req.user),
                 auserid: user.userid,
             });
@@ -98,7 +98,7 @@ module.exports = {
                 res.status(400).render("404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("searchusers", await db.getRenderObject(req.user));
+            res.render("sitetest/searchusers", await db.getRenderObject(req.user));
         });
 
         app.get("/search/users/metadata", db.requireAuth, async (req, res) => {
@@ -139,16 +139,191 @@ module.exports = {
             });
         });
 
+        async function formatMessages(userid, location) {
+            let messages = await db.getMessages(userid, location);
+            if (!messages) return ``;
+            messages = messages.reverse();
+            let formatted = ``;
+            for (let i = 0; i < messages.length; i++) {
+                if (i > 1000) break;
+                const message = messages[i];
+                const sender = await db.getUser(message.from);
+                if (!sender) continue;
+                const pfp = sender.userid == 1 ? "https://images.rbx2016.tk/e870a0b9bcd987fbe7f730c8002f8faa.png" : "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png";
+                formatted += `<div class="pt-2 messageRow-0-2-110" id="${message.id}" data-timestamp="${message.timestamp}">
+                <div class="userCheckAndImage-0-2-114">
+                    <div class="markReadWrapper-0-2-113"><input
+                            type="checkbox" class="markRead-0-2-112"></div>
+                    <div class="userImage-0-2-111"><img class="image-0-2-61"
+                            src="${pfp}">
+                    </div>
+                </div>
+                <div class="subjectAndContent-0-2-115">
+                    <p class="username-0-2-105">${sender.username}</p>
+                    <p class="subjectBodyParagraph-0-2-108"><span
+                            class="subject-0-2-106 ">${message.subject}</span> - <span
+                            class="body-0-2-109">${message.body}</span></p>
+                </div>
+                <div>
+                    <div class="divider-top"></div>
+                </div>
+            </div>`;
+            }
+            return formatted;
+        }
+
+        app.get("/v1/convert/username-to-id", db.requireAuth, async (req, res) => {
+            const username = req.query.username;
+            if (!username) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "No username specified"
+                });
+                return;
+            }
+            const user = await db.findUser(username);
+            if (!user) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "User not found"
+                });
+                return;
+            }
+            res.json({
+                "success": true,
+                "id": user.userid
+            });
+        });
+
+        app.get("/my/messages", db.requireAuth, async (req, res) => {
+            res.render("sitetest/messages", {
+                ...(await db.getRenderObject(req.user)),
+                inbox: await formatMessages(req.user.userid, "inbox"),
+                sent: await formatMessages(req.user.userid, "sent"),
+                archive: await formatMessages(req.user.userid, "archive"),
+                notifications: ``
+            });
+        });
+
+        app.get("/messages/compose", db.requireAuth, async (req, res) => {
+            const userid = parseInt(req.query.recipientId);
+            const user = await db.getUser(userid);
+            if (!user) {
+                res.status(404).render("404", await db.getRenderObject(req.user));
+                return;
+            }
+            res.render("sitetest/message_compose", {
+                ...(await db.getRenderObject(req.user)),
+                to: user.userid,
+                toUsername: user.username
+            });
+        });
+
+        app.post("/messages/send", db.requireAuth, async (req, res) => {
+            const userid = req.body.to;
+            const subject = req.body.subject;
+            const body = req.body.body;
+            const user = await db.getUser(userid);
+            if (!user) {
+                res.status(404).json({
+                    "success": false,
+                    "error": "User not found"
+                });
+                return;
+            }
+            if (user.userid == req.user.userid) {
+                res.status(401).json({
+                    "success": false,
+                    "error": "You can't send a message to yourself"
+                });
+                return;
+            }
+            if (user.userid == 1){
+                res.status(401).json({
+                    "success": false,
+                    "error": "You cannot send messages to this user"
+                });
+                return;
+            }
+            if (!await db.areFriends(req.user.userid, user.userid)) {
+                res.status(403).json({
+                    "success": false,
+                    "error": "You must be friends with this user to send them a message"
+                });
+                return;
+            }
+            if (!subject || !body) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "Subject or body not specified"
+                });
+                return;
+            }
+            let messagesThisDay = req.user.messagesThisDay || 0;
+            let startMessagesThisDay = req.user.startMessagesThisDay || 0;
+            let shouldUpdateStartTimestamp = false;
+            if (db.getUnixTimestamp() - startMessagesThisDay > 86400) {
+                messagesThisDay = 0;
+                shouldUpdateStartTimestamp = true;
+            }
+            if (messagesThisDay >= db.getSiteConfig().shared.messages.maxMessagesPerDay) {
+                res.status(401).json({
+                    "success": false,
+                    "error": "You've reached the message limit for today"
+                });
+                return;
+            }else if (messagesThisDay == 0) {
+                startMessagesThisDay = db.getUnixTimestamp();
+                messagesThisDay = 1;
+            }else{
+                messagesThisDay++;
+            }
+            await db.setUserProperty(user.userid, "messagesThisDay", messagesThisDay);
+            if (shouldUpdateStartTimestamp){
+                await db.setUserProperty(user.userid, "startMessagesThisDay", startMessagesThisDay);
+            }
+            await db.sendMessage(req.user.userid, userid, db.censorText(db.filterText4(subject)), db.censorText(db.filterText4(body)));
+            res.json({
+                "success": true
+            });
+        });
+
+        app.post("/v1/archive-messages", db.requireAuth, async (req, res) => {
+            const ids = req.body.ids;
+            if (!ids || !Array.isArray(ids)) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "No ids specified"
+                });
+                return;
+            }
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                const message = await db.getMessage(id);
+                if (!message || message.to != req.user.userid) {
+                    res.status(401).json({
+                        "success": false,
+                        "error": "You do not own one or more of the requested messages."
+                    });
+                    return;
+                }
+                await db.archiveMessage(id, req.body.state ? true : false);
+            }
+            res.json({
+                "success": true
+            });
+        });
+
         app.get("/authentication/is-logged-in", (req, res) => {
             res.send();
         })
 
         app.get("/crossdevicelogin/ConfirmCode", db.requireAuth, async (req, res) => {
-            res.render("quicklogin", await db.getRenderObject(req.user));
+            res.render("sitetest/quicklogin", await db.getRenderObject(req.user));
         });
 
         app.get("/my/groups", db.requireAuth, async (req, res) => {
-            res.render("groups", await db.getRenderObject(req.user));
+            res.render("sitetest/groups", await db.getRenderObject(req.user));
         });
 
         app.get("/groups/create", db.requireAuth, async (req, res) => {
@@ -156,7 +331,7 @@ module.exports = {
                 res.status(400).render("404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("creategroup", await db.getRenderObject(req.user));
+            res.render("sitetest/creategroup", await db.getRenderObject(req.user));
         });
 
         app.get("/search/groups", db.requireAuth, async (req, res) => {
@@ -164,7 +339,7 @@ module.exports = {
                 res.status(400).render("404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("groups", await db.getRenderObject(req.user));
+            res.render("sitetest/groups", await db.getRenderObject(req.user));
         });
 
         app.get("/upgrades/robux", db.requireAuth, async (req, res) => {
@@ -172,7 +347,7 @@ module.exports = {
                 res.status(400).render("404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("robux", await db.getRenderObject(req.user));
+            res.render("sitetest/robux", await db.getRenderObject(req.user));
         });
 
         app.get("/Upgrades/Robux.aspx", (req, res) => {
@@ -180,7 +355,7 @@ module.exports = {
         });
 
         app.get("/transactions", db.requireAuth, async (req, res) => {
-            res.render("transactions", await db.getRenderObject(req.user));
+            res.render("sitetest/transactions", await db.getRenderObject(req.user));
         });
 
         app.get("/gamecards/redeem", db.requireAuth, async (req, res) => {
@@ -188,7 +363,7 @@ module.exports = {
                 res.status(400).render("404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("redeem", await db.getRenderObject(req.user));
+            res.render("sitetest/redeem", await db.getRenderObject(req.user));
         });
 
         app.get("/giftcards-us", async (req, res) => {
@@ -200,11 +375,11 @@ module.exports = {
                 res.status(400).render("404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("giftcards", await db.getBlankRenderObject());
+            res.render("sitetest/giftcards", await db.getBlankRenderObject());
         });
 
         app.get("/trades", db.requireAuth, async (req, res) => {
-            res.render("trades", await db.getRenderObject(req.user));
+            res.render("sitetest/trades", await db.getRenderObject(req.user));
         });
 
         app.get("/premium/membership", db.requireAuth, async (req, res) => {
@@ -212,7 +387,7 @@ module.exports = {
                 res.status(400).render("404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("premium", await db.getRenderObject(req.user));
+            res.render("sitetest/premium", await db.getRenderObject(req.user));
         });
 
         app.post("/games/shutdown-all-instances", db.requireAuth, async (req, res) => {
@@ -276,7 +451,7 @@ module.exports = {
                     /*
                                     {
                                         "Id": 1,
-                                        "AssetSeoUrl": "https://www.rbx2016.tk/catalog/1/",
+                                        "AssetSeoUrl": "https://sitetest.rbx2016.tk/catalog/1/",
                                         "Thumbnail": {
                                             "Final": true,
                                             "Url": "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
@@ -423,7 +598,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                    <a href="https://www.rbx2016.tk/games/${game.gameid}"
+                    <a href="https://sitetest.rbx2016.tk/games/${game.gameid}"
                         class="game-card-link">
                         <div class="game-card-thumb-container">
                             <img class="game-card-thumb"
@@ -468,7 +643,7 @@ module.exports = {
                     <span class="game-card-footer">
                         <span class="text-label xsmall">By </span>
                         <a class="text-link xsmall text-overflow"
-                            href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                            href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
                     </span>
                 </div>
             </li>`;
@@ -491,7 +666,7 @@ module.exports = {
                 ng-class="{'active': switcher.games.currPage == ${i}}" data-index="0">
                 <div class="col-sm-6 slide-item-container-left">
                     <div class="slide-item-emblem-container">
-                        <a href="https://www.rbx2016.tk/games/${game.gameid}">
+                        <a href="https://sitetest.rbx2016.tk/games/${game.gameid}">
                             <img class="slide-item-image"
                                 src="https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png"
                                 data-src="https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png"
@@ -587,15 +762,15 @@ module.exports = {
         });
 
         app.get("/Badges.aspx", db.requireAuth2, async (req, res) => {
-            res.render("badges", {
+            res.render("sitetest/badges", {
                 ...(await db.getRenderObject(req.user))
             });
         });
 
         app.get("/My/Character.aspx", db.requireAuth, async (req, res) => {
             const avatarColors = await db.getUserProperty(req.user.userid, "avatarColors") || [1002, 1002, 1002, 1002, 1002, 1002];
-            
-            res.render("avatar", {
+
+            res.render("sitetest/avatar", {
                 ...(await db.getRenderObject(req.user)),
                 "headColor": avatarColors[0],
                 "leftArmColor": avatarColors[1],
@@ -758,7 +933,7 @@ module.exports = {
 
             badgesHtml += `</div>`;
 
-            res.render("profile", {
+            res.render("sitetest/profile", {
                 ...(await db.getRenderObject(req.user)),
                 auserid: user.userid,
                 ausername: user.username,
@@ -881,10 +1056,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad1", {
+            res.render("sitetest/userads/userad1", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/ab60e8d4d6a69816eec62a561416850f.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -894,10 +1069,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad2", {
+            res.render("sitetest/userads/userad2", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/f6873fd4b192df10f0cb0f41f6a344e7.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -906,10 +1081,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad3", {
+            res.render("sitetest/userads/userad3", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/3361ecd3b9294a517ddf1f304819baac.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -924,10 +1099,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad1", {
+            res.render("sitetest/userads/userad1", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/ab60e8d4d6a69816eec62a561416850f.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -937,10 +1112,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad2", {
+            res.render("sitetest/userads/userad2", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/f6873fd4b192df10f0cb0f41f6a344e7.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -949,10 +1124,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad3", {
+            res.render("sitetest/userads/userad3", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/3361ecd3b9294a517ddf1f304819baac.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -969,7 +1144,7 @@ module.exports = {
                 res.status(403).send("Forbidden");
                 return;
             }
-            res.render("download", await db.getBlankRenderObject());
+            res.render("sitetest/download", await db.getBlankRenderObject());
         });
 
         app.get("/download/client", (req, res) => {
@@ -1049,9 +1224,9 @@ module.exports = {
                 "UniverseId": game.gameid,
                 // "vipOwnerId": 1,
                 "DatacenterId": 1,
-                "PlaceFetchUrl": "http://www.rbx2016.tk/v1/asset?id=1",
-                "assetdelivery": "http://www.rbx2016.tk/",
-                "BaseUrl": "http://www.rbx2016.tk/",
+                "PlaceFetchUrl": "http://sitetest.rbx2016.tk/v1/asset?id=1",
+                "assetdelivery": "http://sitetest.rbx2016.tk/",
+                "BaseUrl": "http://sitetest.rbx2016.tk/",
                 "MatchmakingContextId": 1,
                 "MachineAddress": "127.0.0.1",
                 "CreatorId": game.creatorid,
@@ -1102,7 +1277,7 @@ module.exports = {
         });
 
         app.get("/newlogin", db.requireNonAuth, async (req, res) => {
-            res.render("login", {
+            res.render("sitetest/login", {
                 ...await db.getBlankRenderObject(),
                 error: ""
             });
@@ -1113,11 +1288,11 @@ module.exports = {
                 res.redirect("/My/Places.aspx&showlogin=True");
                 return;
             }
-            res.render("idewelcome", await db.getRenderObject(req.user));
+            res.render("sitetest/idewelcome", await db.getRenderObject(req.user));
         });
 
         app.get("/My/Places.aspx&showlogin=True", db.requireNonAuth, async (req, res) => {
-            res.render("studiologin", {
+            res.render("sitetest/studiologin", {
                 ...await db.getBlankRenderObject(),
                 error: ""
             });
@@ -1181,7 +1356,7 @@ module.exports = {
 
         app.get("/IDE/ClientToolbox.aspx", async (req, res) => {
             const assets = "";
-            res.render("ClientToolbox", {
+            res.render("sitetest/ClientToolbox", {
                 ...await db.getBlankRenderObject(),
                 assets: assets
             });
@@ -1193,7 +1368,7 @@ module.exports = {
                 res.redirect("/games");
                 return;
             }
-            res.render("invitekey", await db.getBlankRenderObject());
+            res.render("sitetest/invitekey", await db.getBlankRenderObject());
         });
 
         app.get("/chat/data", (req, res) => {
@@ -1383,11 +1558,9 @@ module.exports = {
             res.send();
         });
 
-        /*
         app.get("/reference/styleguide", async (req, res) => {
-            res.render("styleguide", await db.getBlankRenderObject());
+            res.render("sitetest/styleguide", await db.getBlankRenderObject());
         });
-        */
 
         app.get("/Game/LoadPlaceInfo.ashx", async (req, res) => {
             const PlaceId = parseInt(req.query.PlaceId);
@@ -1399,12 +1572,12 @@ module.exports = {
             const script = `-- Loaded by StartGameSharedScript --
             pcall(function() game:SetCreatorID(${game.creatorid}, Enum.CreatorType.User) end)
             
-            pcall(function() game:GetService("SocialService"):SetFriendUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://www.rbx2016.tk/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
+            pcall(function() game:GetService("SocialService"):SetFriendUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://sitetest.rbx2016.tk/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
             `;
             const rbxsig = db.sign(script);
             res.send(`%${rbxsig}%${script}`);
@@ -1471,7 +1644,7 @@ module.exports = {
             }
             const user = await db.loginUser(username, password, isClient);
             if (user == false) {
-                res.render("login", {
+                res.render("sitetest/login", {
                     ...await db.getBlankRenderObject(),
                     error: `<div class="validation-summary-errors" data-valmsg-summary="true">
                     <ul>
@@ -1509,7 +1682,7 @@ module.exports = {
         app.get("/places/version-history", db.requireAuth, async (req, res) => {
             const assetid = req.query.assetID;
             const page = req.query.page;
-            res.render("versionhistory", await db.getBlankRenderObject());
+            res.render("sitetest/versionhistory", await db.getBlankRenderObject());
         });
 
         app.post("/places/developerproducts/add", db.requireAuth, async (req, res) => {
@@ -1745,7 +1918,7 @@ module.exports = {
 
         app.get("/places/create-developerproduct", async (req, res) => {
             const gameid = parseInt(req.query.universeId);
-            res.render("createdeveloperproduct", {
+            res.render("sitetest/createdeveloperproduct", {
                 ...(await db.getRenderObject(req.user)),
                 gameid: gameid
             });
@@ -1767,7 +1940,7 @@ module.exports = {
                 res.status(401).json({});
                 return;
             }
-            res.render("editdeveloperproduct", {
+            res.render("sitetest/editdeveloperproduct", {
                 ...(await db.getRenderObject(req.user)),
                 gameid: gameid,
                 id: product.id,
@@ -1790,7 +1963,7 @@ module.exports = {
                     return;
                 }
                 const creator = await db.getUser(game.creatorid);
-                res.render("updateplace", {
+                res.render("sitetest/updateplace", {
                     ...(await db.getRenderObject(req.user)),
                     gameid: game.gameid,
                     gamename: game.gamename,
@@ -1964,7 +2137,7 @@ module.exports = {
             </tr>`;
             }
 
-            res.render("universeconfigure", {
+            res.render("sitetest/universeconfigure", {
                 ...(await db.getRenderObject(req.user)),
                 gameid: gameid,
                 gamename: game.gamename,
@@ -2175,7 +2348,7 @@ module.exports = {
             const gameid = parseInt(req.params.gameid);
             const game = await db.getGame(gameid);
             if (game) {
-                res.render("votingservice", {
+                res.render("sitetest/votingservice", {
                     gameid: game.gameid,
                     likes: game.likes.length,
                     dislikes: game.dislikes.length
@@ -2208,13 +2381,13 @@ module.exports = {
                         <tbody>
                             <tr>
                                 <td class="image-col">
-                                    <a href="https://www.rbx2016.tk/game-pass/${gamepass.id}"
+                                    <a href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}"
                                         class="item-image"><img class=""
                                             src="${gamepass.thumbnailurl}"></a>
                                 </td>
                                 <td class="name-col">
                                     <a class="title"
-                                        href="https://www.rbx2016.tk/game-pass/${gamepass.id}">${gamepass.name}</a>
+                                        href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}">${gamepass.name}</a>
                                     <table class="details-table">
                                         <tbody>
                                             <tr>
@@ -2264,7 +2437,7 @@ module.exports = {
             }
             let games = await db.getGamesByCreatorId(req.user.userid);
             games = games.reverse();
-            const game_template = fs.readFileSync(__dirname + "/../views/template_mygame.ejs").toString();
+            const game_template = fs.readFileSync(__dirname + "/../views/sitetest/template_mygame.ejs").toString();
             let games_html = "";
             for (let i = 0; i < games.length; i++) {
                 if (i > 50) break;
@@ -2302,13 +2475,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://www.rbx2016.tk/game-pass/${gamepass.id}"
+                                <a href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}"
                                     class="item-image"><img class=""
                                         src="${gamepass.thumbnailurl}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://www.rbx2016.tk/game-pass/${gamepass.id}">${gamepass.name}</a>
+                                    href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}">${gamepass.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2352,13 +2525,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://www.rbx2016.tk/library/${asset.id}"
+                                <a href="https://sitetest.rbx2016.tk/library/${asset.id}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.id}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.id}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://www.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                    href="https://sitetest.rbx2016.tk/library/${asset.id}">${asset.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2402,13 +2575,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://www.rbx2016.tk/library/${asset.id}"
+                                <a href="https://sitetest.rbx2016.tk/library/${asset.id}"
                                     class="item-image"><img class=""
                                         src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png"}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://www.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                    href="https://sitetest.rbx2016.tk/library/${asset.id}">${asset.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2452,13 +2625,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://www.rbx2016.tk/library/${asset.id}"
+                                <a href="https://sitetest.rbx2016.tk/library/${asset.id}"
                                     class="item-image"><img class=""
                                         src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg"}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://www.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                    href="https://sitetest.rbx2016.tk/library/${asset.id}">${asset.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2502,13 +2675,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://www.rbx2016.tk/library/${asset.itemid}"
+                                <a href="https://sitetest.rbx2016.tk/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://www.rbx2016.tk/catalog/${asset.itemid}">${asset.itemname}</a>
+                                    href="https://sitetest.rbx2016.tk/catalog/${asset.itemid}">${asset.itemname}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2537,7 +2710,7 @@ module.exports = {
                 }
             }
 
-            res.render("develop", {
+            res.render("sitetest/develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
                 publicPlaces: publicPlacesHtml,
@@ -2565,7 +2738,7 @@ module.exports = {
                     return;
                 }
             }
-            res.render("buildverifyupload", {
+            res.render("sitetest/buildverifyupload", {
                 ...(await db.getRenderObject(req.user)),
                 name: req.body.name,
                 desc: req.body.description,
@@ -2660,7 +2833,7 @@ module.exports = {
                     res.status(400).send("File too large");
                     return;
                 }
-                if (db.getSiteConfig().shared.ShirtUploadCost < 0){
+                if (db.getSiteConfig().shared.ShirtUploadCost < 0) {
                     res.status(400).send("Shirts are disabled");
                     return;
                 }
@@ -2885,7 +3058,7 @@ module.exports = {
                 res.status(404).render("404", await db.getRenderObject(req.user));
                 return;
             }
-            res.render("buildupload", {
+            res.render("sitetest/buildupload", {
                 ...(await db.getRenderObject(req.user)),
                 gameid: game != null ? game.gameid : null,
                 gamename: game != null ? game.gamename : null,
@@ -2909,7 +3082,7 @@ module.exports = {
                 return;
             }
             const games = await db.getGamesByCreatorId(req.user.userid);
-            const game_template = fs.readFileSync(__dirname + "/../views/template_mygame.ejs").toString();
+            const game_template = fs.readFileSync(__dirname + "/../views/sitetest/template_mygame.ejs").toString();
             let games_html = "";
             for (let i = 0; i < games.length; i++) {
                 const game = games[i];
@@ -2944,7 +3117,7 @@ module.exports = {
                     }
                     return;
             }
-            res.render("develop", {
+            res.render("sitetest/develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
                 tab2: actual_tab,
@@ -2953,18 +3126,18 @@ module.exports = {
         });
 
         app.get("/my/avatar", db.requireAuth, async (req, res) => {
-            res.render("avatar", await db.getRenderObject(req.user));
+            res.render("sitetest/avatar", await db.getRenderObject(req.user));
         });
 
         app.get("/library", db.requireAuth, async (req, res) => {
             const games = await db.getGamesByCreatorId(req.user.userid);
-            const game_template = fs.readFileSync(__dirname + "/../views/template_mygame.ejs").toString();
+            const game_template = fs.readFileSync(__dirname + "/../views/sitetest/template_mygame.ejs").toString();
             let games_html = "";
             for (let i = 0; i < games.length; i++) {
                 const game = games[i];
                 games_html += game_template.toString().replaceAll("<%= gameid %>", game.gameid).replaceAll("<%= gamename %>", game.gamename).replaceAll("<%= gamename2 %>", db.filterText2(game.gamename).replaceAll(" ", "-"));
             }
-            res.render("develop", {
+            res.render("sitetest/develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
                 tab2: "MyCreations",
@@ -2974,13 +3147,13 @@ module.exports = {
 
         app.get("/build/universes", db.requireAuth, async (req, res) => {
             const games = await db.getGamesByCreatorId(req.user.userid);
-            const game_template = fs.readFileSync(__dirname + "/../views/template_mygame.ejs").toString();
+            const game_template = fs.readFileSync(__dirname + "/../views/sitetest/template_mygame.ejs").toString();
             let games_html = "";
             for (let i = 0; i < games.length; i++) {
                 const game = games[i];
                 games_html += game_template.toString().replaceAll("<%= gameid %>", game.gameid).replaceAll("<%= gamename %>", game.gamename).replaceAll("<%= gamename2 %>", db.filterText2(game.gamename).replaceAll(" ", "-"));
             }
-            res.render("mygames", {
+            res.render("sitetest/mygames", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html
             });
@@ -3010,7 +3183,7 @@ module.exports = {
                     const presenceType = (friend.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) && friend.playing != 0 ? 2 : 1 : 0;
                     data.push({
                         "UserId": friend.userid,
-                        "AbsoluteURL": "https://www.rbx2016.tk/users/" + friend.userid.toString() + "/profile",
+                        "AbsoluteURL": "https://sitetest.rbx2016.tk/users/" + friend.userid.toString() + "/profile",
                         "Username": friend.username,
                         "AvatarUri": "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png",
                         "AvatarFinal": true,
@@ -3057,7 +3230,7 @@ module.exports = {
                     const presenceType = (friend.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) && friend.playing != 0 ? 2 : 1 : 0;
                     data.push({
                         "UserId": friend.userid,
-                        "AbsoluteURL": "https://www.rbx2016.tk/users/" + friend.userid.toString() + "/profile",
+                        "AbsoluteURL": "https://sitetest.rbx2016.tk/users/" + friend.userid.toString() + "/profile",
                         "Username": friend.username,
                         "AvatarUri": "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png",
                         "AvatarFinal": true,
@@ -3145,7 +3318,7 @@ module.exports = {
                 }
                 return;
             }
-            res.render("inventory", {
+            res.render("sitetest/inventory", {
                 ...(await db.getRenderObject(req.user)),
                 auserid: user.userid,
                 ausername: user.username,
@@ -3178,7 +3351,7 @@ module.exports = {
                                     "AssetId": 1,
                                     "UniverseId": null,
                                     "Name": "Test",
-                                    "AbsoluteUrl": "https://www.rbx2016.tk/catalog/1/Test",
+                                    "AbsoluteUrl": "https://sitetest.rbx2016.tk/catalog/1/Test",
                                     "AssetType": 8,
                                     "AssetTypeDisplayName": null,
                                     "AssetTypeFriendlyLabel": null,
@@ -3196,7 +3369,7 @@ module.exports = {
                                     "Id": 1,
                                     "Name": "Roblox",
                                     "Type": 1,
-                                    "CreatorProfileLink": "https://www.rbx2016.tk/users/1/profile/"
+                                    "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/1/profile/"
                                 },
                                 "Product": {
                                     "Id": 0,
@@ -3254,7 +3427,7 @@ module.exports = {
                             "AssetId": game.gameid,
                             "UniverseId": game.gameid,
                             "Name": game.gamename,
-                            "AbsoluteUrl": `https://www.rbx2016.tk/games/${game.gameid}/${db.filterText2(game.gamename).replace(" ", "-")}`,
+                            "AbsoluteUrl": `https://sitetest.rbx2016.tk/games/${game.gameid}/${db.filterText2(game.gamename).replace(" ", "-")}`,
                             "AssetType": 9,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3272,7 +3445,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": `https://www.rbx2016.tk/users/${creator.userid}/profile/`
+                            "CreatorProfileLink": `https://sitetest.rbx2016.tk/users/${creator.userid}/profile/`
                         },
                         "Product": null,
                         "PrivateServer": null,
@@ -3323,7 +3496,7 @@ module.exports = {
                 }
                 return;
             }
-            res.render("favorites", {
+            res.render("sitetest/favorites", {
                 ...(await db.getRenderObject(req.user)),
                 auserid: user.userid,
                 ausername: user.username
@@ -3353,7 +3526,7 @@ module.exports = {
                                     "AssetId": 1,
                                     "UniverseId": null,
                                     "Name": "Test",
-                                    "AbsoluteUrl": "https://www.rbx2016.tk/catalog/1/Test",
+                                    "AbsoluteUrl": "https://sitetest.rbx2016.tk/catalog/1/Test",
                                     "AssetType": 8,
                                     "AssetTypeDisplayName": null,
                                     "AssetTypeFriendlyLabel": null,
@@ -3371,7 +3544,7 @@ module.exports = {
                                     "Id": 1,
                                     "Name": "Roblox",
                                     "Type": 1,
-                                    "CreatorProfileLink": "https://www.rbx2016.tk/users/1/profile/"
+                                    "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/1/profile/"
                                 },
                                 "Product": {
                                     "Id": 0,
@@ -3446,7 +3619,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3464,7 +3637,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3522,7 +3695,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3540,7 +3713,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3568,7 +3741,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.id}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.id}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3598,7 +3771,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3616,7 +3789,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3674,7 +3847,7 @@ module.exports = {
                             "AssetId": asset.itemid,
                             "UniverseId": asset.itemid,
                             "Name": asset.itemname,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3692,7 +3865,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3720,7 +3893,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemid}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.itemid}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3750,7 +3923,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/game-pass/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/game-pass/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3768,7 +3941,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3826,7 +3999,7 @@ module.exports = {
                             "AssetId": asset.gameid,
                             "UniverseId": asset.gameid,
                             "Name": asset.gamename,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/games/" + asset.gameid.toString() + "/" + db.filterText2(asset.gamename).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/games/" + asset.gameid.toString() + "/" + db.filterText2(asset.gamename).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3844,7 +4017,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3917,7 +4090,7 @@ module.exports = {
                 res.send(jsoncallback + "(" + JSON.stringify([{
                     "id": item.id,
                     "name": db.filterText2(item.name).replaceAll(" ", "-"),
-                    "url": "https://www.rbx2016.tk/catalog/" + item.id.toString() + "/" + db.filterText2(item.name).replaceAll(" ", "-"),
+                    "url": "https://sitetest.rbx2016.tk/catalog/" + item.id.toString() + "/" + db.filterText2(item.name).replaceAll(" ", "-"),
                     "thumbnailFinal": true,
                     "thumbnailUrl": item.thumbnailurl,
                     "bcOverlayUrl": null,
@@ -3935,7 +4108,7 @@ module.exports = {
             res.send(jsoncallback + "(" + JSON.stringify([{
                 "id": item.itemid,
                 "name": db.filterText2(item.itemname).replaceAll(" ", "-"),
-                "url": "https://www.rbx2016.tk/catalog/" + item.itemid.toString() + "/" + db.filterText2(item.itemname).replaceAll(" ", "-"),
+                "url": "https://sitetest.rbx2016.tk/catalog/" + item.itemid.toString() + "/" + db.filterText2(item.itemname).replaceAll(" ", "-"),
                 "thumbnailFinal": true,
                 "thumbnailUrl": item.itemimage,
                 "bcOverlayUrl": null,
@@ -3987,7 +4160,7 @@ module.exports = {
             let out = `<div id="recently-visited-places" class="col-xs-12 container-list home-games">
             <div class="container-header">
                 <h3>Recently Played</h3>
-<a href="https://www.rbx2016.tk/games/?sortFilter=6" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
+<a href="https://sitetest.rbx2016.tk/games/?sortFilter=6" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
             
 <ul class="hlist game-cards ">`;
             let games = await db.getUserRecentlyPlayedGames(userid) || [];
@@ -4000,7 +4173,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                <a href="https://www.rbx2016.tk/games/${game.gameid}" class="game-card-link">
+                <a href="https://sitetest.rbx2016.tk/games/${game.gameid}" class="game-card-link">
                     <div class="game-card-thumb-container">
                         <img class="game-card-thumb" src="${game.iconthumbnail}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${game.iconthumbnail}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
                     </div>
@@ -4037,7 +4210,7 @@ module.exports = {
                 </a>
                 <span class="game-card-footer">
                     <span class="text-label xsmall">By </span>
-                    <a class="text-link xsmall text-overflow" href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                    <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
                 </span>
                 </div>
             </li>`;
@@ -4055,7 +4228,7 @@ module.exports = {
             let out = `<div id="my-favorties-games" class="col-xs-12 container-list home-games">
             <div class="container-header">
                 <h3>My Favorites</h3>
-        <a href="https://www.rbx2016.tk/users/${userid}/favorites#!/places" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
+        <a href="https://sitetest.rbx2016.tk/users/${userid}/favorites#!/places" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
         
         
         <ul class="hlist game-cards ">`;
@@ -4068,7 +4241,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                <a href="https://www.rbx2016.tk/games/${game.gameid}" class="game-card-link">
+                <a href="https://sitetest.rbx2016.tk/games/${game.gameid}" class="game-card-link">
                     <div class="game-card-thumb-container">
                         <img class="game-card-thumb" src="${game.iconthumbnail}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${game.iconthumbnail}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
                     </div>
@@ -4105,7 +4278,7 @@ module.exports = {
                 </a>
                 <span class="game-card-footer">
                     <span class="text-label xsmall">By </span>
-                    <a class="text-link xsmall text-overflow" href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                    <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
                 </span>
                 </div>
             </li>`;
@@ -4117,7 +4290,7 @@ module.exports = {
         }
 
         app.get("/home", db.requireAuth, async (req, res) => {
-            res.render("home", {
+            res.render("sitetest/home", {
                 ...await db.getRenderObject(req.user),
                 gameFavorites: await getGamesT5(req.user.userid),
                 recentGames: await getGamesT6(req.user.userid)
@@ -4125,7 +4298,7 @@ module.exports = {
         });
 
         app.get("/games", db.requireAuth, async (req, res) => {
-            res.render("games", {
+            res.render("sitetest/games", {
                 ...await db.getRenderObject(req.user),
                 keyword: req.query.Keyword || ""
             });
@@ -4170,7 +4343,7 @@ module.exports = {
                     <div class="CatalogItemInner SmallInner">    
                             <div class="roblox-item-image image-small" data-item-id="${item.id}" data-image-size="small">
                                 <div class="item-image-wrapper">
-                                    <a href="https://www.rbx2016.tk/catalog/${item.itemid}">
+                                    <a href="https://sitetest.rbx2016.tk/catalog/${item.itemid}">
                                         <img title="${item.itemname}" alt="${item.itemname}" class="original-image " src="${item.itemimage}">
                                                                 ${limitedHtml}
                                                                                     ${db.getUnixTimestamp() - item.created > 86400 ? `<img src="https://static.rbx2016.tk/b84cdb8c0e7c6cbe58e91397f91b8be8.png" alt="New">` : ``}
@@ -4179,12 +4352,12 @@ module.exports = {
                             </div>
                             
                         <div id="textDisplay">
-                        <div class="CatalogItemName notranslate"><a class="name notranslate" href="https://www.rbx2016.tk/catalog/?id=${item.itemid}" title="${item.itemname}">${item.itemname}</a></div>
+                        <div class="CatalogItemName notranslate"><a class="name notranslate" href="https://sitetest.rbx2016.tk/catalog/?id=${item.itemid}" title="${item.itemname}">${item.itemname}</a></div>
                         ${item.amount > 0 ? `<div class="robux-price"><span class="SalesText">was </span><span class="robux notranslate">${item.itemprice == 0 ? "FREE" : db.formatNumberS(item.itemprice)}</span></div>
                         <div id="PrivateSales"><span class="SalesText">now </span><span class="robux notranslate">???</span></div>
                 </div>` : `<div class="robux-price"><span class="robux notranslate">${item.itemprice == 0 ? "FREE" : db.formatNumberS(item.itemprice)}</span></div>    `}        
                             <div class="CatalogHoverContent">
-                                <div><span class="CatalogItemInfoLabel">Creator:</span> <span class="HoverInfo notranslate"><a href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a></span></div>
+                                <div><span class="CatalogItemInfoLabel">Creator:</span> <span class="HoverInfo notranslate"><a href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a></span></div>
                                 <div><span class="CatalogItemInfoLabel">Updated:</span> <span class="HoverInfo">${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}</span></div>
                                 <div><span class="CatalogItemInfoLabel">Sales:</span> <span class="HoverInfo notranslate">${item.itemowners.length}</span></div>
                                 <div><span class="CatalogItemInfoLabel">Favorited:</span> <span class="HoverInfo">${item.itemfavorites.length} times</span></div>
@@ -4206,7 +4379,7 @@ module.exports = {
                 }
                 return;
             }
-            res.render("catalog", await db.getRenderObject(req.user));
+            res.render("sitetest/catalog", await db.getRenderObject(req.user));
         });
 
         app.get("/catalog/contents", db.requireAuth, async (req, res) => {
@@ -4227,7 +4400,7 @@ module.exports = {
             } else if (req.query.Category == "All") {
                 req.query.Category = "0";
             }
-            res.render("catalog_page", {
+            res.render("sitetest/catalog_page", {
                 ...(await db.getRenderObject(req.user)),
                 catalogHtml: await getCatalogItems((!req.query.Keyword || req.query.Keyword == "") ? null : req.query.Keyword),
                 category: req.query.Category || "1",
@@ -4411,7 +4584,7 @@ module.exports = {
             const created = db.unixToDate(asset.created);
             const updated = db.unixToDate(asset.updated);
             if (!creator || creator.banned || asset.deleted || creator.inviteKey == "") {
-                res.render("catalogitem", {
+                res.render("sitetest/catalogitem", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.itemid,
                     icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemid}`,
@@ -4438,7 +4611,7 @@ module.exports = {
                 });
                 return;
             }
-            res.render("catalogitem", {
+            res.render("sitetest/catalogitem", {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.itemid,
                 genre: asset.itemgenre,
@@ -4504,7 +4677,7 @@ module.exports = {
                 return;
             }
             const creator = await db.getUser(item.itemcreatorid);
-            res.render("catalogitem", {
+            res.render("sitetest/catalogitem", {
                 ...(await db.getRenderObject(req.user)),
                 itemname: item.itemname,
                 itemname2: db.filterText2(item.itemname).replaceAll(" ", "-"),
@@ -4606,7 +4779,7 @@ module.exports = {
         </nav>`;
 
             app.get(admiPath, db.requireAuth, db.requireMod, async (req, res) => {
-                res.render("admin/index", {
+                res.render("sitetest/admin/index", {
                     ...await db.getRenderObject(req.user),
                     cpuUsage: await db.getCpuUsage(),
                     jobs: (await db.getJobs()).length,
@@ -4617,7 +4790,7 @@ module.exports = {
 
             app.get(admiPath + "/:page", db.requireAuth, db.requireMod, async (req, res) => {
                 const page = req.params.page;
-                const bp = path.resolve(`${__dirname}/../views/admin/`) + path.sep;
+                const bp = path.resolve(`${__dirname}/../views/sitetest/admin/`) + path.sep;
                 const fp = path.resolve(bp + page + ".ejs");
                 if (!fp.startsWith(bp)) {
                     res.status(400).render("400", await db.getRenderObject(req.user));
@@ -4661,7 +4834,7 @@ module.exports = {
 
                         const diskSpace = await db.getDiskSpace();
 
-                        res.render(`admin/${page}`, {
+                        res.render(`sitetest/admin/${page}`, {
                             ...await db.getRenderObject(req.user),
                             cpuUsage: await db.getCpuUsage(),
                             jobs: (await db.getJobs()).length,
@@ -4704,7 +4877,7 @@ module.exports = {
                             }
                             someJobs += `<option value="${jobId}">${gameid}: ${jobId}</option>`
                         }
-                        res.render(`admin/${page}`, {
+                        res.render(`sitetest/admin/${page}`, {
                             ...await db.getRenderObject(req.user),
                             cpuUsage: await db.getCpuUsage(),
                             jobs: (await db.getJobs()).length,
@@ -4717,7 +4890,7 @@ module.exports = {
                         return;
                     }
 
-                    res.render(`admin/${page}`, {
+                    res.render(`sitetest/admin/${page}`, {
                         ...await db.getRenderObject(req.user),
                         cpuUsage: await db.getCpuUsage(),
                         jobs: (await db.getJobs()).length,
@@ -4735,11 +4908,11 @@ module.exports = {
                 res.redirect("/home");
                 return;
             }
-            res.render("banned", await db.getRenderObject(req.user, true));
+            res.render("sitetest/banned", await db.getRenderObject(req.user, true));
         });
 
         app.get("/my/account", db.requireAuth, async (req, res) => {
-            res.render("account", {
+            res.render("sitetest/account", {
                 ...(await db.getRenderObject(req.user)),
                 price: db.formatNumberS(db.getSiteConfig().shared.usernameConfiguration.changeUsernamePrice)
             });
@@ -4788,7 +4961,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                    <a href="https://www.rbx2016.tk/games/${game.gameid}" class="game-card-link">
+                    <a href="https://sitetest.rbx2016.tk/games/${game.gameid}" class="game-card-link">
                         <div class="game-card-thumb-container">
                             <img class="game-card-thumb"
                                 src="${game.iconthumbnail}"
@@ -4828,7 +5001,7 @@ module.exports = {
                     </a>
                     <span class="game-card-footer">
                         <span class="text-label xsmall">By </span>
-                        <a class="text-link xsmall text-overflow" href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                        <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
                     </span>
                 </div>
             </li>
@@ -4841,14 +5014,14 @@ module.exports = {
             if (!req.user) {
                 return res.status(403).send("User is not authorized.");
             }
-            res.send("http://www.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
+            res.send("http://sitetest.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
         });
 
         app.get("//login/RequestAuth.ashx", db.requireAuth2, async (req, res) => {
             if (!req.user) {
                 return res.status(403).send("User is not authorized.");
             }
-            res.send("http://www.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
+            res.send("http://sitetest.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
         });
 
         app.get("/games/getgameinstancesjson", async (req, res) => {
@@ -4963,7 +5136,7 @@ module.exports = {
                 data-developerstats-url="https://create.rbx2016.tk/creations/experiences/{game.gameid}/stats">
                 <tr>
                     <td class="image-col">
-                        <a href="https://www.rbx2016.tk/games/{game.gameid}/${gamename2}" class="game-image">
+                        <a href="https://sitetest.rbx2016.tk/games/{game.gameid}/${gamename2}" class="game-image">
                             <img src="${game.iconthumbnail}"
                                 alt="${game.gamename}" />
                         </a>
@@ -5004,7 +5177,7 @@ module.exports = {
                 const created = db.unixToDate(game.created);
                 const updated = db.unixToDate(game.updated);
                 out += `<div class="asset model" id="newasset"
-                onclick="document.location.href ='http://www.rbx2016.tk/ide/publish/editplace?placeId=${game.gameid}&t=${user.cookie}';">
+                onclick="document.location.href ='http://sitetest.rbx2016.tk/ide/publish/editplace?placeId=${game.gameid}&t=${user.cookie}';">
                 <a class="model-image">
                     <img id="newModelImage" class="modelThumbnail" src="${game.iconthumbnail}" alt="${game.gamename}" />
                 </a>
@@ -5038,7 +5211,7 @@ module.exports = {
                 res.sendStatus(403);
                 return;
             }
-            res.render("publishing", {
+            res.render("sitetest/publishing", {
                 ...await db.getRenderObject(user),
                 gamename: db.filterText2(game.gamename),
                 gamedesc: game.description,
@@ -5049,7 +5222,7 @@ module.exports = {
         });
 
         app.get("/build/gamesbycontext", db.requireAuth, async (req, res) => {
-            res.render("publishedgames", {
+            res.render("sitetest/publishedgames", {
                 ...await db.getRenderObject(req.user),
                 games: await getGamesT1(req.user.userid)
             })
@@ -5063,7 +5236,7 @@ module.exports = {
             if (!req.user) {
                 return res.status(401).send("User is not authorized.");
             }
-            res.render("publishas", {
+            res.render("sitetest/publishas", {
                 ...await db.getRenderObject(req.user),
                 games: await getGamesT2(req.user),
             });
@@ -5073,14 +5246,14 @@ module.exports = {
             if (!req.user) {
                 return res.status(401).send("User is not authorized.");
             }
-            res.render("publishnewplace", await db.getRenderObject(req.user));
+            res.render("sitetest/publishnewplace", await db.getRenderObject(req.user));
         });
 
         app.get("/ide/publish", db.requireAuth2, async (req, res) => {
             if (!req.user) {
                 return res.status(401).send("User is not authorized.");
             }
-            res.render("publish", {
+            res.render("sitetest/publish", {
                 ...await db.getRenderObject(req.user),
                 games: await getGamesT1(req.user.userid)
             });
@@ -5114,7 +5287,7 @@ module.exports = {
                 return;
             }
             const created = await db.createGame(req.body.Name, req.body.Description, user.userid);
-            res.render("publishing", {
+            res.render("sitetest/publishing", {
                 ...await db.getRenderObject(req.user),
                 gamename: db.filterText2(req.body.Name),
                 gamedesc: req.body.Description,
@@ -5241,7 +5414,7 @@ module.exports = {
                 }
                 gamepassesHtml += `<li class="list-item">
                 <div class="store-card">
-                    <a href="https://www.rbx2016.tk/game-pass/${gamepass.id}" class="gear-passes-asset"><img class="" src="${gamepass.thumbnailurl}"></a>
+                    <a href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}" class="gear-passes-asset"><img class="" src="${gamepass.thumbnailurl}"></a>
                     <div class="store-card-caption">
                         <div class="text-overflow store-card-name" title="${gamepass.name}">
                             ${gamepass.name}
@@ -5272,7 +5445,7 @@ module.exports = {
 
             const created = db.unixToDate(game.created);
             const updated = db.unixToDate(game.updated);
-            res.render("game", {
+            res.render("sitetest/game", {
                 ...(await db.getRenderObject(req.user)),
                 gameid: game.gameid,
                 gamename: game.gamename,
@@ -5381,7 +5554,7 @@ module.exports = {
         });
 
         app.get("/My/Money.aspx", db.requireAuth, async (req, res) => {
-            res.render("mymoney", {
+            res.render("sitetest/mymoney", {
                 ...(await db.getRenderObject(req.user)),
                 tixExchangeRate: db.getSiteConfig().backend.tix.exchangeRate
             });
@@ -5508,7 +5681,7 @@ module.exports = {
 
             const created = db.unixToDate(gamepass.created);
             const updated = db.unixToDate(gamepass.updated);
-            res.render("gamepass", {
+            res.render("sitetest/gamepass", {
                 ...(await db.getRenderObject(req.user)),
                 id: gamepass.id,
                 icon: gamepass.thumbnailurl,
@@ -5565,10 +5738,10 @@ module.exports = {
             if (!creator || creator.banned || asset.deleted || creator.inviteKey == "") {
                 const created = db.unixToDate(asset.created);
                 const updated = db.unixToDate(asset.updated);
-                res.render("asset", {
+                res.render("sitetest/asset", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.id,
-                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
+                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://sitetest.rbx2016.tk/asset/?id=${asset.id}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -5594,10 +5767,10 @@ module.exports = {
 
             const created = db.unixToDate(asset.created);
             const updated = db.unixToDate(asset.updated);
-            res.render("asset", {
+            res.render("sitetest/asset", {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.id,
-                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
+                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://sitetest.rbx2016.tk/asset/?id=${asset.id}`,
                 price: asset.price || 0,
                 name: asset.name,
                 name2: asset.name.replaceAll(" ", "-"),
@@ -5974,7 +6147,7 @@ module.exports = {
                 "DefaultDevelopTabName": "Experience",
                 "PortraitModeEnabled": false,
                 "IsEngagementPayoutEnabled": true,
-                "EngagementPayoutUrl": "https://www.rbx2016.tk/develop/premium-payout?ctx=gameDetail",
+                "EngagementPayoutUrl": "https://sitetest.rbx2016.tk/develop/premium-payout?ctx=gameDetail",
                 "UserIsSellerBanned": false,
                 "DeviceConfigurationEnabled": true,
                 "ConsoleContentAgreementEnabled": true,
@@ -6011,7 +6184,7 @@ module.exports = {
                         "StructuredDataContext": "http://schema.org",
                         "StructuredDataType": "Organization",
                         "StructuredDataName": "Roblox",
-                        "RobloxUrl": "https://www.rbx2016.tk/",
+                        "RobloxUrl": "https://sitetest.rbx2016.tk/",
                         "RobloxLogoUrl": "https://images.rbx2016.tk/cece570e37aa8f95a450ab0484a18d91",
                         "RobloxFacebookUrl": "https://www.facebook.com/roblox/",
                         "RobloxTwitterUrl": "https://twitter.com/roblox",
@@ -6426,7 +6599,7 @@ module.exports = {
                         let color = []
                         if (colorString.startsWith("rgb(")) {
                             const rgb = colorString.replace("rgb(", "").replace(")", "").split(",");
-                            if (rgb.length != 3){
+                            if (rgb.length != 3) {
                                 res.status(400).send("Invalid color format.");
                                 return;
                             }
@@ -6571,7 +6744,7 @@ module.exports = {
                 games_json.push({
                     "CreatorID": game.creatorid,
                     "CreatorName": user.username,
-                    "CreatorAbsoluteUrl": "https://www.rbx2016.tk/users/" + user.userid + "/profile/",
+                    "CreatorAbsoluteUrl": "https://sitetest.rbx2016.tk/users/" + user.userid + "/profile/",
                     "Plays": 0,
                     "Price": 0,
                     "ProductID": 0,
@@ -6585,7 +6758,7 @@ module.exports = {
                     "Favorites": 0,
                     "Description": "",
                     "HideGameCardInfo": false,
-                    "GameDetailReferralUrl": "https://www.rbx2016.tk/games/refer?PlaceId=" + game.gameid + "\u0026Position=1\u0026PageType=Profile",
+                    "GameDetailReferralUrl": "https://sitetest.rbx2016.tk/games/refer?PlaceId=" + game.gameid + "\u0026Position=1\u0026PageType=Profile",
                     "Thumbnail": {
                         "Final": true,
                         "Url": "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
@@ -7255,27 +7428,27 @@ module.exports = {
         app.get("/account/settings/settings-groups", db.requireAuth, async (req, res) => {
             res.json([{
                 "title": "Account Info",
-                "url": "https://www.rbx2016.tk/my/account#!/info",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/info",
                 "suffix": "info"
             }, {
                 "title": "Security",
-                "url": "https://www.rbx2016.tk/my/account#!/security",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/security",
                 "suffix": "security"
             }, {
                 "title": "Privacy",
-                "url": "https://www.rbx2016.tk/my/account#!/privacy",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/privacy",
                 "suffix": "privacy"
             }, {
                 "title": "Parental Controls",
-                "url": "https://www.rbx2016.tk/my/account#!/parental-controls",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/parental-controls",
                 "suffix": "parental-controls"
             }, {
                 "title": "Billing",
-                "url": "https://www.rbx2016.tk/my/account#!/billing",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/billing",
                 "suffix": "billing"
             }, {
                 "title": "Notifications",
-                "url": "https://www.rbx2016.tk/my/account#!/notifications",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/notifications",
                 "suffix": "notifications"
             }])
         });
@@ -7297,7 +7470,7 @@ module.exports = {
         });
 
         app.get("/Setting/QuietGet/ClientSharedSettings", (req, res) => {
-            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientSharedSettings.json").toString()); 
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientSharedSettings.json").toString());
         });
         app.get("/Setting/QuietGet/:channel", (req, res) => {
             const channel = req.params.channel;
@@ -7311,11 +7484,11 @@ module.exports = {
                 res.status(404).send("Invalid channel.");
                 return;
             }
-            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientAppSettings.json").toString()); 
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientAppSettings.json").toString());
         });
 
         app.get("/api/Setting/QuietGet/ClientSharedSettings", (req, res) => {
-            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientSharedSettings.json").toString()); 
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientSharedSettings.json").toString());
         });
         app.get("/api/Setting/QuietGet/:channel", (req, res) => {
             const channel = req.params.channel;
@@ -7329,7 +7502,7 @@ module.exports = {
                 res.status(404).send("Invalid channel.");
                 return;
             }
-            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientAppSettings.json").toString()); 
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientAppSettings.json").toString());
         });
 
 
@@ -7367,13 +7540,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             const players = parseInt(req.query.players);
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
                     await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 } else {
                     await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()
@@ -7427,13 +7600,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
                     await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 } else {
                     await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()
@@ -7445,7 +7618,7 @@ module.exports = {
                     await job.stop();
                 }
             }
-            
+
             const script = `
 `
             const signature = db.sign(script);
@@ -7488,13 +7661,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
                     await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 } else {
                     await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()
@@ -7548,13 +7721,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
                     await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 } else {
                     await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()

@@ -585,6 +585,7 @@
                                             title="<%= icontitle %>"></span>
                                     </div>
                                 </div>
+
                                 <div class="header-caption">
                                     <div class="header-title">
                                         <h2><%= ausername %></h2>
@@ -667,7 +668,7 @@
                                             </li>
                                             <li class="btn-messages" ng-show="profileHeaderLayout.showChatBtn">
                                                 <button class="btn-control-md" ng-click="chat()" ng-cloak>
-                                                    Chat
+                                                    Message
                                                 </button>
                                             </li>
                                             <li class="btn-join-game" ng-if="profileHeaderLayout.canBeFollowed">
@@ -734,7 +735,7 @@
                                                 ng-cloak>
                                                 <div class="action-message-disabled" ng-click="chat()" ng-cloak>
                                                     <div class="icon-start-chat"></div>
-                                                    <div class="text-label small">Chat</div>
+                                                    <div class="text-label small">Message</div>
                                                 </div>
                                             </li>
                                             <li class="btn-join-game last-icon"
@@ -1608,6 +1609,16 @@
 
 
     <script type='text/javascript' src='https://js.rbx2016.tk/acefc0576af867ded7e9c87c00680819.js'></script>
+
+    <script>
+        const btns = document.getElementsByClassName("btn-messages");
+        for (let i = 0; i < btns.length; i++) {
+            btns[i].addEventListener("click", function () {
+                window.location.href = "/messages/compose?recipientId=<%= auserid %>";
+            });
+        }
+    </script>
+    
 </body>
 
 </html>

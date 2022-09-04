@@ -19,6 +19,9 @@
             "canChangeUsername": true,
             "changeUsernamePrice": 1
         },
+        "messages": {
+            "maxMessagesPerDay": 10
+        },
         "devex": {
             "enabled": false,
             "conversionRate": 0,

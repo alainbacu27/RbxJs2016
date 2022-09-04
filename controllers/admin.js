@@ -466,6 +466,35 @@ ${assets}
             `);
         });
 
+        async function formatMessages(userid, location) {
+            let messages = await db.getMessages(userid, location);
+            if (!messages) return ``;
+            messages = messages.reverse();
+            let formatted = ``;
+            for (let i = 0; i < messages.length; i++) {
+                if (i > 1000) break;
+                const message = messages[i];
+                const sender = await db.getUser(message.from);
+                if (!sender) continue;
+                formatted += `<h1>User ${userid} messages</h1>
+                <h2>Id: ${message.id}</h2>
+                <h2>To: ${message.to}</h2>
+                <h2>Timestamp: ${message.timestamp}</h2>
+                <h3>Subject: ${message.subject}</h3>
+                <h4>Body: ${message.body}</h4>
+                <p>&nbsp;</p>
+                <br/>`;
+            }
+            return formatted;
+        }
+
+        app.post("/v1/admin/messages", db.requireAuth, db.requireAdmin, async (req, res) => {
+            const userid = parseInt(req.body.userid);
+            const user = await db.getUser(userid);
+            if (!user) return res.status(404).send("User not found.");
+            res.send(await formatMessages(user.userid, "sent"));
+        });
+
 
         app.post("/v1/admin/linvitekeys", db.requireAuth, db.requireMod, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {

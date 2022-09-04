@@ -46,6 +46,9 @@
             "admin": 20,
             "user": 15
         },
+        "messages": {
+            "maxMessagesPerDay": 10
+        },
         "ADMIN_InviteCooldown": 600,
         "assetsEnabled": true,
         "users": {

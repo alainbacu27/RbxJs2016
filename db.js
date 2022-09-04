@@ -609,6 +609,22 @@ MongoClient.connect(mongourl, function (err, db) {
     if (err) throw err;
     const dbo = db.db(dbName);
     dbo.listCollections({
+        name: "messages"
+    }).next(function (err, collinfo) {
+        if (err) throw err;
+        if (!collinfo) {
+            dbo.createCollection("messages", function (err, res) {
+                if (err) throw err;
+                db.close();
+            });
+        }
+    });
+});
+
+MongoClient.connect(mongourl, function (err, db) {
+    if (err) throw err;
+    const dbo = db.db(dbName);
+    dbo.listCollections({
         name: "blocked"
     }).next(function (err, collinfo) {
         if (err) throw err;
@@ -3613,6 +3629,8 @@ module.exports = {
                         placeVisits: 0,
                         firstDailyAssetUpload: 0,
                         badges: [],
+                        messagesThisDay: 0,
+                        startMessagesThisDay: 0,
 
                         theme: ""
                     };
@@ -3818,6 +3836,140 @@ module.exports = {
         } else {
             return ip.replace(/([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4})/, '$1:$2:$3:$4:$5:$6:XXXX:XXXX');
         }
+    },
+
+    sendMessage: async function (userid, toUserId, subject, body) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("messages").count({}, function (error, numOfDocs) {
+                    dbo.collection("messages").insertOne({
+                        id: numOfDocs + 1,
+                        from: userid,
+                        to: toUserId,
+                        subject: subject,
+                        body: body,
+                        timestamp: getUnixTimestamp(),
+                        state: "inbox",
+                        read: false
+                    }, function (err, res) {
+                        if (err) {
+                            returnPromise(false);
+                        }
+                        db.close();
+                        returnPromise(true);
+                    });
+                });
+            });
+        });
+    },
+
+    getMessage: async function (messageid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("messages").findOne({
+                    id: messageid
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
+
+    getMessages: async function (userid, state = "") {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                if (state == "sent") {
+                    dbo.collection("messages").find({
+                        from: userid
+                    }).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(result);
+                    });
+                } else {
+                    dbo.collection("messages").find({
+                        to: userid
+                    }).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        db.close();
+                        if (state != "") {
+                            result = result.filter(function (message) {
+                                return message.state == state;
+                            });
+                        }
+                        returnPromise(result);
+                    });
+                }
+            });
+        });
+    },
+
+    markMessageAsRead: async function (messageId, state = true) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("messages").updateOne({
+                    id: messageId
+                }, {
+                    $set: {
+                        read: state
+                    }
+                }, function (err, res) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(true);
+                });
+            });
+        });
+    },
+
+    archiveMessage: async function (messageId, state = true) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("messages").updateOne({
+                    id: messageId
+                }, {
+                    $set: {
+                        state: state ? "archive" : "inbox"
+                    }
+                }, function (err, res) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(true);
+                });
+            });
+        });
     },
 
     checkInviteKey: async function (inviteKey) {
@@ -4632,6 +4784,26 @@ module.exports = {
                         $options: "i"
                     }
                 }).toArray(function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
+
+    findUser: async function (username) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("users").findOne({
+                    username: username
+                }, function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(null);

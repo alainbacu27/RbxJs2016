@@ -12,6 +12,10 @@
     --text-dark: #919191;
 }
 
+.characterContainer-0-2-54, .messagesContainer-0-2-79, .btnBottomSeperator-0-2-85, .messagesContainer-0-2-33{
+    background: var(--body);
+}
+
 #mCSB_1 {
     background: var(--section);
 }
