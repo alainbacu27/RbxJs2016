@@ -139,6 +139,181 @@ module.exports = {
             });
         });
 
+        async function formatMessages(userid, location) {
+            let messages = await db.getMessages(userid, location);
+            if (!messages) return ``;
+            messages = messages.reverse();
+            let formatted = ``;
+            for (let i = 0; i < messages.length; i++) {
+                if (i > 1000) break;
+                const message = messages[i];
+                const sender = await db.getUser(message.from);
+                if (!sender) continue;
+                const pfp = sender.userid == 1 ? "https://images.rbx2016.tk/e870a0b9bcd987fbe7f730c8002f8faa.png" : "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png";
+                formatted += `<div class="pt-2 messageRow-0-2-110" id="${message.id}" data-timestamp="${message.timestamp}">
+                <div class="userCheckAndImage-0-2-114">
+                    <div class="markReadWrapper-0-2-113"><input
+                            type="checkbox" class="markRead-0-2-112"></div>
+                    <div class="userImage-0-2-111"><img class="image-0-2-61"
+                            src="${pfp}">
+                    </div>
+                </div>
+                <div class="subjectAndContent-0-2-115">
+                    <p class="username-0-2-105">${sender.username}</p>
+                    <p class="subjectBodyParagraph-0-2-108"><span
+                            class="subject-0-2-106 ">${message.subject}</span> - <span
+                            class="body-0-2-109">${message.body}</span></p>
+                </div>
+                <div>
+                    <div class="divider-top"></div>
+                </div>
+            </div>`;
+            }
+            return formatted;
+        }
+
+        app.get("/v1/convert/username-to-id", db.requireAuth, async (req, res) => {
+            const username = req.query.username;
+            if (!username) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "No username specified"
+                });
+                return;
+            }
+            const user = await db.findUser(username);
+            if (!user) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "User not found"
+                });
+                return;
+            }
+            res.json({
+                "success": true,
+                "id": user.userid
+            });
+        });
+
+        app.get("/my/messages", db.requireAuth, async (req, res) => {
+            res.render("messages", {
+                ...(await db.getRenderObject(req.user)),
+                inbox: await formatMessages(req.user.userid, "inbox"),
+                sent: await formatMessages(req.user.userid, "sent"),
+                archive: await formatMessages(req.user.userid, "archive"),
+                notifications: ``
+            });
+        });
+
+        app.get("/messages/compose", db.requireAuth, async (req, res) => {
+            const userid = parseInt(req.query.recipientId);
+            const user = await db.getUser(userid);
+            if (!user) {
+                res.status(404).render("404", await db.getRenderObject(req.user));
+                return;
+            }
+            res.render("message_compose", {
+                ...(await db.getRenderObject(req.user)),
+                to: user.userid,
+                toUsername: user.username
+            });
+        });
+
+        app.post("/messages/send", db.requireAuth, async (req, res) => {
+            const userid = req.body.to;
+            const subject = req.body.subject;
+            const body = req.body.body;
+            const user = await db.getUser(userid);
+            if (!user) {
+                res.status(404).json({
+                    "success": false,
+                    "error": "User not found"
+                });
+                return;
+            }
+            if (user.userid == req.user.userid) {
+                res.status(401).json({
+                    "success": false,
+                    "error": "You can't send a message to yourself"
+                });
+                return;
+            }
+            if (user.userid == 1){
+                res.status(401).json({
+                    "success": false,
+                    "error": "You cannot send messages to this user"
+                });
+                return;
+            }
+            if (!await db.areFriends(req.user.userid, user.userid)) {
+                res.status(403).json({
+                    "success": false,
+                    "error": "You must be friends with this user to send them a message"
+                });
+                return;
+            }
+            if (!subject || !body) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "Subject or body not specified"
+                });
+                return;
+            }
+            let messagesThisDay = req.user.messagesThisDay || 0;
+            let startMessagesThisDay = req.user.startMessagesThisDay || 0;
+            let shouldUpdateStartTimestamp = false;
+            if (db.getUnixTimestamp() - startMessagesThisDay > 86400) {
+                messagesThisDay = 0;
+                shouldUpdateStartTimestamp = true;
+            }
+            if (messagesThisDay >= db.getSiteConfig().shared.messages.maxMessagesPerDay) {
+                res.status(401).json({
+                    "success": false,
+                    "error": "You've reached the message limit for today"
+                });
+                return;
+            }else if (messagesThisDay == 0) {
+                startMessagesThisDay = db.getUnixTimestamp();
+                messagesThisDay = 1;
+            }else{
+                messagesThisDay++;
+            }
+            await db.setUserProperty(user.userid, "messagesThisDay", messagesThisDay);
+            if (shouldUpdateStartTimestamp){
+                await db.setUserProperty(user.userid, "startMessagesThisDay", startMessagesThisDay);
+            }
+            await db.sendMessage(req.user.userid, userid, db.censorText(db.filterText4(subject)), db.censorText(db.filterText4(body)));
+            res.json({
+                "success": true
+            });
+        });
+
+        app.post("/v1/archive-messages", db.requireAuth, async (req, res) => {
+            const ids = req.body.ids;
+            if (!ids || !Array.isArray(ids)) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "No ids specified"
+                });
+                return;
+            }
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                const message = await db.getMessage(id);
+                if (!message || message.to != req.user.userid) {
+                    res.status(401).json({
+                        "success": false,
+                        "error": "You do not own one or more of the requested messages."
+                    });
+                    return;
+                }
+                await db.archiveMessage(id, req.body.state ? true : false);
+            }
+            res.json({
+                "success": true
+            });
+        });
+
         app.get("/authentication/is-logged-in", (req, res) => {
             res.send();
         })
@@ -594,7 +769,7 @@ module.exports = {
 
         app.get("/My/Character.aspx", db.requireAuth, async (req, res) => {
             const avatarColors = await db.getUserProperty(req.user.userid, "avatarColors") || [1002, 1002, 1002, 1002, 1002, 1002];
-            
+
             res.render("avatar", {
                 ...(await db.getRenderObject(req.user)),
                 "headColor": avatarColors[0],
@@ -1383,11 +1558,9 @@ module.exports = {
             res.send();
         });
 
-        /*
         app.get("/reference/styleguide", async (req, res) => {
             res.render("styleguide", await db.getBlankRenderObject());
         });
-        */
 
         app.get("/Game/LoadPlaceInfo.ashx", async (req, res) => {
             const PlaceId = parseInt(req.query.PlaceId);
@@ -2660,7 +2833,7 @@ module.exports = {
                     res.status(400).send("File too large");
                     return;
                 }
-                if (db.getSiteConfig().shared.ShirtUploadCost < 0){
+                if (db.getSiteConfig().shared.ShirtUploadCost < 0) {
                     res.status(400).send("Shirts are disabled");
                     return;
                 }
@@ -6426,7 +6599,7 @@ module.exports = {
                         let color = []
                         if (colorString.startsWith("rgb(")) {
                             const rgb = colorString.replace("rgb(", "").replace(")", "").split(",");
-                            if (rgb.length != 3){
+                            if (rgb.length != 3) {
                                 res.status(400).send("Invalid color format.");
                                 return;
                             }
@@ -7297,7 +7470,7 @@ module.exports = {
         });
 
         app.get("/Setting/QuietGet/ClientSharedSettings", (req, res) => {
-            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientSharedSettings.json").toString()); 
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientSharedSettings.json").toString());
         });
         app.get("/Setting/QuietGet/:channel", (req, res) => {
             const channel = req.params.channel;
@@ -7311,11 +7484,11 @@ module.exports = {
                 res.status(404).send("Invalid channel.");
                 return;
             }
-            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientAppSettings.json").toString()); 
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientAppSettings.json").toString());
         });
 
         app.get("/api/Setting/QuietGet/ClientSharedSettings", (req, res) => {
-            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientSharedSettings.json").toString()); 
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientSharedSettings.json").toString());
         });
         app.get("/api/Setting/QuietGet/:channel", (req, res) => {
             const channel = req.params.channel;
@@ -7329,7 +7502,7 @@ module.exports = {
                 res.status(404).send("Invalid channel.");
                 return;
             }
-            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientAppSettings.json").toString()); 
+            res.send(fs.readFileSync(__dirname + "/../FFlags/ClientAppSettings.json").toString());
         });
 
 
@@ -7367,13 +7540,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             const players = parseInt(req.query.players);
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
                     await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 } else {
                     await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()
@@ -7427,13 +7600,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
                     await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 } else {
                     await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()
@@ -7445,7 +7618,7 @@ module.exports = {
                     await job.stop();
                 }
             }
-            
+
             const script = `
 `
             const signature = db.sign(script);
@@ -7488,13 +7661,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
                     await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 } else {
                     await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()
@@ -7548,13 +7721,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
                     await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 } else {
                     await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()

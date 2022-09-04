@@ -551,7 +551,7 @@
                             <p>From here you can control user's configurations and ban/unban them.</p>
                             <p>Make sure you note who is banned, as you can currently not see that.</p>
                             <p>&nbsp;</p>
-                            <form action="/v1/admin/ban" method="post">
+                            <form action="https://www.rbx2016.tk/v1/admin/ban" method="post">
                                 <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
                                 <input type="modnote" id="modnote" name="modnote" placeholder="Moderator Note"
                                     value="" />
@@ -561,20 +561,20 @@
                                     value="BAN" />
                             </form>
 
-                            <form action="/v1/admin/unban" method="post">
+                            <form action="https://www.rbx2016.tk/v1/admin/unban" method="post">
                                 <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
                                 <input type="submit" id="todo" name="todo" class="btn-control-md btn-min-width"
                                     value="UNBAN" />
                             </form>
                             
-                            <form action="/v1/admin/renameuser" method="post">
+                            <form action="https://www.rbx2016.tk/v1/admin/renameuser" method="post">
                                 <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
                                 <input type="text" id="username" name="username" placeholder="Username" value="" />
                                 <input type="submit" id="todo" name="todo" class="btn-control-md btn-min-width"
                                     value="RENAME USER" />
                             </form>
 
-                            <form action="/v1/admin/gmembership" method="post">
+                            <form action="https://www.rbx2016.tk/v1/admin/gmembership" method="post">
                                 <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
                                 <select name="membership" required>
                                     <option value="0">None</option>
@@ -586,7 +586,7 @@
                                     value="SET MEMBERSHIP" />
                             </form>
 
-                            <form action="/v1/admin/grole" method="post">
+                            <form action="https://www.rbx2016.tk/v1/admin/grole" method="post">
                                 <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
                                 <select name="role" required>
                                     <option value="0">None</option>
@@ -597,17 +597,23 @@
                                     value="SET ROLE" />
                             </form>
                             
-                            <form action="/v1/admin/setrobux" method="post">
+                            <form action="https://www.rbx2016.tk/v1/admin/setrobux" method="post">
                                 <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
                                 <input type="number" id="robux" name="robux" placeholder="Robux" value="" />
                                 <input type="submit" id="todo" name="todo" class="btn-control-md btn-min-width"
                                     value="SET ROBUX" />
                             </form>
 
-                            <form action="/v1/admin/userinfo" method="post">
+                            <form action="https://www.rbx2016.tk/v1/admin/userinfo" method="post">
                                 <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
                                 <input type="submit" id="todo" name="todo" class="btn-control-md btn-min-width"
                                     value="VIEW INFO" />
+                            </form>
+
+                            <form action="https://www.rbx2016.tk/v1/admin/messages" method="post">
+                                <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
+                                <input type="submit" id="todo" name="todo" class="btn-control-md btn-min-width"
+                                    value="VIEW MESSAGES" />
                             </form>
                         </div>
                     </div>

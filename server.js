@@ -163,6 +163,18 @@ const merged = ["assetgame", "admin"];
 
 const mainRouter = express.Router();
 
+function setupClientsettingsCdn(file){
+    const name = file.replace(".js", "");
+    if (db.getSiteConfig().backend.disabledApis.includes(name)) {
+        return;
+    }
+    const router = express.Router();
+    const controller = require("./controllers/" + file);
+    controller.init(router, db);
+    template.app.use(router);
+}
+setupClientsettingsCdn("clientsettingscdn.js")
+
 const files = fs.readdirSync(__dirname + "/controllers/");
 for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -173,10 +185,13 @@ for (let i = 0; i < files.length; i++) {
         }
         const router = express.Router();
         const controller = require("./controllers/" + file);
-        if (name == "MAIN" || merged.includes(name)) {
+        if (name == "MAIN") {
             controller.init(mainRouter, db);
             continue;
         }else{
+            if (merged.includes(name)) {
+                controller.init(mainRouter, db);
+            }
             controller.init(router, db);
         }
         
