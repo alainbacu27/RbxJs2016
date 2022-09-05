@@ -2005,5 +2005,9 @@ publicIp = "${ip}"`
                 "ChatFilter": "whitelist"
             })
         });
+
+        app.get("/game/report-stats", (req, res) => {
+            res.send();
+        });
     }
 }

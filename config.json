@@ -104,7 +104,8 @@
         ],
         "CLIENT_DOWNLOAD_AVAIlABLE": true,
         "ShirtUploadCost": 4,
-        "PantsUploadCost": 4
+        "PantsUploadCost": 4,
+        "jobsEnabled": true
     },
     "backend": {
         "PRODUCTION": false,
@@ -182,8 +183,7 @@
                 "admin": 20,
                 "user": 10
             }
-        },
-        "jobsEnabled": true
+        }
     },
     "client": {
         "version": 1,

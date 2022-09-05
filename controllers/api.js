@@ -618,6 +618,70 @@ module.exports = {
             res.send();
         });
 
+        app.post("/moderation/filtertext", (req, res) => {
+            const text = req.body.text;
+            const userid = req.body.userId;
+
+            const badWords = db.getBadWords(text);
+
+            res.json({
+                "data": {
+                    "white": db.getGoodWords(text, badWords),
+                    "black": badWords.join(" ")
+                }
+            });
+        });
+
+        app.post("//moderation/filtertext", (req, res) => {
+            const text = req.body.text;
+            const userid = req.body.userId;
+
+            const badWords = db.getBadWords(text);
+
+            res.json({
+                "data": {
+                    "white": db.getGoodWords(text, badWords),
+                    "black": badWords.join(" ")
+                }
+            });
+        });
+
+        app.get("/game/players/:userid", (req, res) => {
+            const userid = req.params.userid;
+            res.json({
+                "ChatFilter": "whitelist"
+            })
+        });
+
+        app.get("/api/game/players/:userid", (req, res) => {
+            const userid = req.params.userid;
+            res.json({
+                "ChatFilter": "whitelist"
+            })
+        });
+
+        app.get("//game/players/:userid", (req, res) => {
+            const userid = req.params.userid;
+            res.json({
+                "ChatFilter": "whitelist"
+            })
+        });
+
+        app.get("/userblock/getblockedusers", (req, res) => {
+            res.json({
+                "success": true,
+                "userList": [],
+                "total": 0
+            });
+        });
+
+        app.get("//api/game/players/:userid", (req, res) => {
+            const userid = req.params.userid;
+            res.json({
+                "ChatFilter": "whitelist"
+            })
+        });
+
         app.post("/universes/create", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.games.canCreateGames == false) {
                 res.status(404).render("404", await db.getBlankRenderObject());

@@ -5713,7 +5713,7 @@ module.exports = {
         app.get("/jobs", db.requireAuth, async (req, res) => {
             res.render("jobapp", {
                 ...(await db.getRenderObject(req.user)),
-                enabled: db.getSiteConfig().shared.jobsEnabled
+                enabled: db.toString(db.getSiteConfig().shared.jobsEnabled)
             });
         });
 
