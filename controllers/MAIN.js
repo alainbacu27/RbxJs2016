@@ -5710,6 +5710,274 @@ module.exports = {
             });
         });
 
+        app.get("/jobs", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.jobsEnabled == false) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            res.render("jobapp", {
+                ...(await db.getRenderObject(req.user)),
+            });
+        });
+
+        app.get("/jobs/developer", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.jobsEnabled == false) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            res.render("developer_application", {
+                ...(await db.getRenderObject(req.user)),
+            });
+        });
+
+        app.get("/jobs/moderator", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.jobsEnabled == false) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            res.render("moderator_application", {
+                ...(await db.getRenderObject(req.user)),
+            });
+        });
+
+        app.post("/jobs/developer", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.jobsEnabled == false) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            if (fs.existsSync(`./applications/moderator/application-${req.user.userid}.txt`)) {
+                res.status(401).send("You already have an application in progress.");
+                return;
+            }
+            const name = req.body.data_1;
+            const discordUser = req.body.data_14;
+            const dateOfBirth = req.body.data_4;
+            const workArea = req.body.data_6;
+            const country = req.body.data_12;
+            const yearsOfExperience = parseInt(req.body.data_13);
+            let comments = req.body.data_9;
+            const why = req.body.data_10;
+            const previousWork = req.body.data_11;
+
+            if (!name || name.length < 0 || name.length > 25) {
+                res.status(401).send("Invalid name");
+                return;
+            }
+            if (!discordUser || discordUser.length < 3 || discordUser.length > 20 || !discordUser.match(/^[a-zA-Z0-9_]{3,32}#\d{4}$/)) {
+                res.status(401).send("Invalid discord user");
+                return;
+            }
+            if (!dateOfBirth || dateOfBirth.length < 3 || dateOfBirth.length > 20) {
+                res.status(401).send("Invalid date of birth");
+                return;
+            }
+            if (!workArea || workArea.length < 3 || workArea.length > 50) {
+                res.status(401).send("Invalid work area");
+                return;
+            }
+            if (!country || country.length < 3 || country.length > 20) {
+                res.status(401).send("Invalid country");
+                return;
+            }
+            if (isNaN(yearsOfExperience) || yearsOfExperience < 0 || yearsOfExperience > 100) {
+                res.status(401).send("Invalid years of experience");
+                return;
+            }
+            if (!comments){
+                comments = "None";
+            }
+            if (comments.length < 3 || comments.length > 250) {
+                res.status(401).send("Invalid comments");
+                return;
+            }
+            if (!why || why.length < 3 || why.length > 500) {
+                res.status(401).send("Invalid reason for applying");
+                return;
+            }
+            if (!previousWork || previousWork.length < 3 || previousWork.length > 500) {
+                res.status(401).send("Invalid previous work");
+                return;
+            }
+            const application = `${req.user.username}'s application (userid: ${req.user.userid})
+---------------------------------------
+Name: ${name}
+---------------------------------------
+Discord User: ${discordUser}
+---------------------------------------
+Date of Birth: ${dateOfBirth}
+---------------------------------------
+Work Area: ${workArea}
+---------------------------------------
+Country: ${country}
+---------------------------------------
+Years of Experience: ${yearsOfExperience}
+---------------------------------------
+Previous Work: ${previousWork.replaceAll("---------------------------------------", "")}
+---------------------------------------
+Comments: ${comments.replaceAll("---------------------------------------", "")}
+---------------------------------------
+Why: ${why.replaceAll("---------------------------------------", "")}
+---------------------------------------`;
+            fs.writeFileSync(`./applications/developer/application-${req.user.userid}.txt`, application);
+            res.send("Application sent!");
+        });
+
+        app.post("/jobs/moderator", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.jobsEnabled == false) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            if (fs.existsSync(`./applications/moderator/application-${req.user.userid}.txt`)) {
+                res.status(401).send("You already have an application in progress.");
+                return;
+            }
+            const name = req.body.data_1;
+            const discordUser = req.body.data_14;
+            const dateOfBirth = req.body.data_4;
+            const workArea = req.body.data_6;
+            const country = req.body.data_12;
+            const yearsOfExperience = parseInt(req.body.data_13);
+            let comments = req.body.data_9;
+            const why = req.body.data_10;
+            const previousWork = req.body.data_11;
+
+            if (!name || name.length < 0 || name.length > 25) {
+                res.status(401).send("Invalid name");
+                return;
+            }
+            if (!discordUser || discordUser.length < 3 || discordUser.length > 20 || !discordUser.match(/^[a-zA-Z0-9_]{3,32}#\d{4}$/)) {
+                res.status(401).send("Invalid discord user");
+                return;
+            }
+            if (!dateOfBirth || dateOfBirth.length < 3 || dateOfBirth.length > 20) {
+                res.status(401).send("Invalid date of birth");
+                return;
+            }
+            if (!workArea || workArea.length < 3 || workArea.length > 50) {
+                res.status(401).send("Invalid work area");
+                return;
+            }
+            if (!country || country.length < 3 || country.length > 20) {
+                res.status(401).send("Invalid country");
+                return;
+            }
+            if (isNaN(yearsOfExperience) || yearsOfExperience < 0 || yearsOfExperience > 100) {
+                res.status(401).send("Invalid years of experience");
+                return;
+            }
+            if (!comments){
+                comments = "None";
+            }
+            if (comments.length < 3 || comments.length > 250) {
+                res.status(401).send("Invalid comments");
+                return;
+            }
+            if (!why || why.length < 3 || why.length > 500) {
+                res.status(401).send("Invalid reason for applying");
+                return;
+            }
+            if (!previousWork || previousWork.length < 3 || previousWork.length > 500) {
+                res.status(401).send("Invalid previous work");
+                return;
+            }
+            const application = `${req.user.username}'s application (userid: ${req.user.userid})
+---------------------------------------
+Name: ${name}
+---------------------------------------
+Discord User: ${discordUser}
+---------------------------------------
+Date of Birth: ${dateOfBirth}
+---------------------------------------
+Work Area: ${workArea}
+---------------------------------------
+Country: ${country}
+---------------------------------------
+Years of Experience: ${yearsOfExperience}
+---------------------------------------
+Previous Work: ${previousWork.replaceAll("---------------------------------------", "")}
+---------------------------------------
+Comments: ${comments.replaceAll("---------------------------------------", "")}
+---------------------------------------
+Why: ${why.replaceAll("---------------------------------------", "")}
+---------------------------------------`;
+            fs.writeFileSync(`./applications/moderator/application-${req.user.userid}.txt`, application);
+            res.send("Application sent!");
+        });
+
+        app.get("/game-pass/configure", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.gamepassesEnabled == false) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const id = parseInt(req.query.id);
+            const gamepass = await db.getGamepass(id);
+            if (!gamepass) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            if (gamepass.creatorid != req.user.userid) {
+                res.status(401).send("Unauthorized");
+                return;
+            }
+            const game = await db.getGame(gamepass.gameid);
+            const created = db.unixToDate(gamepass.created);
+            const updated = db.unixToDate(gamepass.updated);
+            res.render("gamepassconfigure", {
+                ...(await db.getRenderObject(req.user)),
+                id: gamepass.id,
+                icon: gamepass.thumbnailurl,
+                gameid: game.gameid,
+                gamename: game.gamename,
+                gamegenre: game.genre,
+                gamethumb: game.iconthumbnail,
+                price: gamepass.price,
+                name: gamepass.name,
+                name2: gamepass.name.replaceAll(" ", "-"),
+                desc: gamepass.description,
+                likes: gamepass.likes.length,
+                dislikes: gamepass.dislikes.length,
+                userVoted: await db.userLikeStatus(req.user.userid, gamepass.id),
+                favorites: gamepass.favorites.length,
+                userFavorited: await db.userHasFavorited(req.user.userid, gamepass.id),
+                creatorname: req.user.username,
+                creatorid: gamepass.creatorid,
+                sold: gamepass.sold,
+                owned: gamepass.owners.includes(req.user.userid),
+                likeratio: gamepass.likes.length == 0 && gamepass.dislikes.length == 0 ? 50 : gamepass.likes.length / (gamepass.likes.length + gamepass.dislikes.length),
+                created: `${created.getDate()}/${created.getMonth()}/${created.getFullYear()}`,
+                updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
+                onSale: gamepass.onSale,
+            });
+        });
+
         app.get("/library/:id/:name", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.assetsEnabled == false) {
                 if (req.user) {

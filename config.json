@@ -83,6 +83,10 @@
             "user": 10,
             "admin": 15
         },
+        
+        "maxFriends": 200,
+        "maxBlocked": 100,
+
         "adsEnabled": true,
         "maxUserRatingsPerHour": 50,
         "needsToPlayBeforeLikeGame": true,
@@ -120,8 +124,10 @@
             "starterRobux": 0,
             "starterTix": 0,
             "starterMembership": 0,
+            "DANGER_STARTER_APPROVER": false,
             "DANGER_STARTER_MOD": false,
-            "DANGER_STARTER_ADMIN": false
+            "DANGER_STARTER_ADMIN": false,
+            "DANGER_STARTER_OWNER": false
         },
         "tix": {
             "enabled": true,
@@ -176,7 +182,8 @@
                 "admin": 20,
                 "user": 10
             }
-        }
+        },
+        "jobsEnabled": true
     },
     "client": {
         "version": 1,

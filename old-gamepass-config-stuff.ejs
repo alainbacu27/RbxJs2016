@@ -1,0 +1,64 @@
+<% if (isCreator){ %>
+    <div class="BuyPriceBoxContainer">
+        <div class="BuyPriceBox">
+            Item Configuration:
+            <div id="visibilityBtn"
+                class="<% if (onSale){ %>btn-danger<%}else{%>btn-primary<%}%> btn-medium">
+                <% if (onSale){ %>Put OffSale<% }else{ %>Put OnSale<% } %>
+            </div>
+            <p>&nbsp;</p>
+            <form action="/v1/update/item" method="post">
+                <input type="hidden" name="itemId" value="<%= id %>">
+                <label for="price">Price:</label>
+                <input type="number" class="navbar-search-input" style="width: 99%;" name="price" placeholder="Price" value="<%= price %>">
+                <input type="submit" value="Save"
+                    class="btn-primary btn-medium">
+            </form>
+
+            <script>
+                const sleep = (milliseconds) => {
+                   return new Promise(resolve => setTimeout(resolve, milliseconds))
+                }
+
+                const visibilityBtn = document.getElementById('visibilityBtn');
+                visibilityBtn.addEventListener('click', async function() {
+                    let errored = false;
+                    $.ajax({
+                        type: "POST",
+                        url: "/v1/visibiliy/item/toggle",
+                        data: {
+                            itemId: <%= id %>
+                        },
+                        error: function () {
+                            errored = true;
+                            Roblox.GenericConfirmation
+                                .open({
+                                    titleText: Roblox
+                                        .BuildPage
+                                        .Resources
+                                        .errorOccurred,
+                                    bodyContent: "Could not change item visibility, please try again later.",
+                                    acceptText: Roblox
+                                        .BuildPage
+                                        .Resources
+                                        .ok,
+                                    acceptColor: Roblox
+                                        .GenericConfirmation
+                                        .blue,
+                                    declineColor: Roblox
+                                        .GenericConfirmation
+                                        .none,
+                                    allowHtmlContentInBody: true,
+                                    dismissable: true
+                                });
+                        },
+                    });
+                    await sleep(100);
+                    if (!errored) {
+                        window.location.reload();
+                    }
+                });
+            </script>
+        </div>
+    </div>
+    <% } %>

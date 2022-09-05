@@ -1083,9 +1083,12 @@ async function getRenderObject(user, banned = false) {
         userid: user.userid,
         username: user.username,
         isUnder13: toString(await isUserUnder13(user.userid)),
+        membership: toString(user.membership),
         accountCreated: timeToString(user.created, true),
+        isOwner: toString(user.isOwner),
         isAdmin: toString(user.isAdmin),
         isMod: toString(user.isMod),
+        isApprover: toString(user.isApprover),
         banned: toString(user.banned),
         bannedDate: timeToString(user.bannedDate),
         bannedModNote: user.bannedModNote,
@@ -1113,9 +1116,12 @@ async function getBlankRenderObject() {
         userid: 0,
         username: "",
         isUnder13: toString(false),
+        membership: toString(0),
         accountCreated: timeToString(0, true),
+        isOwner: toString(false),
         isAdmin: toString(false),
         isMod: toString(false),
+        isApprover: toString(false),
         banned: toString(false),
         bannedDate: 0,
         bannedModNote: "",
@@ -1782,7 +1788,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
             script = `local url = "http://www.rbx2016.tk"
         game:GetService("ScriptContext").ScriptsDisabled = true
         local plr = game.Players:CreateLocalPlayer(0)
-        plr.CharacterAppearance = "https://api.roblox.com/v1.1/avatar-fetch/?userId=15491471"
+        plr.CharacterAppearance = "https://api.rbx2016.tk/v1.1/avatar-fetch/?userId=15491471"
         plr:LoadCharacter(false)
         for i,v in pairs(plr.Character:GetChildren()) do
            print(v)
@@ -3606,8 +3612,10 @@ module.exports = {
                         birthday: Math.floor(birthday / 1000),
                         gender: gender,
                         created: getUnixTimestamp(),
+                        isApprover: siteConfig.backend.starterItems.DANGER_STARTER_APPROVER,
                         isMod: siteConfig.backend.starterItems.DANGER_STARTER_MOD,
                         isAdmin: siteConfig.backend.starterItems.DANGER_STARTER_ADMIN,
+                        isOwner: siteConfig.backend.starterItems.DANGER_STARTER_OWNER,
                         banned: false,
                         bannedDate: 0,
                         bannedModNote: "",
