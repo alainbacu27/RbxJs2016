@@ -99,6 +99,9 @@
             "admin": 15
         },
 
+        "maxFriends": 200,
+        "maxBlocked": 100,
+        
         "adsEnabled": true,
         "maxUserRatingsPerHour": 50,
         "needsToPlayBeforeLikeGame": true,

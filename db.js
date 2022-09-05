@@ -8060,7 +8060,7 @@ module.exports = {
                 returnPromise(false);
                 return;
             }
-            if (await getFriends(userid).length >= 200) {
+            if (await getFriends(userid).length >= siteConfig.shared.maxFriends) {
                 returnPromise(false);
                 return;
             }
@@ -8193,36 +8193,50 @@ module.exports = {
             MongoClient.connect(mongourl, async function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("blocked").insertOne({
-                    userid: userid,
-                    userid2: userid2,
-                    created: getUnixTimestamp()
-                }, async function (err, res) {
+                dbo.collection("blocked").find({
+                    userid: userid
+                }).toArray(function (err, result) {
                     if (err) {
                         db.close();
                         returnPromise(false);
                         return;
                     }
-                    if (await areFriends(userid, userid2)) {
-                        await unfriend(userid, userid2);
-                    } else if (await areFriendsPending(userid, userid2)) {
-                        dbo.collection("friends").deleteOne({
-                            userid: userid,
-                            friendid: userid2,
-                            accepted: false
-                        }, function (err, obj) {
-                            if (err) {
+                    if (result.length >= siteConfig.shared.maxBlocked) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    dbo.collection("blocked").insertOne({
+                        userid: userid,
+                        userid2: userid2,
+                        created: getUnixTimestamp()
+                    }, async function (err, res) {
+                        if (err) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        if (await areFriends(userid, userid2)) {
+                            await unfriend(userid, userid2);
+                        } else if (await areFriendsPending(userid, userid2)) {
+                            dbo.collection("friends").deleteOne({
+                                userid: userid,
+                                friendid: userid2,
+                                accepted: false
+                            }, function (err, obj) {
+                                if (err) {
+                                    db.close();
+                                    returnPromise(false);
+                                    return;
+                                }
                                 db.close();
-                                returnPromise(false);
-                                return;
-                            }
+                                returnPromise(true);
+                            });
+                        } else {
                             db.close();
                             returnPromise(true);
-                        });
-                    } else {
-                        db.close();
-                        returnPromise(true);
-                    }
+                        }
+                    });
                 });
             });
         });
