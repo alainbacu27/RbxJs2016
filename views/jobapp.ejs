@@ -531,6 +531,7 @@
                             <h1>Applications - Jobs</h1>
                         </div>
                         <div class="col-md-9" style="overflow: visible">
+                            <% if (enabled) { %>
                             <h3>Applications</h3>
                             <p>Welcome to the application dashboard!</p>
                             <p>Pick a application to apply for bellow.</p>
@@ -553,6 +554,10 @@
                                     </div>
                                 </div>
                             </a>
+                            <% } else { %>
+                            <h3>Applications</h3>
+                            <p>Applications are currently not availiable.</p>
+                            <% } %>
                         </div>
                     </div>
                 </div>

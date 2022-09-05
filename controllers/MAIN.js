@@ -5711,16 +5711,9 @@ module.exports = {
         });
 
         app.get("/jobs", db.requireAuth, async (req, res) => {
-            if (db.getSiteConfig().shared.jobsEnabled == false) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
             res.render("jobapp", {
                 ...(await db.getRenderObject(req.user)),
+                enabled: db.getSiteConfig().shared.jobsEnabled
             });
         });
 
