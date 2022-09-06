@@ -46,6 +46,7 @@
     "pm2": "^5.2.0",
     "profanity-js": "^0.1.4",
     "serve-favicon": "^2.5.0",
+    "simple-git": "^3.14.0",
     "tree-kill": "^1.2.2",
     "utf8": "^3.0.0",
     "uuid": "^8.3.2"

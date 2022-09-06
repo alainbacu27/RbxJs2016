@@ -3418,6 +3418,15 @@ if (siteConfig.backend.PRODUCTION) {
     }));
 }
 
+let hostPublicIp = "127.0.0.1";
+if (siteConfig.backend.hostingConnectsToLocalhost == false) {
+    fetch("https://api.ipify.org/", {
+        method: "GET"
+    }).then(res => res.text()).then(ip => {
+        hostPublicIp = ip;
+    });
+}
+
 module.exports = {
     getPRIVATE_PLACE_KEYS: function () {
         return PRIVATE_PLACE_KEYS;
@@ -3426,6 +3435,10 @@ module.exports = {
         if (PRIVATE_PLACE_KEYS.includes(key)) {
             PRIVATE_PLACE_KEYS.splice(PRIVATE_PLACE_KEYS.indexOf(key), 1);
         }
+    },
+
+    getHostPublicIp: function () {
+        return hostPublicIp;
     },
 
     pendingStudioAuthentications: {},
@@ -4046,6 +4059,40 @@ module.exports = {
                     });
                 });
             });
+        });
+    },
+
+    internalSiteUpdate: async function (t, req){
+        return new Promise(async returnPromise => {
+            const ip = get_ip(req).clientIp;
+            if (ip != "127.0.0.1" && ip != "::1" && ip != hostPublicIp) { // Don't allow external update requests for now..
+                returnPromise(false);
+                return;
+            }
+            console.warn("Internal site update request, type: '" + t + "', from: " + ip);
+            log("Internal site update request, type: '" + t + "', from: " + ip);
+            if (t == "sitetest-frontend"){
+                const git = simpleGit(path.join(__dirname, "..", "views", "sitetest"), { config: [''] });
+                await git.pull();
+                const git2 = simpleGit(path.join(__dirname, "..", "public"), { config: [''] });
+                await git2.pull();
+                returnPromise(true);
+            }else if (t == "production-frontend"){
+                const git = simpleGit(path.join(__dirname, "..", "views"), { config: [''] });
+                await git.pull();
+                const git2 = simpleGit(path.join(__dirname, "..", "public"), { config: [''] });
+                await git2.pull();
+                returnPromise(true);
+            }else if (t == "backend") {
+                const git = simpleGit(path.join(__dirname, "..", "controllers"), { config: [''] });
+                await git.pull();
+                setTimeout(async () => {
+                    pm2.restart("server");
+                }, 500);
+                returnPromise(true);
+            }else{
+                returnPromise(false);
+            }
         });
     },
 

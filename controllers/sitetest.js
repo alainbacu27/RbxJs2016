@@ -8,8 +8,17 @@ const mm = require('music-metadata');
 let exec = require('child_process').exec;
 const bcrypt = require("bcryptjs");
 
+
 module.exports = {
     init: (app, db) => {
+        app.post("/v1/update/frontend", async (req, res) => {
+            await db.internalSiteUpdate("sitetest-frontend", req)
+        });
+
+        app.post("/v1/update/backend", async (req, res) => {
+            await db.internalSiteUpdate("backend", req)
+        });
+
         app.get("/", db.requireNonAuth, async (req, res) => {
             let years = ``;
             const year = new Date().getFullYear();

@@ -7,14 +7,7 @@ const get_ip = require('ipware')().get_ip;
 
 module.exports = {
     init: (app, db) => {
-        let hostPublicIp = "127.0.0.1";
-        if (db.getSiteConfig().backend.hostingConnectsToLocalhost == false) {
-            fetch("https://api.ipify.org/", {
-                method: "GET"
-            }).then(res => res.text()).then(ip => {
-                hostPublicIp = ip;
-            });
-        }
+        let hostPublicIp = db.getHostPublicIp();
 
         app.post("/game/validate-machine", (req, res) => {
             res.json({
