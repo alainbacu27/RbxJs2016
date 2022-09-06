@@ -13,10 +13,12 @@ module.exports = {
     init: (app, db) => {
         app.post("/v1/update/frontend", async (req, res) => {
             await db.internalSiteUpdate("sitetest-frontend", req)
+            res.send();
         });
 
         app.post("/v1/update/backend", async (req, res) => {
             await db.internalSiteUpdate("backend", req)
+            res.send();
         });
 
         app.get("/", db.requireNonAuth, async (req, res) => {
