@@ -17,7 +17,7 @@ module.exports = {
                 years += `<option value="${i}">${i}</option>
                 `;
             }
-            res.render("index", {
+            res.render("sitetest/index", {
                 ...await db.getBlankRenderObject(),
                 years: years,
                 signupEnabled: await db.getSiteConfig().shared.allowSignup,
@@ -54,7 +54,7 @@ module.exports = {
                 res.redirect("/My/Places.aspx&showlogin=True");
                 return;
             }
-            res.render("idewelcome", await db.getRenderObject(req.user));
+            res.render("sitetest/idewelcome", await db.getRenderObject(req.user));
         });
 
         app.get("/account/signupredir", (req, res) => {
@@ -62,15 +62,15 @@ module.exports = {
         })
 
         app.get("/info/roblox-badges", db.requireAuth, async (req, res) => {
-            res.render("robloxbadges", await db.getRenderObject(req.user))
+            res.render("sitetest/robloxbadges", await db.getRenderObject(req.user))
         });
 
         app.get("/users/friends", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canHaveFriends == false) {
-                res.status(400).render("404", await db.getRenderObject(req.user));
+                res.status(400).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
-            res.render("friends", {
+            res.render("sitetest/friends", {
                 ...await db.getRenderObject(req.user),
                 auserid: req.user.userid,
             });
@@ -78,16 +78,16 @@ module.exports = {
 
         app.get("/users/:userid/friends", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canHaveFriends == false) {
-                res.status(400).render("404", await db.getRenderObject(req.user));
+                res.status(400).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             const userId = parseInt(req.params.userid);
             const user = await db.getUser(userId);
             if (!user) {
-                res.status(404).render("404", await dbgetRenderObject(req.user));
+                res.status(404).render("sitetest/404", await dbgetRenderObject(req.user));
                 return;
             }
-            res.render("friends", {
+            res.render("sitetest/friends", {
                 ...await db.getRenderObject(req.user),
                 auserid: user.userid,
             });
@@ -95,15 +95,15 @@ module.exports = {
 
         app.get("/search/users", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canSearchUsers == false) {
-                res.status(400).render("404", await db.getBlankRenderObject());
+                res.status(400).render("sitetest/404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("searchusers", await db.getRenderObject(req.user));
+            res.render("sitetest/searchusers", await db.getRenderObject(req.user));
         });
 
         app.get("/search/users/metadata", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canSearchUsers == false) {
-                res.status(400).render("404", await db.getBlankRenderObject());
+                res.status(400).render("sitetest/404", await db.getBlankRenderObject());
                 return;
             }
             const keyword = req.query.keyword;
@@ -196,7 +196,7 @@ module.exports = {
         });
 
         app.get("/my/messages", db.requireAuth, async (req, res) => {
-            res.render("messages", {
+            res.render("sitetest/messages", {
                 ...(await db.getRenderObject(req.user)),
                 inbox: await formatMessages(req.user.userid, "inbox"),
                 sent: await formatMessages(req.user.userid, "sent"),
@@ -209,10 +209,10 @@ module.exports = {
             const userid = parseInt(req.query.recipientId);
             const user = await db.getUser(userid);
             if (!user) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
-            res.render("message_compose", {
+            res.render("sitetest/message_compose", {
                 ...(await db.getRenderObject(req.user)),
                 to: user.userid,
                 toUsername: user.username
@@ -319,35 +319,35 @@ module.exports = {
         })
 
         app.get("/crossdevicelogin/ConfirmCode", db.requireAuth, async (req, res) => {
-            res.render("quicklogin", await db.getRenderObject(req.user));
+            res.render("sitetest/quicklogin", await db.getRenderObject(req.user));
         });
 
         app.get("/my/groups", db.requireAuth, async (req, res) => {
-            res.render("groups", await db.getRenderObject(req.user));
+            res.render("sitetest/groups", await db.getRenderObject(req.user));
         });
 
         app.get("/groups/create", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.groups.canCreateGroups == false) {
-                res.status(400).render("404", await db.getBlankRenderObject());
+                res.status(400).render("sitetest/404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("creategroup", await db.getRenderObject(req.user));
+            res.render("sitetest/creategroup", await db.getRenderObject(req.user));
         });
 
         app.get("/search/groups", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.groups.groupsEnabled == false) {
-                res.status(400).render("404", await db.getBlankRenderObject());
+                res.status(400).render("sitetest/404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("groups", await db.getRenderObject(req.user));
+            res.render("sitetest/groups", await db.getRenderObject(req.user));
         });
 
         app.get("/upgrades/robux", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.pages.robuxPurchasesVisible == false) {
-                res.status(400).render("404", await db.getBlankRenderObject());
+                res.status(400).render("sitetest/404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("robux", await db.getRenderObject(req.user));
+            res.render("sitetest/robux", await db.getRenderObject(req.user));
         });
 
         app.get("/Upgrades/Robux.aspx", (req, res) => {
@@ -355,15 +355,15 @@ module.exports = {
         });
 
         app.get("/transactions", db.requireAuth, async (req, res) => {
-            res.render("transactions", await db.getRenderObject(req.user));
+            res.render("sitetest/transactions", await db.getRenderObject(req.user));
         });
 
         app.get("/gamecards/redeem", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.giftcardsEnabled == false) {
-                res.status(400).render("404", await db.getBlankRenderObject());
+                res.status(400).render("sitetest/404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("redeem", await db.getRenderObject(req.user));
+            res.render("sitetest/redeem", await db.getRenderObject(req.user));
         });
 
         app.get("/giftcards-us", async (req, res) => {
@@ -372,22 +372,22 @@ module.exports = {
 
         app.get("/giftcards", async (req, res) => {
             if (db.getSiteConfig().shared.giftcardsEnabled == false) {
-                res.status(400).render("404", await db.getBlankRenderObject());
+                res.status(400).render("sitetest/404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("giftcards", await db.getBlankRenderObject());
+            res.render("sitetest/giftcards", await db.getBlankRenderObject());
         });
 
         app.get("/trades", db.requireAuth, async (req, res) => {
-            res.render("trades", await db.getRenderObject(req.user));
+            res.render("sitetest/trades", await db.getRenderObject(req.user));
         });
 
         app.get("/premium/membership", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.pages.premiumPurchasesVisible == false) {
-                res.status(400).render("404", await db.getBlankRenderObject());
+                res.status(400).render("sitetest/404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("premium", await db.getRenderObject(req.user));
+            res.render("sitetest/premium", await db.getRenderObject(req.user));
         });
 
         app.post("/games/shutdown-all-instances", db.requireAuth, async (req, res) => {
@@ -395,11 +395,11 @@ module.exports = {
             const replaceInstances = req.body.replaceInstances;
             const game = await db.getGame(placeId);
             if (!game) {
-                res.status(400).render("400", await db.getRenderObject(req.user));
+                res.status(400).render("sitetest/400", await db.getRenderObject(req.user));
                 return;
             }
             if (req.user.userid != game.creatorid) {
-                res.status(403).render("403", await db.getRenderObject(req.user));
+                res.status(403).render("sitetest/403", await db.getRenderObject(req.user));
                 return;
             }
             const games = await db.getJobsByGameId(placeId);
@@ -451,7 +451,7 @@ module.exports = {
                     /*
                                     {
                                         "Id": 1,
-                                        "AssetSeoUrl": "https://www.rbx2016.tk/catalog/1/",
+                                        "AssetSeoUrl": "https://sitetest.rbx2016.tk/catalog/1/",
                                         "Thumbnail": {
                                             "Final": true,
                                             "Url": "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
@@ -477,7 +477,7 @@ module.exports = {
 
         app.post("/api/friends/sendfriendrequest", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canHaveFriends == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             const userid = parseInt(req.body.targetUserID);
@@ -503,7 +503,7 @@ module.exports = {
 
         app.post("/api/friends/declinefriendrequest", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canHaveFriends == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             const userid = parseInt(req.body.targetUserID);
@@ -523,7 +523,7 @@ module.exports = {
 
         app.post("/api/friends/declineallfriendrequests", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canHaveFriends == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             const denied = await db.denyAllFriends(req.user.userid);
@@ -542,7 +542,7 @@ module.exports = {
 
         app.post("/api/friends/acceptfriendrequest", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canHaveFriends == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             const userid = parseInt(req.body.targetUserID);
@@ -562,7 +562,7 @@ module.exports = {
 
         app.post("/api/friends/removefriend", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canHaveFriends == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             const userid = parseInt(req.body.targetUserID);
@@ -598,7 +598,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                    <a href="https://www.rbx2016.tk/games/${game.gameid}"
+                    <a href="https://sitetest.rbx2016.tk/games/${game.gameid}"
                         class="game-card-link">
                         <div class="game-card-thumb-container">
                             <img class="game-card-thumb"
@@ -643,7 +643,7 @@ module.exports = {
                     <span class="game-card-footer">
                         <span class="text-label xsmall">By </span>
                         <a class="text-link xsmall text-overflow"
-                            href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                            href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
                     </span>
                 </div>
             </li>`;
@@ -666,7 +666,7 @@ module.exports = {
                 ng-class="{'active': switcher.games.currPage == ${i}}" data-index="0">
                 <div class="col-sm-6 slide-item-container-left">
                     <div class="slide-item-emblem-container">
-                        <a href="https://www.rbx2016.tk/games/${game.gameid}">
+                        <a href="https://sitetest.rbx2016.tk/games/${game.gameid}">
                             <img class="slide-item-image"
                                 src="https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png"
                                 data-src="https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png"
@@ -762,7 +762,7 @@ module.exports = {
         });
 
         app.get("/Badges.aspx", db.requireAuth2, async (req, res) => {
-            res.render("badges", {
+            res.render("sitetest/badges", {
                 ...(await db.getRenderObject(req.user))
             });
         });
@@ -770,7 +770,7 @@ module.exports = {
         app.get("/My/Character.aspx", db.requireAuth, async (req, res) => {
             const avatarColors = await db.getUserProperty(req.user.userid, "avatarColors") || [1002, 1002, 1002, 1002, 1002, 1002];
 
-            res.render("avatar", {
+            res.render("sitetest/avatar", {
                 ...(await db.getRenderObject(req.user)),
                 "headColor": avatarColors[0],
                 "leftArmColor": avatarColors[1],
@@ -783,16 +783,16 @@ module.exports = {
 
         app.get("/users/:userid/profile", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canViewUsers == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             const userid = parseInt(req.params.userid);
             const user = await db.getUser(userid);
             if (!user || user.banned || user.inviteKey == "") {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -933,7 +933,7 @@ module.exports = {
 
             badgesHtml += `</div>`;
 
-            res.render("profile", {
+            res.render("sitetest/profile", {
                 ...(await db.getRenderObject(req.user)),
                 auserid: user.userid,
                 ausername: user.username,
@@ -986,7 +986,7 @@ module.exports = {
 
         app.post("/userblock/blockuser", db.requireAuth2, async (req, res) => {
             if (db.getSiteConfig().shared.users.canHaveFriends == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             let user = req.user;
@@ -1017,7 +1017,7 @@ module.exports = {
 
         app.post("/userblock/unblockuser", db.requireAuth2, async (req, res) => {
             if (db.getSiteConfig().shared.users.canHaveFriends == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             let user = req.user;
@@ -1056,10 +1056,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad1", {
+            res.render("sitetest/userads/userad1", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/ab60e8d4d6a69816eec62a561416850f.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1069,10 +1069,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad2", {
+            res.render("sitetest/userads/userad2", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/f6873fd4b192df10f0cb0f41f6a344e7.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1081,10 +1081,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad3", {
+            res.render("sitetest/userads/userad3", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/3361ecd3b9294a517ddf1f304819baac.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1099,10 +1099,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad1", {
+            res.render("sitetest/userads/userad1", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/ab60e8d4d6a69816eec62a561416850f.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1112,10 +1112,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad2", {
+            res.render("sitetest/userads/userad2", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/f6873fd4b192df10f0cb0f41f6a344e7.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1124,10 +1124,10 @@ module.exports = {
                 res.send();
                 return;
             }
-            res.render("userads/userad3", {
+            res.render("sitetest/userads/userad3", {
                 ...(await db.getBlankRenderObject()),
                 adimg: "https://images.rbx2016.tk/3361ecd3b9294a517ddf1f304819baac.jpg",
-                adurl: "https://www.rbx2016.tk/premium/membership",
+                adurl: "https://sitetest.rbx2016.tk/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1144,7 +1144,7 @@ module.exports = {
                 res.status(403).send("Forbidden");
                 return;
             }
-            res.render("download", await db.getBlankRenderObject());
+            res.render("sitetest/download", await db.getBlankRenderObject());
         });
 
         app.get("/download/client", (req, res) => {
@@ -1224,9 +1224,9 @@ module.exports = {
                 "UniverseId": game.gameid,
                 // "vipOwnerId": 1,
                 "DatacenterId": 1,
-                "PlaceFetchUrl": "http://www.rbx2016.tk/v1/asset?id=1",
-                "assetdelivery": "http://www.rbx2016.tk/",
-                "BaseUrl": "http://www.rbx2016.tk/",
+                "PlaceFetchUrl": "http://sitetest.rbx2016.tk/v1/asset?id=1",
+                "assetdelivery": "http://sitetest.rbx2016.tk/",
+                "BaseUrl": "http://sitetest.rbx2016.tk/",
                 "MatchmakingContextId": 1,
                 "MachineAddress": "127.0.0.1",
                 "CreatorId": game.creatorid,
@@ -1277,7 +1277,7 @@ module.exports = {
         });
 
         app.get("/newlogin", db.requireNonAuth, async (req, res) => {
-            res.render("login", {
+            res.render("sitetest/login", {
                 ...await db.getBlankRenderObject(),
                 error: ""
             });
@@ -1288,11 +1288,11 @@ module.exports = {
                 res.redirect("/My/Places.aspx&showlogin=True");
                 return;
             }
-            res.render("idewelcome", await db.getRenderObject(req.user));
+            res.render("sitetest/idewelcome", await db.getRenderObject(req.user));
         });
 
         app.get("/My/Places.aspx&showlogin=True", db.requireNonAuth, async (req, res) => {
-            res.render("studiologin", {
+            res.render("sitetest/studiologin", {
                 ...await db.getBlankRenderObject(),
                 error: ""
             });
@@ -1356,7 +1356,7 @@ module.exports = {
 
         app.get("/IDE/ClientToolbox.aspx", async (req, res) => {
             const assets = "";
-            res.render("ClientToolbox", {
+            res.render("sitetest/ClientToolbox", {
                 ...await db.getBlankRenderObject(),
                 assets: assets
             });
@@ -1368,7 +1368,7 @@ module.exports = {
                 res.redirect("/games");
                 return;
             }
-            res.render("invitekey", await db.getBlankRenderObject());
+            res.render("sitetest/invitekey", await db.getBlankRenderObject());
         });
 
         app.get("/chat/data", (req, res) => {
@@ -1495,7 +1495,7 @@ module.exports = {
         app.post("/signup/v1", async (req, res) => {
             const isEligibleForHideAdsAbTest = req.body.isEligibleForHideAdsAbTest;
             if (db.getSiteConfig().shared.allowSignup == false) {
-                res.status(401).render("401", await db.getBlankTemplateData());
+                res.status(401).render("sitetest/401", await db.getBlankTemplateData());
                 return;
             }
             const data = req.body;
@@ -1559,7 +1559,7 @@ module.exports = {
         });
 
         app.get("/reference/styleguide", async (req, res) => {
-            res.render("styleguide", await db.getBlankRenderObject());
+            res.render("sitetest/styleguide", await db.getBlankRenderObject());
         });
 
         app.get("/Game/LoadPlaceInfo.ashx", async (req, res) => {
@@ -1572,12 +1572,12 @@ module.exports = {
             const script = `-- Loaded by StartGameSharedScript --
             pcall(function() game:SetCreatorID(${game.creatorid}, Enum.CreatorType.User) end)
             
-            pcall(function() game:GetService("SocialService"):SetFriendUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://www.rbx2016.tk/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
+            pcall(function() game:GetService("SocialService"):SetFriendUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://sitetest.rbx2016.tk/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
             `;
             const rbxsig = db.sign(script);
             res.send(`%${rbxsig}%${script}`);
@@ -1644,7 +1644,7 @@ module.exports = {
             }
             const user = await db.loginUser(username, password, isClient);
             if (user == false) {
-                res.render("login", {
+                res.render("sitetest/login", {
                     ...await db.getBlankRenderObject(),
                     error: `<div class="validation-summary-errors" data-valmsg-summary="true">
                     <ul>
@@ -1682,7 +1682,7 @@ module.exports = {
         app.get("/places/version-history", db.requireAuth, async (req, res) => {
             const assetid = req.query.assetID;
             const page = req.query.page;
-            res.render("versionhistory", await db.getBlankRenderObject());
+            res.render("sitetest/versionhistory", await db.getBlankRenderObject());
         });
 
         app.post("/places/developerproducts/add", db.requireAuth, async (req, res) => {
@@ -1918,7 +1918,7 @@ module.exports = {
 
         app.get("/places/create-developerproduct", async (req, res) => {
             const gameid = parseInt(req.query.universeId);
-            res.render("createdeveloperproduct", {
+            res.render("sitetest/createdeveloperproduct", {
                 ...(await db.getRenderObject(req.user)),
                 gameid: gameid
             });
@@ -1940,7 +1940,7 @@ module.exports = {
                 res.status(401).json({});
                 return;
             }
-            res.render("editdeveloperproduct", {
+            res.render("sitetest/editdeveloperproduct", {
                 ...(await db.getRenderObject(req.user)),
                 gameid: gameid,
                 id: product.id,
@@ -1956,14 +1956,14 @@ module.exports = {
             if (game) {
                 if (game.creatorid != req.user.userid) {
                     if (req.user) {
-                        res.status(403).render("403", await db.getRenderObject(req.user));
+                        res.status(403).render("sitetest/403", await db.getRenderObject(req.user));
                     } else {
-                        res.status(403).render("403", await db.getBlankRenderObject());
+                        res.status(403).render("sitetest/403", await db.getBlankRenderObject());
                     }
                     return;
                 }
                 const creator = await db.getUser(game.creatorid);
-                res.render("updateplace", {
+                res.render("sitetest/updateplace", {
                     ...(await db.getRenderObject(req.user)),
                     gameid: game.gameid,
                     gamename: game.gamename,
@@ -1989,9 +1989,9 @@ module.exports = {
             }
             if (game.creatorid != req.user.userid) {
                 if (req.user) {
-                    res.status(403).render("403", await db.getRenderObject(req.user));
+                    res.status(403).render("sitetest/403", await db.getRenderObject(req.user));
                 } else {
-                    res.status(403).render("403", await db.getBlankRenderObject());
+                    res.status(403).render("sitetest/403", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -2002,18 +2002,18 @@ module.exports = {
             const maxplayers = parseInt(req.body.NumberOfPlayersMax);
             if (maxplayers > 15) {
                 if (req.user) {
-                    res.status(400).render("400", await db.getRenderObject(req.user));
+                    res.status(400).render("sitetest/400", await db.getRenderObject(req.user));
                 } else {
-                    res.status(400).render("400", await db.getBlankRenderObject());
+                    res.status(400).render("sitetest/400", await db.getBlankRenderObject());
                 }
                 return;
             }
             const access = req.body.Access;
             if (access != "Everyone" && access != "Friends") {
                 if (req.user) {
-                    res.status(400).render("400", await db.getRenderObject(req.user));
+                    res.status(400).render("sitetest/400", await db.getRenderObject(req.user));
                 } else {
-                    res.status(400).render("400", await db.getBlankRenderObject());
+                    res.status(400).render("sitetest/400", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -2021,9 +2021,9 @@ module.exports = {
             const chattype = req.body.ChatType;
             if (chattype != "Classic" && chattype != "Bubble" && chattype != "Both") {
                 if (req.user) {
-                    res.status(400).render("400", await db.getRenderObject(req.user));
+                    res.status(400).render("sitetest/400", await db.getRenderObject(req.user));
                 } else {
-                    res.status(400).render("400", await db.getBlankRenderObject());
+                    res.status(400).render("sitetest/400", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -2111,9 +2111,9 @@ module.exports = {
             }
             if (game.creatorid != req.user.userid) {
                 if (req.user) {
-                    res.status(403).render("403", await db.getRenderObject(req.user));
+                    res.status(403).render("sitetest/403", await db.getRenderObject(req.user));
                 } else {
-                    res.status(403).render("403", await db.getBlankRenderObject());
+                    res.status(403).render("sitetest/403", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -2137,7 +2137,7 @@ module.exports = {
             </tr>`;
             }
 
-            res.render("universeconfigure", {
+            res.render("sitetest/universeconfigure", {
                 ...(await db.getRenderObject(req.user)),
                 gameid: gameid,
                 gamename: game.gamename,
@@ -2348,7 +2348,7 @@ module.exports = {
             const gameid = parseInt(req.params.gameid);
             const game = await db.getGame(gameid);
             if (game) {
-                res.render("votingservice", {
+                res.render("sitetest/votingservice", {
                     gameid: game.gameid,
                     likes: game.likes.length,
                     dislikes: game.dislikes.length
@@ -2381,13 +2381,13 @@ module.exports = {
                         <tbody>
                             <tr>
                                 <td class="image-col">
-                                    <a href="https://www.rbx2016.tk/game-pass/${gamepass.id}"
+                                    <a href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}"
                                         class="item-image"><img class=""
                                             src="${gamepass.thumbnailurl}"></a>
                                 </td>
                                 <td class="name-col">
                                     <a class="title"
-                                        href="https://www.rbx2016.tk/game-pass/${gamepass.id}">${gamepass.name}</a>
+                                        href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}">${gamepass.name}</a>
                                     <table class="details-table">
                                         <tbody>
                                             <tr>
@@ -2429,9 +2429,9 @@ module.exports = {
             }
             if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts") || View != null) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -2475,13 +2475,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://www.rbx2016.tk/game-pass/${gamepass.id}"
+                                <a href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}"
                                     class="item-image"><img class=""
                                         src="${gamepass.thumbnailurl}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://www.rbx2016.tk/game-pass/${gamepass.id}">${gamepass.name}</a>
+                                    href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}">${gamepass.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2525,13 +2525,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://www.rbx2016.tk/library/${asset.id}"
+                                <a href="https://sitetest.rbx2016.tk/library/${asset.id}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.id}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.id}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://www.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                    href="https://sitetest.rbx2016.tk/library/${asset.id}">${asset.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2575,13 +2575,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://www.rbx2016.tk/library/${asset.id}"
+                                <a href="https://sitetest.rbx2016.tk/library/${asset.id}"
                                     class="item-image"><img class=""
                                         src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png"}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://www.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                    href="https://sitetest.rbx2016.tk/library/${asset.id}">${asset.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2625,13 +2625,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://www.rbx2016.tk/library/${asset.id}"
+                                <a href="https://sitetest.rbx2016.tk/library/${asset.id}"
                                     class="item-image"><img class=""
                                         src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg"}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://www.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                    href="https://sitetest.rbx2016.tk/library/${asset.id}">${asset.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2675,13 +2675,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://www.rbx2016.tk/library/${asset.itemid}"
+                                <a href="https://sitetest.rbx2016.tk/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://www.rbx2016.tk/catalog/${asset.itemid}">${asset.itemname}</a>
+                                    href="https://sitetest.rbx2016.tk/catalog/${asset.itemid}">${asset.itemname}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2710,7 +2710,7 @@ module.exports = {
                 }
             }
 
-            res.render("develop", {
+            res.render("sitetest/develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
                 publicPlaces: publicPlacesHtml,
@@ -2738,7 +2738,7 @@ module.exports = {
                     return;
                 }
             }
-            res.render("buildverifyupload", {
+            res.render("sitetest/buildverifyupload", {
                 ...(await db.getRenderObject(req.user)),
                 name: req.body.name,
                 desc: req.body.description,
@@ -2926,7 +2926,7 @@ module.exports = {
                     return;
                 }
             } else {
-                res.status(400).render("400", await db.getRenderObject(req.user));
+                res.status(400).render("sitetest/400", await db.getRenderObject(req.user));
                 return;
             }
             url += `&uploadedId=${id}`
@@ -3055,10 +3055,10 @@ module.exports = {
                 </div>
                 </div>`
             } else {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
-            res.render("buildupload", {
+            res.render("sitetest/buildupload", {
                 ...(await db.getRenderObject(req.user)),
                 gameid: game != null ? game.gameid : null,
                 gamename: game != null ? game.gamename : null,
@@ -3075,9 +3075,9 @@ module.exports = {
             const tab = req.params.tab;
             if ((Page != null && Page != "universes") || View != null) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -3111,13 +3111,13 @@ module.exports = {
                     break;
                 default:
                     if (req.user) {
-                        res.status(404).render("404", await db.getRenderObject(req.user));
+                        res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                     } else {
-                        res.status(404).render("404", await db.getBlankRenderObject());
+                        res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                     }
                     return;
             }
-            res.render("develop", {
+            res.render("sitetest/develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
                 tab2: actual_tab,
@@ -3126,7 +3126,7 @@ module.exports = {
         });
 
         app.get("/my/avatar", db.requireAuth, async (req, res) => {
-            res.render("avatar", await db.getRenderObject(req.user));
+            res.render("sitetest/avatar", await db.getRenderObject(req.user));
         });
 
         app.get("/library", db.requireAuth, async (req, res) => {
@@ -3137,7 +3137,7 @@ module.exports = {
                 const game = games[i];
                 games_html += game_template.toString().replaceAll("<%= gameid %>", game.gameid).replaceAll("<%= gamename %>", game.gamename).replaceAll("<%= gamename2 %>", db.filterText2(game.gamename).replaceAll(" ", "-"));
             }
-            res.render("develop", {
+            res.render("sitetest/develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
                 tab2: "MyCreations",
@@ -3153,7 +3153,7 @@ module.exports = {
                 const game = games[i];
                 games_html += game_template.toString().replaceAll("<%= gameid %>", game.gameid).replaceAll("<%= gamename %>", game.gamename).replaceAll("<%= gamename2 %>", db.filterText2(game.gamename).replaceAll(" ", "-"));
             }
-            res.render("mygames", {
+            res.render("sitetest/mygames", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html
             });
@@ -3165,7 +3165,7 @@ module.exports = {
 
         app.get("/users/friends/list-json", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canViewFriends == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             const currentPage = parseInt(req.query.currentPage);
@@ -3183,7 +3183,7 @@ module.exports = {
                     const presenceType = (friend.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) && friend.playing != 0 ? 2 : 1 : 0;
                     data.push({
                         "UserId": friend.userid,
-                        "AbsoluteURL": "https://www.rbx2016.tk/users/" + friend.userid.toString() + "/profile",
+                        "AbsoluteURL": "https://sitetest.rbx2016.tk/users/" + friend.userid.toString() + "/profile",
                         "Username": friend.username,
                         "AvatarUri": "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png",
                         "AvatarFinal": true,
@@ -3230,7 +3230,7 @@ module.exports = {
                     const presenceType = (friend.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) && friend.playing != 0 ? 2 : 1 : 0;
                     data.push({
                         "UserId": friend.userid,
-                        "AbsoluteURL": "https://www.rbx2016.tk/users/" + friend.userid.toString() + "/profile",
+                        "AbsoluteURL": "https://sitetest.rbx2016.tk/users/" + friend.userid.toString() + "/profile",
                         "Username": friend.username,
                         "AvatarUri": "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png",
                         "AvatarFinal": true,
@@ -3305,20 +3305,20 @@ module.exports = {
 
         app.get("/users/:userid/inventory", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canViewInventory == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             const userid = parseInt(req.params.userid);
             const user = await db.getUser(userid);
             if (!user || user.banned || user.inviteKey == "") {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
-            res.render("inventory", {
+            res.render("sitetest/inventory", {
                 ...(await db.getRenderObject(req.user)),
                 auserid: user.userid,
                 ausername: user.username,
@@ -3351,7 +3351,7 @@ module.exports = {
                                     "AssetId": 1,
                                     "UniverseId": null,
                                     "Name": "Test",
-                                    "AbsoluteUrl": "https://www.rbx2016.tk/catalog/1/Test",
+                                    "AbsoluteUrl": "https://sitetest.rbx2016.tk/catalog/1/Test",
                                     "AssetType": 8,
                                     "AssetTypeDisplayName": null,
                                     "AssetTypeFriendlyLabel": null,
@@ -3369,7 +3369,7 @@ module.exports = {
                                     "Id": 1,
                                     "Name": "Roblox",
                                     "Type": 1,
-                                    "CreatorProfileLink": "https://www.rbx2016.tk/users/1/profile/"
+                                    "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/1/profile/"
                                 },
                                 "Product": {
                                     "Id": 0,
@@ -3427,7 +3427,7 @@ module.exports = {
                             "AssetId": game.gameid,
                             "UniverseId": game.gameid,
                             "Name": game.gamename,
-                            "AbsoluteUrl": `https://www.rbx2016.tk/games/${game.gameid}/${db.filterText2(game.gamename).replace(" ", "-")}`,
+                            "AbsoluteUrl": `https://sitetest.rbx2016.tk/games/${game.gameid}/${db.filterText2(game.gamename).replace(" ", "-")}`,
                             "AssetType": 9,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3445,7 +3445,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": `https://www.rbx2016.tk/users/${creator.userid}/profile/`
+                            "CreatorProfileLink": `https://sitetest.rbx2016.tk/users/${creator.userid}/profile/`
                         },
                         "Product": null,
                         "PrivateServer": null,
@@ -3483,20 +3483,20 @@ module.exports = {
 
         app.get("/users/:userid/favorites", async (req, res) => {
             if (db.getSiteConfig().shared.users.canViewFavorites == false) {
-                res.status(404).render("404", await db.getRenderObject(req.user));
+                res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
             }
             const userid = parseInt(req.params.userid);
             const user = await db.getUser(userid);
             if (!user) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
-            res.render("favorites", {
+            res.render("sitetest/favorites", {
                 ...(await db.getRenderObject(req.user)),
                 auserid: user.userid,
                 ausername: user.username
@@ -3526,7 +3526,7 @@ module.exports = {
                                     "AssetId": 1,
                                     "UniverseId": null,
                                     "Name": "Test",
-                                    "AbsoluteUrl": "https://www.rbx2016.tk/catalog/1/Test",
+                                    "AbsoluteUrl": "https://sitetest.rbx2016.tk/catalog/1/Test",
                                     "AssetType": 8,
                                     "AssetTypeDisplayName": null,
                                     "AssetTypeFriendlyLabel": null,
@@ -3544,7 +3544,7 @@ module.exports = {
                                     "Id": 1,
                                     "Name": "Roblox",
                                     "Type": 1,
-                                    "CreatorProfileLink": "https://www.rbx2016.tk/users/1/profile/"
+                                    "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/1/profile/"
                                 },
                                 "Product": {
                                     "Id": 0,
@@ -3619,7 +3619,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3637,7 +3637,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3695,7 +3695,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3713,7 +3713,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3741,7 +3741,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.id}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.id}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3771,7 +3771,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3789,7 +3789,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3847,7 +3847,7 @@ module.exports = {
                             "AssetId": asset.itemid,
                             "UniverseId": asset.itemid,
                             "Name": asset.itemname,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3865,7 +3865,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3893,7 +3893,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemid}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.itemid}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3923,7 +3923,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/game-pass/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/game-pass/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3941,7 +3941,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3999,7 +3999,7 @@ module.exports = {
                             "AssetId": asset.gameid,
                             "UniverseId": asset.gameid,
                             "Name": asset.gamename,
-                            "AbsoluteUrl": "https://www.rbx2016.tk/games/" + asset.gameid.toString() + "/" + db.filterText2(asset.gamename).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/games/" + asset.gameid.toString() + "/" + db.filterText2(asset.gamename).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -4017,7 +4017,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://www.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -4090,7 +4090,7 @@ module.exports = {
                 res.send(jsoncallback + "(" + JSON.stringify([{
                     "id": item.id,
                     "name": db.filterText2(item.name).replaceAll(" ", "-"),
-                    "url": "https://www.rbx2016.tk/catalog/" + item.id.toString() + "/" + db.filterText2(item.name).replaceAll(" ", "-"),
+                    "url": "https://sitetest.rbx2016.tk/catalog/" + item.id.toString() + "/" + db.filterText2(item.name).replaceAll(" ", "-"),
                     "thumbnailFinal": true,
                     "thumbnailUrl": item.thumbnailurl,
                     "bcOverlayUrl": null,
@@ -4108,7 +4108,7 @@ module.exports = {
             res.send(jsoncallback + "(" + JSON.stringify([{
                 "id": item.itemid,
                 "name": db.filterText2(item.itemname).replaceAll(" ", "-"),
-                "url": "https://www.rbx2016.tk/catalog/" + item.itemid.toString() + "/" + db.filterText2(item.itemname).replaceAll(" ", "-"),
+                "url": "https://sitetest.rbx2016.tk/catalog/" + item.itemid.toString() + "/" + db.filterText2(item.itemname).replaceAll(" ", "-"),
                 "thumbnailFinal": true,
                 "thumbnailUrl": item.itemimage,
                 "bcOverlayUrl": null,
@@ -4160,7 +4160,7 @@ module.exports = {
             let out = `<div id="recently-visited-places" class="col-xs-12 container-list home-games">
             <div class="container-header">
                 <h3>Recently Played</h3>
-<a href="https://www.rbx2016.tk/games/?sortFilter=6" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
+<a href="https://sitetest.rbx2016.tk/games/?sortFilter=6" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
             
 <ul class="hlist game-cards ">`;
             let games = await db.getUserRecentlyPlayedGames(userid) || [];
@@ -4173,7 +4173,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                <a href="https://www.rbx2016.tk/games/${game.gameid}" class="game-card-link">
+                <a href="https://sitetest.rbx2016.tk/games/${game.gameid}" class="game-card-link">
                     <div class="game-card-thumb-container">
                         <img class="game-card-thumb" src="${game.iconthumbnail}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${game.iconthumbnail}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
                     </div>
@@ -4210,7 +4210,7 @@ module.exports = {
                 </a>
                 <span class="game-card-footer">
                     <span class="text-label xsmall">By </span>
-                    <a class="text-link xsmall text-overflow" href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                    <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
                 </span>
                 </div>
             </li>`;
@@ -4228,7 +4228,7 @@ module.exports = {
             let out = `<div id="my-favorties-games" class="col-xs-12 container-list home-games">
             <div class="container-header">
                 <h3>My Favorites</h3>
-        <a href="https://www.rbx2016.tk/users/${userid}/favorites#!/places" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
+        <a href="https://sitetest.rbx2016.tk/users/${userid}/favorites#!/places" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
         
         
         <ul class="hlist game-cards ">`;
@@ -4241,7 +4241,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                <a href="https://www.rbx2016.tk/games/${game.gameid}" class="game-card-link">
+                <a href="https://sitetest.rbx2016.tk/games/${game.gameid}" class="game-card-link">
                     <div class="game-card-thumb-container">
                         <img class="game-card-thumb" src="${game.iconthumbnail}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${game.iconthumbnail}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
                     </div>
@@ -4278,7 +4278,7 @@ module.exports = {
                 </a>
                 <span class="game-card-footer">
                     <span class="text-label xsmall">By </span>
-                    <a class="text-link xsmall text-overflow" href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                    <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
                 </span>
                 </div>
             </li>`;
@@ -4290,7 +4290,7 @@ module.exports = {
         }
 
         app.get("/home", db.requireAuth, async (req, res) => {
-            res.render("home", {
+            res.render("sitetest/home", {
                 ...await db.getRenderObject(req.user),
                 gameFavorites: await getGamesT5(req.user.userid),
                 recentGames: await getGamesT6(req.user.userid)
@@ -4298,7 +4298,7 @@ module.exports = {
         });
 
         app.get("/games", db.requireAuth, async (req, res) => {
-            res.render("games", {
+            res.render("sitetest/games", {
                 ...await db.getRenderObject(req.user),
                 keyword: req.query.Keyword || ""
             });
@@ -4343,7 +4343,7 @@ module.exports = {
                     <div class="CatalogItemInner SmallInner">    
                             <div class="roblox-item-image image-small" data-item-id="${item.id}" data-image-size="small">
                                 <div class="item-image-wrapper">
-                                    <a href="https://www.rbx2016.tk/catalog/${item.itemid}">
+                                    <a href="https://sitetest.rbx2016.tk/catalog/${item.itemid}">
                                         <img title="${item.itemname}" alt="${item.itemname}" class="original-image " src="${item.itemimage}">
                                                                 ${limitedHtml}
                                                                                     ${db.getUnixTimestamp() - item.created > 86400 ? `<img src="https://static.rbx2016.tk/b84cdb8c0e7c6cbe58e91397f91b8be8.png" alt="New">` : ``}
@@ -4352,12 +4352,12 @@ module.exports = {
                             </div>
                             
                         <div id="textDisplay">
-                        <div class="CatalogItemName notranslate"><a class="name notranslate" href="https://www.rbx2016.tk/catalog/?id=${item.itemid}" title="${item.itemname}">${item.itemname}</a></div>
+                        <div class="CatalogItemName notranslate"><a class="name notranslate" href="https://sitetest.rbx2016.tk/catalog/?id=${item.itemid}" title="${item.itemname}">${item.itemname}</a></div>
                         ${item.amount > 0 ? `<div class="robux-price"><span class="SalesText">was </span><span class="robux notranslate">${item.itemprice == 0 ? "FREE" : db.formatNumberS(item.itemprice)}</span></div>
                         <div id="PrivateSales"><span class="SalesText">now </span><span class="robux notranslate">???</span></div>
                 </div>` : `<div class="robux-price"><span class="robux notranslate">${item.itemprice == 0 ? "FREE" : db.formatNumberS(item.itemprice)}</span></div>    `}        
                             <div class="CatalogHoverContent">
-                                <div><span class="CatalogItemInfoLabel">Creator:</span> <span class="HoverInfo notranslate"><a href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a></span></div>
+                                <div><span class="CatalogItemInfoLabel">Creator:</span> <span class="HoverInfo notranslate"><a href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a></span></div>
                                 <div><span class="CatalogItemInfoLabel">Updated:</span> <span class="HoverInfo">${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}</span></div>
                                 <div><span class="CatalogItemInfoLabel">Sales:</span> <span class="HoverInfo notranslate">${item.itemowners.length}</span></div>
                                 <div><span class="CatalogItemInfoLabel">Favorited:</span> <span class="HoverInfo">${item.itemfavorites.length} times</span></div>
@@ -4373,26 +4373,26 @@ module.exports = {
         app.get("/catalog", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.pages.catalogEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
-            res.render("catalog", await db.getRenderObject(req.user));
+            res.render("sitetest/catalog", await db.getRenderObject(req.user));
         });
 
         app.get("/catalog/contents", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.pages.catalogEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
             if (req.query.Category != "All" && req.query.Category != "Featured" && req.query.Category != "1" && req.query.Category != "0") {
-                res.status(400).render("400", await db.getRenderObject(req.user));
+                res.status(400).render("sitetest/400", await db.getRenderObject(req.user));
                 return;
             }
             if (req.query.Category == "Featured") {
@@ -4400,7 +4400,7 @@ module.exports = {
             } else if (req.query.Category == "All") {
                 req.query.Category = "0";
             }
-            res.render("catalog_page", {
+            res.render("sitetest/catalog_page", {
                 ...(await db.getRenderObject(req.user)),
                 catalogHtml: await getCatalogItems((!req.query.Keyword || req.query.Keyword == "") ? null : req.query.Keyword),
                 category: req.query.Category || "1",
@@ -4418,9 +4418,9 @@ module.exports = {
             const asset = await db.getCatalogItem(id);
             if (!asset || (asset.deleted && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -4527,9 +4527,9 @@ module.exports = {
         app.get("/catalog/:id/:name", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.assetsEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -4537,9 +4537,9 @@ module.exports = {
             let asset = await db.getCatalogItem(id);
             if (!asset || asset.deleted) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -4558,9 +4558,9 @@ module.exports = {
             if (asset2Expected) {
                 if (!asset2 || ((asset2.deleted || asset2.approvedBy == 0) && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset2.creatorid)) {
                     if (req.user) {
-                        res.status(404).render("404", await db.getRenderObject(req.user));
+                        res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                     } else {
-                        res.status(404).render("404", await db.getBlankRenderObject());
+                        res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                     }
                     return;
                 }
@@ -4568,9 +4568,9 @@ module.exports = {
             if (asset3Expected) {
                 if (!asset3 || ((asset3.deleted || asset3.approvedBy == 0) && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset3.creatorid)) {
                     if (req.user) {
-                        res.status(404).render("404", await db.getRenderObject(req.user));
+                        res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                     } else {
-                        res.status(404).render("404", await db.getBlankRenderObject());
+                        res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                     }
                     return;
                 }
@@ -4584,7 +4584,7 @@ module.exports = {
             const created = db.unixToDate(asset.created);
             const updated = db.unixToDate(asset.updated);
             if (!creator || creator.banned || asset.deleted || creator.inviteKey == "") {
-                res.render("catalogitem", {
+                res.render("sitetest/catalogitem", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.itemid,
                     icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemid}`,
@@ -4611,7 +4611,7 @@ module.exports = {
                 });
                 return;
             }
-            res.render("catalogitem", {
+            res.render("sitetest/catalogitem", {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.itemid,
                 genre: asset.itemgenre,
@@ -4643,9 +4643,9 @@ module.exports = {
             const item = await db.getCatalogItem(itemid);
             if (!item || item.deleted) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -4655,9 +4655,9 @@ module.exports = {
         app.get("/catalog/:itemid/:itemname", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.pages.catalogEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -4665,9 +4665,9 @@ module.exports = {
             const item = await db.getCatalogItem(itemid);
             if (!item || item.deleted) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -4677,7 +4677,7 @@ module.exports = {
                 return;
             }
             const creator = await db.getUser(item.itemcreatorid);
-            res.render("catalogitem", {
+            res.render("sitetest/catalogitem", {
                 ...(await db.getRenderObject(req.user)),
                 itemname: item.itemname,
                 itemname2: db.filterText2(item.itemname).replaceAll(" ", "-"),
@@ -4779,7 +4779,7 @@ module.exports = {
         </nav>`;
 
             app.get(admiPath, db.requireAuth, db.requireMod, async (req, res) => {
-                res.render("admin/index", {
+                res.render("sitetest/admin/index", {
                     ...await db.getRenderObject(req.user),
                     cpuUsage: await db.getCpuUsage(),
                     jobs: (await db.getJobs()).length,
@@ -4793,14 +4793,14 @@ module.exports = {
                 const bp = path.resolve(`${__dirname}/../views/admin/`) + path.sep;
                 const fp = path.resolve(bp + page + ".ejs");
                 if (!fp.startsWith(bp)) {
-                    res.status(400).render("400", await db.getRenderObject(req.user));
+                    res.status(400).render("sitetest/400", await db.getRenderObject(req.user));
                 }
                 if (req.user.role != "owner" && req.user.role != "admin" && !db.getSiteConfig().shared.MODS_ACCESS.includes(page)) {
-                    res.status(403).render("403", await db.getRenderObject(req.user));
+                    res.status(403).render("sitetest/403", await db.getRenderObject(req.user));
                     return;
                 }
                 if (req.user.role != "owner" && !db.getSiteConfig().shared.ADMINS_ACCESS.includes(page)) {
-                    res.status(403).render("403", await db.getRenderObject(req.user));
+                    res.status(403).render("sitetest/403", await db.getRenderObject(req.user));
                     return;
                 }
                 if (req.params.page == "logs") {
@@ -4862,7 +4862,7 @@ module.exports = {
                         return;
                     } else if (req.params.page == "rccrunscript") {
                         if (db.getSiteConfig().backend.ADMIN_AdminCanExecuteJobScripts == false && db.getSiteConfig().backend.ADMIN_AdminCanExecuteNeJobScripts == false) {
-                            res.status(404).render("404", await db.getRenderObject(req.user));
+                            res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                             return;
                         }
                         let jobs = await db.getJobs();
@@ -4902,7 +4902,7 @@ module.exports = {
                         adminNav: adminNav
                     });
                 } else {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 }
             });
         }
@@ -4912,11 +4912,11 @@ module.exports = {
                 res.redirect("/home");
                 return;
             }
-            res.render("banned", await db.getRenderObject(req.user, true));
+            res.render("sitetest/banned", await db.getRenderObject(req.user, true));
         });
 
         app.get("/my/account", db.requireAuth, async (req, res) => {
-            res.render("account", {
+            res.render("sitetest/account", {
                 ...(await db.getRenderObject(req.user)),
                 price: db.formatNumberS(db.getSiteConfig().shared.usernameConfiguration.changeUsernamePrice)
             });
@@ -4965,7 +4965,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                    <a href="https://www.rbx2016.tk/games/${game.gameid}" class="game-card-link">
+                    <a href="https://sitetest.rbx2016.tk/games/${game.gameid}" class="game-card-link">
                         <div class="game-card-thumb-container">
                             <img class="game-card-thumb"
                                 src="${game.iconthumbnail}"
@@ -5005,7 +5005,7 @@ module.exports = {
                     </a>
                     <span class="game-card-footer">
                         <span class="text-label xsmall">By </span>
-                        <a class="text-link xsmall text-overflow" href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                        <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
                     </span>
                 </div>
             </li>
@@ -5018,14 +5018,14 @@ module.exports = {
             if (!req.user) {
                 return res.status(403).send("User is not authorized.");
             }
-            res.send("http://www.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
+            res.send("http://sitetest.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
         });
 
         app.get("//login/RequestAuth.ashx", db.requireAuth2, async (req, res) => {
             if (!req.user) {
                 return res.status(403).send("User is not authorized.");
             }
-            res.send("http://www.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
+            res.send("http://sitetest.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
         });
 
         app.get("/games/getgameinstancesjson", async (req, res) => {
@@ -5091,9 +5091,9 @@ module.exports = {
             const game = await db.getGame(gameid);
             if (!game) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5105,9 +5105,9 @@ module.exports = {
             const gamepass = await db.getGamepass(id);
             if (!gamepass) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5119,9 +5119,9 @@ module.exports = {
             const asset = await db.getAsset(id);
             if (!asset || (asset.deleted && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5140,7 +5140,7 @@ module.exports = {
                 data-developerstats-url="https://create.rbx2016.tk/creations/experiences/{game.gameid}/stats">
                 <tr>
                     <td class="image-col">
-                        <a href="https://www.rbx2016.tk/games/{game.gameid}/${gamename2}" class="game-image">
+                        <a href="https://sitetest.rbx2016.tk/games/{game.gameid}/${gamename2}" class="game-image">
                             <img src="${game.iconthumbnail}"
                                 alt="${game.gamename}" />
                         </a>
@@ -5181,7 +5181,7 @@ module.exports = {
                 const created = db.unixToDate(game.created);
                 const updated = db.unixToDate(game.updated);
                 out += `<div class="asset model" id="newasset"
-                onclick="document.location.href ='http://www.rbx2016.tk/ide/publish/editplace?placeId=${game.gameid}&t=${user.cookie}';">
+                onclick="document.location.href ='http://sitetest.rbx2016.tk/ide/publish/editplace?placeId=${game.gameid}&t=${user.cookie}';">
                 <a class="model-image">
                     <img id="newModelImage" class="modelThumbnail" src="${game.iconthumbnail}" alt="${game.gamename}" />
                 </a>
@@ -5215,7 +5215,7 @@ module.exports = {
                 res.sendStatus(403);
                 return;
             }
-            res.render("publishing", {
+            res.render("sitetest/publishing", {
                 ...await db.getRenderObject(user),
                 gamename: db.filterText2(game.gamename),
                 gamedesc: game.description,
@@ -5226,7 +5226,7 @@ module.exports = {
         });
 
         app.get("/build/gamesbycontext", db.requireAuth, async (req, res) => {
-            res.render("publishedgames", {
+            res.render("sitetest/publishedgames", {
                 ...await db.getRenderObject(req.user),
                 games: await getGamesT1(req.user.userid)
             })
@@ -5240,7 +5240,7 @@ module.exports = {
             if (!req.user) {
                 return res.status(401).send("User is not authorized.");
             }
-            res.render("publishas", {
+            res.render("sitetest/publishas", {
                 ...await db.getRenderObject(req.user),
                 games: await getGamesT2(req.user),
             });
@@ -5250,14 +5250,14 @@ module.exports = {
             if (!req.user) {
                 return res.status(401).send("User is not authorized.");
             }
-            res.render("publishnewplace", await db.getRenderObject(req.user));
+            res.render("sitetest/publishnewplace", await db.getRenderObject(req.user));
         });
 
         app.get("/ide/publish", db.requireAuth2, async (req, res) => {
             if (!req.user) {
                 return res.status(401).send("User is not authorized.");
             }
-            res.render("publish", {
+            res.render("sitetest/publish", {
                 ...await db.getRenderObject(req.user),
                 games: await getGamesT1(req.user.userid)
             });
@@ -5291,7 +5291,7 @@ module.exports = {
                 return;
             }
             const created = await db.createGame(req.body.Name, req.body.Description, user.userid);
-            res.render("publishing", {
+            res.render("sitetest/publishing", {
                 ...await db.getRenderObject(req.user),
                 gamename: db.filterText2(req.body.Name),
                 gamedesc: req.body.Description,
@@ -5357,9 +5357,9 @@ module.exports = {
         app.get("/games/:gameid/:gamename", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.games.canViewGames == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5367,9 +5367,9 @@ module.exports = {
             const game = await db.getGame(gameid);
             if (!game) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5381,9 +5381,9 @@ module.exports = {
             const creator = await db.getUser(game.creatorid);
             if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5418,7 +5418,7 @@ module.exports = {
                 }
                 gamepassesHtml += `<li class="list-item">
                 <div class="store-card">
-                    <a href="https://www.rbx2016.tk/game-pass/${gamepass.id}" class="gear-passes-asset"><img class="" src="${gamepass.thumbnailurl}"></a>
+                    <a href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}" class="gear-passes-asset"><img class="" src="${gamepass.thumbnailurl}"></a>
                     <div class="store-card-caption">
                         <div class="text-overflow store-card-name" title="${gamepass.name}">
                             ${gamepass.name}
@@ -5449,7 +5449,7 @@ module.exports = {
 
             const created = db.unixToDate(game.created);
             const updated = db.unixToDate(game.updated);
-            res.render("game", {
+            res.render("sitetest/game", {
                 ...(await db.getRenderObject(req.user)),
                 gameid: game.gameid,
                 gamename: game.gamename,
@@ -5558,7 +5558,7 @@ module.exports = {
         });
 
         app.get("/My/Money.aspx", db.requireAuth, async (req, res) => {
-            res.render("mymoney", {
+            res.render("sitetest/mymoney", {
                 ...(await db.getRenderObject(req.user)),
                 tixExchangeRate: db.getSiteConfig().backend.tix.exchangeRate
             });
@@ -5651,9 +5651,9 @@ module.exports = {
         app.get("/game-pass/:id/:name", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.gamepassesEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5661,14 +5661,14 @@ module.exports = {
             const gamepass = await db.getGamepass(id);
             if (!gamepass) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
             if (!gamepass.onSale && req.user.userid != gamepass.creatorid) {
-                return res.status(404).render("404", await db.getRenderObject(req.user));
+                return res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
             }
             const actualUrl = `/game-pass/${gamepass.id}/${db.filterText2(gamepass.name).replaceAll(" ", "-")}`;
             if (req.url != actualUrl) {
@@ -5685,7 +5685,7 @@ module.exports = {
 
             const created = db.unixToDate(gamepass.created);
             const updated = db.unixToDate(gamepass.updated);
-            res.render("gamepass", {
+            res.render("sitetest/gamepass", {
                 ...(await db.getRenderObject(req.user)),
                 id: gamepass.id,
                 icon: gamepass.thumbnailurl,
@@ -5715,7 +5715,7 @@ module.exports = {
         });
 
         app.get("/jobs", db.requireAuth, async (req, res) => {
-            res.render("jobapp", {
+            res.render("sitetest/jobapp", {
                 ...(await db.getRenderObject(req.user)),
                 enabled: db.toString(db.getSiteConfig().shared.jobsEnabled)
             });
@@ -5724,13 +5724,13 @@ module.exports = {
         app.get("/jobs/developer", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.jobsEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
-            res.render("developer_application", {
+            res.render("sitetest/developer_application", {
                 ...(await db.getRenderObject(req.user)),
             });
         });
@@ -5738,13 +5738,13 @@ module.exports = {
         app.get("/jobs/moderator", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.jobsEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
-            res.render("moderator_application", {
+            res.render("sitetest/moderator_application", {
                 ...(await db.getRenderObject(req.user)),
             });
         });
@@ -5752,9 +5752,9 @@ module.exports = {
         app.post("/jobs/developer", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.jobsEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5838,9 +5838,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         app.post("/jobs/moderator", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.jobsEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5924,9 +5924,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         app.get("/game-pass/configure", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.gamepassesEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5934,9 +5934,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const gamepass = await db.getGamepass(id);
             if (!gamepass) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5947,7 +5947,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const game = await db.getGame(gamepass.gameid);
             const created = db.unixToDate(gamepass.created);
             const updated = db.unixToDate(gamepass.updated);
-            res.render("gamepassconfigure", {
+            res.render("sitetest/gamepassconfigure", {
                 ...(await db.getRenderObject(req.user)),
                 id: gamepass.id,
                 icon: gamepass.thumbnailurl,
@@ -5978,9 +5978,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         app.get("/library/:id/:name", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.assetsEnabled == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -5988,9 +5988,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const asset = await db.getAsset(id);
             if (!asset || ((asset.deleted || asset.approvedBy == 0) && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -6003,10 +6003,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             if (!creator || creator.banned || asset.deleted || creator.inviteKey == "") {
                 const created = db.unixToDate(asset.created);
                 const updated = db.unixToDate(asset.updated);
-                res.render("asset", {
+                res.render("sitetest/asset", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.id,
-                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
+                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://sitetest.rbx2016.tk/asset/?id=${asset.id}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -6032,10 +6032,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
             const created = db.unixToDate(asset.created);
             const updated = db.unixToDate(asset.updated);
-            res.render("asset", {
+            res.render("sitetest/asset", {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.id,
-                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
+                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://sitetest.rbx2016.tk/asset/?id=${asset.id}`,
                 price: asset.price || 0,
                 name: asset.name,
                 name2: asset.name.replaceAll(" ", "-"),
@@ -6130,9 +6130,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         app.get("/places/:placeid/settings", async (req, res) => {
             if (db.getSiteConfig().shared.games.canManageGames == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -6412,7 +6412,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 "DefaultDevelopTabName": "Experience",
                 "PortraitModeEnabled": false,
                 "IsEngagementPayoutEnabled": true,
-                "EngagementPayoutUrl": "https://www.rbx2016.tk/develop/premium-payout?ctx=gameDetail",
+                "EngagementPayoutUrl": "https://sitetest.rbx2016.tk/develop/premium-payout?ctx=gameDetail",
                 "UserIsSellerBanned": false,
                 "DeviceConfigurationEnabled": true,
                 "ConsoleContentAgreementEnabled": true,
@@ -6449,7 +6449,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         "StructuredDataContext": "http://schema.org",
                         "StructuredDataType": "Organization",
                         "StructuredDataName": "Roblox",
-                        "RobloxUrl": "https://www.rbx2016.tk/",
+                        "RobloxUrl": "https://sitetest.rbx2016.tk/",
                         "RobloxLogoUrl": "https://images.rbx2016.tk/cece570e37aa8f95a450ab0484a18d91",
                         "RobloxFacebookUrl": "https://www.facebook.com/roblox/",
                         "RobloxTwitterUrl": "https://twitter.com/roblox",
@@ -6989,9 +6989,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         app.get("/users/profile/playergames-json", async (req, res) => {
             if (db.getSiteConfig().shared.games.canViewGames == false) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -7009,7 +7009,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 games_json.push({
                     "CreatorID": game.creatorid,
                     "CreatorName": user.username,
-                    "CreatorAbsoluteUrl": "https://www.rbx2016.tk/users/" + user.userid + "/profile/",
+                    "CreatorAbsoluteUrl": "https://sitetest.rbx2016.tk/users/" + user.userid + "/profile/",
                     "Plays": 0,
                     "Price": 0,
                     "ProductID": 0,
@@ -7023,7 +7023,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     "Favorites": 0,
                     "Description": "",
                     "HideGameCardInfo": false,
-                    "GameDetailReferralUrl": "https://www.rbx2016.tk/games/refer?PlaceId=" + game.gameid + "\u0026Position=1\u0026PageType=Profile",
+                    "GameDetailReferralUrl": "https://sitetest.rbx2016.tk/games/refer?PlaceId=" + game.gameid + "\u0026Position=1\u0026PageType=Profile",
                     "Thumbnail": {
                         "Final": true,
                         "Url": "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
@@ -7693,27 +7693,27 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         app.get("/account/settings/settings-groups", db.requireAuth, async (req, res) => {
             res.json([{
                 "title": "Account Info",
-                "url": "https://www.rbx2016.tk/my/account#!/info",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/info",
                 "suffix": "info"
             }, {
                 "title": "Security",
-                "url": "https://www.rbx2016.tk/my/account#!/security",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/security",
                 "suffix": "security"
             }, {
                 "title": "Privacy",
-                "url": "https://www.rbx2016.tk/my/account#!/privacy",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/privacy",
                 "suffix": "privacy"
             }, {
                 "title": "Parental Controls",
-                "url": "https://www.rbx2016.tk/my/account#!/parental-controls",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/parental-controls",
                 "suffix": "parental-controls"
             }, {
                 "title": "Billing",
-                "url": "https://www.rbx2016.tk/my/account#!/billing",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/billing",
                 "suffix": "billing"
             }, {
                 "title": "Notifications",
-                "url": "https://www.rbx2016.tk/my/account#!/notifications",
+                "url": "https://sitetest.rbx2016.tk/my/account#!/notifications",
                 "suffix": "notifications"
             }])
         });
@@ -7776,9 +7776,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apikey = req.query.apiKey;
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -7834,9 +7834,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apiKky = req.query.apiKey || (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -7895,9 +7895,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -7955,9 +7955,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -8015,9 +8015,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -8048,9 +8048,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -8068,9 +8068,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -8088,9 +8088,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -8112,7 +8112,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.get("/Game/ClientPresence.ashx", db.requireAuth2, async (req, res) => {
             if (db.getSiteConfig().backend.presenceEnabled == false) {
-                res.status(404).render("404", await db.getBlankRenderObject());
+                res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 return;
             }
             const placeid = parseInt(req.query.PlaceID);
@@ -8140,9 +8140,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apiKey = req.query.apiKey;
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -8167,9 +8167,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -8197,9 +8197,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apiKey = (id0.length > 0 ? id0[0] : "");
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
