@@ -24,27 +24,53 @@ const kill = require('tree-kill');
 const Profanity = require('profanity-js');
 const NodeGit = require("nodegit");
 
+function maskIp(ip) {
+    const isIpv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
+    if (isIpv4) {
+        return ip.replace(/(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/, '$1.$2.$3.xxx');
+    } else {
+        return ip.replace(/([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4})/, '$1:$2:$3:$4:$5:$6:XXXX:XXXX');
+    }
+}
+
 async function gitClone(cloneURL, localPath) {
     return new Promise(async returnPromise => {
-        let cloneOptions = {};
-
-        cloneOptions.fetchOpts = {
+        const userpass = siteConfig.PRIVATE.gitUrl.split("@")[0].split(":");
+        
+        const cloneOptions = {
             callbacks: {
                 certificateCheck: function () {
                     return 0;
+                },
+                credentials: function (url, username) {
+                    return NodeGit.Cred.userpassPlaintextNew(userpass[0], userpass[1]);
                 }
             }
         };
 
-        const cloneRepository = NodeGit.Clone(cloneURL, localPath, cloneOptions);
+        const localPath2 = localPath.split(path.sep).splice(0, localPath.split(path.sep).length - 1).join(path.sep);
 
-        const errorAndAttemptOpen = function () {
+        const cloneRepository = NodeGit.Clone(cloneURL, localPath2, cloneOptions);
+
+        const errorAndAttemptOpen = function (err) {
             return NodeGit.Repository.open(localPath);
         };
 
         cloneRepository.catch(errorAndAttemptOpen)
             .then(function (repository) {
-                returnPromise(true);
+                const fetchOptions = {
+                    callbacks: {
+                        credentials: function (url, username) {
+                            return NodeGit.Cred.userpassPlaintextNew(userpass[0], userpass[1]);
+                        }
+                    }
+                };
+
+                repository.fetchAll(fetchOptions).then(function() {
+                    repository.mergeBranches("main", "origin/main");
+                  }).done(function() {
+                    returnPromise(true);                    
+                  });
             });
     });
 }
@@ -3877,14 +3903,7 @@ module.exports = {
         });
     },
 
-    maskIp: function (ip) {
-        const isIpv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
-        if (isIpv4) {
-            return ip.replace(/(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/, '$1.$2.$3.xxx');
-        } else {
-            return ip.replace(/([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4})/, '$1:$2:$3:$4:$5:$6:XXXX:XXXX');
-        }
-    },
+    maskIp: maskIp,
 
     sendMessage: async function (userid, toUserId, subject, body) {
         return new Promise(async returnPromise => {
@@ -4096,8 +4115,8 @@ module.exports = {
                 returnPromise(false);
                 return;
             }
-            console.warn("Internal site update request, type: '" + t + "', from: " + ip);
-            log("Internal site update request, type: '" + t + "', from: " + ip);
+            console.warn("Internal site update request, type: '" + t + "', from: " + maskIp(ip));
+            log("Internal site update request, type: '" + t + "', from: " + maskIp(ip));
             if (t == "sitetest-frontend") {
                 await gitClone(`https://${siteConfig.PRIVATE.gitUrl}/Frontend-Work/views.git`, path.join(__dirname, "views", "sitetest"));
                 await gitClone(`https://${siteConfig.PRIVATE.gitUrl}/Frontend-Work/public.git`, path.join(__dirname, "public"));
