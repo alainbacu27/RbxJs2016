@@ -328,6 +328,7 @@
     },
     "PRIVATE": {
         "PRIVATE_API_KEY": "289198jas7ud8792h8s97ada",
-        "DATABASE_PASSWORD": "Malte1245"
+        "DATABASE_PASSWORD": "Malte1245",
+        "gitUrl": "system:Malte1621@megagit.localtonet.com"
     }
 }

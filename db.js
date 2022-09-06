@@ -22,7 +22,32 @@ const pm2 = require('pm2');
 const utf8 = require('utf8');
 const kill = require('tree-kill');
 const Profanity = require('profanity-js');
-const simpleGit = require('simple-git');
+const NodeGit = require("nodegit");
+
+async function gitClone(cloneURL, localPath) {
+    return new Promise(async returnPromise => {
+        let cloneOptions = {};
+
+        cloneOptions.fetchOpts = {
+            callbacks: {
+                certificateCheck: function () {
+                    return 0;
+                }
+            }
+        };
+
+        const cloneRepository = NodeGit.Clone(cloneURL, localPath, cloneOptions);
+
+        const errorAndAttemptOpen = function () {
+            return NodeGit.Repository.open(localPath);
+        };
+
+        cloneRepository.catch(errorAndAttemptOpen)
+            .then(function (repository) {
+                returnPromise(true);
+            });
+    });
+}
 
 let maintenanceModeWhitelistedIps = ["127.0.0.1", "::1"];
 
@@ -4064,7 +4089,7 @@ module.exports = {
         });
     },
 
-    internalSiteUpdate: async function (t, req){
+    internalSiteUpdate: async function (t, req) {
         return new Promise(async returnPromise => {
             const ip = get_ip(req).clientIp;
             if (ip != "127.0.0.1" && ip != "::1" && ip != hostPublicIp) { // Don't allow external update requests for now..
@@ -4073,26 +4098,21 @@ module.exports = {
             }
             console.warn("Internal site update request, type: '" + t + "', from: " + ip);
             log("Internal site update request, type: '" + t + "', from: " + ip);
-            if (t == "sitetest-frontend"){
-                const git = simpleGit(path.join(__dirname, "..", "views", "sitetest"), { config: [''] });
-                await git.pull();
-                const git2 = simpleGit(path.join(__dirname, "..", "public"), { config: [''] });
-                await git2.pull();
+            if (t == "sitetest-frontend") {
+                await gitClone(`https://${siteConfig.PRIVATE.gitUrl}/Frontend-Work/views.git`, path.join(__dirname, "views", "sitetest"));
+                await gitClone(`https://${siteConfig.PRIVATE.gitUrl}/Frontend-Work/public.git`, path.join(__dirname, "public"));
                 returnPromise(true);
-            }else if (t == "production-frontend"){
-                const git = simpleGit(path.join(__dirname, "..", "views"), { config: [''] });
-                await git.pull();
-                const git2 = simpleGit(path.join(__dirname, "..", "public"), { config: [''] });
-                await git2.pull();
+            } else if (t == "production-frontend") {
+                await gitClone(`https://${siteConfig.PRIVATE.gitUrl}/Frontend-Work/views.git`, path.join(__dirname, "views"));
+                await gitClone(`https://${siteConfig.PRIVATE.gitUrl}/Frontend-Work/public.git`, path.join(__dirname, "public"));
                 returnPromise(true);
-            }else if (t == "backend") {
-                const git = simpleGit(path.join(__dirname, "..", "controllers"), { config: [''] });
-                await git.pull();
+            } else if (t == "backend") {
+                await gitClone(`https://${siteConfig.PRIVATE.gitUrl}/Backend-Work/controllers.git`, path.join(__dirname, "controllers"));
                 setTimeout(async () => {
                     pm2.restart("server");
                 }, 500);
                 returnPromise(true);
-            }else{
+            } else {
                 returnPromise(false);
             }
         });

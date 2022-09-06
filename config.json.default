@@ -411,6 +411,7 @@
 
     "PRIVATE": {
         "PRIVATE_API_KEY": "289198jas7ud8792h8s97ada",
-        "DATABASE_PASSWORD": ""
+        "DATABASE_PASSWORD": "",
+        "gitUrl": "system:PASSWORD@megagit.localtonet.com"
     }
 }
