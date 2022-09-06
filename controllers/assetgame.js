@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 const cookieParser = require('cookie-parser');
-const fetch = require('node-fetch');
 const querystring = require('querystring');
 const get_ip = require('ipware')().get_ip;
 

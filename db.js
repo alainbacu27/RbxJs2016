@@ -7,6 +7,7 @@ const MongoClient = mongodb.MongoClient;
 const dbName = "roblox";
 const get_ip = require('ipware')().get_ip;
 const os = require('os-utils');
+const fetch = require('node-fetch');
 const {
     v1: uuidv1,
     v4: uuidv4,
