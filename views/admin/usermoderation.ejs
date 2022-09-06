@@ -336,7 +336,7 @@
                                             <span class="notification-blue nav-setting-highlight hidden">0</span>
                                         </a>
                                     </li>
-                                    <% if (isAdmin == "true" || isMod == "true") { %>
+                                    <% if (role == "approver" || role == "mod" || role == "admin" || role == "owner") { %>
                                         <li><a class="rbx-menu-item"
                                             href="https://www.rbx2016.tk/admi"><p>Admin</p></a></li>
                                     <% } %>
@@ -590,8 +590,10 @@
                                 <input type="number" id="userid" name="userid" placeholder="UserId" value="" />
                                 <select name="role" required>
                                     <option value="0">None</option>
-                                    <option value="1">Moderator</option>
-                                    <option value="2">Admin</option>
+                                    <option value="1">Approver</option>
+                                    <option value="2">Moderator</option>
+                                    <option value="3">Admin</option>
+                                    <!-- <option value="4">Owner</option> -->
                                   </select>
                                 <input type="submit" id="todo" name="todo" class="btn-control-md btn-min-width"
                                     value="SET ROLE" />

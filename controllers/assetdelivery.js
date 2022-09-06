@@ -15,7 +15,7 @@ module.exports = {
                 return;
             }
             req.uploadedFiles = [];
-            if (db.getSiteConfig().backend.massAssetUploadEnabled && db.getSiteConfig().backend.massAssetUploadIsAdminOnly && req.user.isAdmin) {
+            if (db.getSiteConfig().backend.massAssetUploadEnabled && db.getSiteConfig().backend.massAssetUploadIsAdminOnly && (req.user.role == "admin" || req.user.role == "owner")) {
                 next();
                 return;
             } else if (db.getSiteConfig().backend.massAssetUploadEnabled && !db.getSiteConfig().backend.massAssetUploadIsAdminOnly) {
@@ -208,7 +208,7 @@ module.exports = {
             }
 
             const asset = await db.getAsset(id);
-            if (asset && !asset.deleted && (asset.approvedBy != 0 || (user && (asset.creatorid == user.userid || user.isAdmin || user.isMod)))) {
+            if (asset && !asset.deleted && (asset.approvedBy != 0 || (user && (asset.creatorid == user.userid || (user.role == "mod" || user.role == "admin" || user.role == "owner"))))) {
                 const bp = path.resolve(__dirname + "/../assets/") + path.sep;
                 const fp = path.resolve(bp + id.toString() + ".asset");
                 if (!fp.startsWith(bp)) {

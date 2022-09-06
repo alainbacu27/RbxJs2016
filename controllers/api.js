@@ -689,7 +689,7 @@ module.exports = {
             }
             const templatePlaceIdToUse = parseInt(req.body.templatePlaceIdToUse);
             const userGames = await db.getGamesByCreatorId(req.user.userid);
-            if (userGames.length >= (req.user.isAdmin ? db.getSiteConfig().shared.maxGamesPerUser.admin : db.getSiteConfig().shared.maxGamesPerUser.user)) {
+            if (userGames.length >= ((req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxGamesPerUser.admin : db.getSiteConfig().shared.maxGamesPerUser.user)) {
                 res.status(403).json({
                     "error": true,
                     "message": "You have reached the maximum number of games you can create."

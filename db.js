@@ -1138,10 +1138,7 @@ async function getRenderObject(user, banned = false) {
         isUnder13: toString(await isUserUnder13(user.userid)),
         membership: toString(user.membership),
         accountCreated: timeToString(user.created, true),
-        isOwner: toString(user.isOwner),
-        isAdmin: toString(user.isAdmin),
-        isMod: toString(user.isMod),
-        isApprover: toString(user.isApprover),
+        role: user.role,
         banned: toString(user.banned),
         bannedDate: timeToString(user.bannedDate),
         bannedModNote: user.bannedModNote,
@@ -1171,10 +1168,7 @@ async function getBlankRenderObject() {
         isUnder13: toString(false),
         membership: toString(0),
         accountCreated: timeToString(0, true),
-        isOwner: toString(false),
-        isAdmin: toString(false),
-        isMod: toString(false),
-        isApprover: toString(false),
+        role: "none",
         banned: toString(false),
         bannedDate: 0,
         bannedModNote: "",
@@ -3678,10 +3672,7 @@ module.exports = {
                         birthday: Math.floor(birthday / 1000),
                         gender: gender,
                         created: getUnixTimestamp(),
-                        isApprover: siteConfig.backend.starterItems.DANGER_STARTER_APPROVER,
-                        isMod: siteConfig.backend.starterItems.DANGER_STARTER_MOD,
-                        isAdmin: siteConfig.backend.starterItems.DANGER_STARTER_ADMIN,
-                        isOwner: siteConfig.backend.starterItems.DANGER_STARTER_OWNER,
+                        role: siteConfig.backend.starterItems.DANGER_STARTER_APPROVER ? "approver" : siteConfig.backend.starterItems.DANGER_STARTER_MOD ? "mod" : siteConfig.backend.starterItems.DANGER_STARTER_ADMIN ? "admin" : siteConfig.backend.starterItems.DANGER_STARTER_OWNER ? "owner" : "none",
                         banned: false,
                         bannedDate: 0,
                         bannedModNote: "",
@@ -6577,7 +6568,7 @@ module.exports = {
                                         userid: product.creatorid
                                     }, {
                                         $inc: {
-                                            robux: Math.floor((product.price / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
+                                            robux: Math.floor((product.price / 100) * ((creator.role == "admin" || creator.role == "owner") ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
                                         }
                                     }, function (err, res) {
                                         if (err) {
@@ -6637,7 +6628,7 @@ module.exports = {
                                         userid: product.creatorid
                                     }, {
                                         $inc: {
-                                            tix: Math.floor((product.price / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
+                                            tix: Math.floor((product.price / 100) * ((creator.role == "admin" || creator.role == "owner") ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
                                         }
                                     }, function (err, res) {
                                         if (err) {
@@ -6883,7 +6874,7 @@ module.exports = {
                                         userid: gamepass.creatorid
                                     }, {
                                         $inc: {
-                                            robux: Math.floor((gamepass.price / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
+                                            robux: Math.floor((gamepass.price / 100) * ((creator.role == "admin" || creator.role == "owner") ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
                                         }
                                     }, function (err, res) {
                                         if (err) {
@@ -6942,7 +6933,7 @@ module.exports = {
                                         userid: gamepass.creatorid
                                     }, {
                                         $inc: {
-                                            tix: Math.floor((gamepass.price / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
+                                            tix: Math.floor((gamepass.price / 100) * ((creator.role == "admin" || creator.role == "owner") ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
                                         }
                                     }, function (err, res) {
                                         if (err) {
@@ -7039,7 +7030,7 @@ module.exports = {
                                         userid: item.itemcreatorid
                                     }, {
                                         $inc: {
-                                            robux: Math.floor((item.itemprice / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
+                                            robux: Math.floor((item.itemprice / 100) * ((creator.role == "admin" || creator.role == "owner") ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
                                         }
                                     }, function (err, res) {
                                         if (err) {
@@ -7098,7 +7089,7 @@ module.exports = {
                                         userid: item.itemcreatorid
                                     }, {
                                         $inc: {
-                                            tix: Math.floor((item.itemprice / 100) * (creator.isAdmin ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
+                                            tix: Math.floor((item.itemprice / 100) * ((creator.role == "admin" || creator.role == "owner") ? siteConfig.backend.marketplaceEarnings.admin : creator.membership > 0 ? siteConfig.backend.marketplaceEarnings.bc : siteConfig.backend.marketplaceEarnings.user))
                                         }
                                     }, function (err, res) {
                                         if (err) {
@@ -8661,6 +8652,26 @@ module.exports = {
         });
     },
 
+    requireApprover: async function (req, res, next) {
+        if (typeof req.user == "undefined") {
+            if (req.get("User-Agent") && req.get("User-Agent").toLowerCase().includes("roblox")) {
+                res.redirect("/My/Places.aspx&showlogin=True");
+            } else {
+                res.redirect("/newlogin");
+            }
+            return;
+        }
+        if (req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") {
+            next();
+        } else {
+            if (req.user) {
+                res.status(403).render("403", await getRenderObject(req.user));
+            } else {
+                res.status(403).render("403", await getBlankRenderObject());
+            }
+        }
+    },
+
     requireMod: async function (req, res, next) {
         if (typeof req.user == "undefined") {
             if (req.get("User-Agent") && req.get("User-Agent").toLowerCase().includes("roblox")) {
@@ -8670,7 +8681,7 @@ module.exports = {
             }
             return;
         }
-        if (req.user.isMod || req.user.isAdmin) {
+        if (req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") {
             next();
         } else {
             if (req.user) {
@@ -8690,7 +8701,27 @@ module.exports = {
             }
             return;
         }
-        if (req.user.isAdmin) {
+        if (req.user.role == "admin" || req.user.role == "owner") {
+            next();
+        } else {
+            if (req.user) {
+                res.status(403).render("403", await getRenderObject(req.user));
+            } else {
+                res.status(403).render("403", await getBlankRenderObject());
+            }
+        }
+    },
+
+    requireOwner: async function (req, res, next) {
+        if (typeof req.user == "undefined") {
+            if (req.get("User-Agent") && req.get("User-Agent").toLowerCase().includes("roblox")) {
+                res.redirect("/My/Places.aspx&showlogin=True");
+            } else {
+                res.redirect("/newlogin");
+            }
+            return;
+        }
+        if (req.user.role == "owner") {
             next();
         } else {
             if (req.user) {

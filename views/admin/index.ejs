@@ -336,7 +336,7 @@
                                             <span class="notification-blue nav-setting-highlight hidden">0</span>
                                         </a>
                                     </li>
-                                    <% if (isAdmin == "true" || isMod == "true") { %>
+                                    <% if (role == "approver" || role == "mod" || role == "admin" || role == "owner") { %>
                                         <li><a class="rbx-menu-item"
                                             href="https://www.rbx2016.tk/admi"><p>Admin</p></a></li>
                                     <% } %>
@@ -550,7 +550,8 @@
                             <h3>Dashboard</h3>
                             <p>Welcome to the admin dashboard!</p>
                             <p>Pick a catagory on the left to view/configure its properties.</p>
-                            <% if(isAdmin != "true"){ %><p>(You are a moderator and have restricted access, some pages are inaccessible.)</p></p><% } %>
+                            <% if (role == "approver") { %><p>(You are an asset approver and have restricted access, most pages are inaccessible.)</p></p><% } %>
+                            <% if (role == "mod") { %><p>(You are a moderator and have restricted access, some pages are inaccessible.)</p></p><% } %>
                             <p>&nbsp;</p>
                             <form action="/v1/admin/maintenance" method="post">
                                 <input type="number" id="maintenance_finishtime" name="maintenance_finishtime"

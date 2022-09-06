@@ -313,7 +313,7 @@
                                             <span class="notification-blue nav-setting-highlight hidden">0</span>
                                         </a>
                                     </li>
-                                    <% if (isAdmin == "true" || isMod == "true") { %>
+                                    <% if (role == "approver" || role == "mod" || role == "admin" || role == "owner") { %>
                                         <li><a class="rbx-menu-item"
                                             href="https://sitetest.rbx2016.tk/admi"><p>Admin</p></a></li>
                                     <% } %>

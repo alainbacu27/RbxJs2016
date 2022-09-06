@@ -94,7 +94,18 @@
         "ADMIN_AdminPanelRoute": "/admi",
         "ADMIN_AdminCanExecuteJobScripts": true,
         "ADMIN_AdminCanExecuteNewJobScripts": true,
+        "APPROVER_ACCESS": [
+            "index",
+            "assetmoderation",
+            "logs"
+        ],
         "MODS_ACCESS": [
+            "index",
+            "assetmoderation",
+            "usermoderation",
+            "logs"
+        ],
+        "ADMINS_ACCESS": [
             "index",
             "assetmoderation",
             "statistics",

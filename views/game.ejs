@@ -343,7 +343,7 @@ Build your factory as you develop and mass produce the most successful series of
                                             <span class="notification-blue nav-setting-highlight hidden">0</span>
                                         </a>
                                     </li>
-                                    <% if (isAdmin == "true" || isMod == "true") { %>
+                                    <% if (role == "approver" || role == "mod" || role == "admin" || role == "owner") { %>
                                         <li><a class="rbx-menu-item"
                                             href="https://www.rbx2016.tk/admi"><p>Admin</p></a></li>
                                     <% } %>

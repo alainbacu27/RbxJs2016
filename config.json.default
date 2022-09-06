@@ -111,7 +111,25 @@
         "ADMIN_AdminCanExecuteJobScripts": true,
         "ADMIN_AdminCanExecuteNewJobScripts": true,
 
-        "MODS_ACCESS": ["index", "assetmoderation", "statistics", "usermoderation", "invitekeys", "logs"],
+        "APPROVER_ACCESS": [
+            "index",
+            "assetmoderation",
+            "logs"
+        ],
+        "MODS_ACCESS": [
+            "index",
+            "assetmoderation",
+            "usermoderation",
+            "logs"
+        ],
+        "ADMINS_ACCESS": [
+            "index",
+            "assetmoderation",
+            "statistics",
+            "usermoderation",
+            "invitekeys",
+            "logs"
+        ],
 
         "CLIENT_DOWNLOAD_AVAIlABLE": true,
 

@@ -66,7 +66,7 @@ template.app.use(db.requireAuth2, async (req, res, next) => {
 
 template.app.use(db.requireAuth2, async (req, res, next) => {
     const ip = get_ip(req).clientIp;
-    if ((req.user && req.user.isAdmin) || db.getMaintenanceModeWhitelistedIps().includes(ip)) {
+    if ((req.user && (req.user.role == "admin" || req.user.role == "owner")) || db.getMaintenanceModeWhitelistedIps().includes(ip)) {
         next();
         return;
     }

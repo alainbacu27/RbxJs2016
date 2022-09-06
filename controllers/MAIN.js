@@ -804,7 +804,7 @@ module.exports = {
                 user.badges = []
             }
 
-            if (user.isAdmin || user.isMod) {
+            if (user.role == "mod" || user.role == "admin" || user.role == "owner") {
                 if (!user.badges.includes("admin")) {
                     user.badges.push("admin")
                 }
@@ -1602,7 +1602,7 @@ module.exports = {
                 const playerid = parseInt(req.query.playerid);
                 const user = await db.getUser(playerid);
                 if (user && groupid == 1200769) {
-                    res.send("<Value Type=\"boolean\">" + db.toString(user.isAdmin || user.isMod) + "</Value>");
+                    res.send("<Value Type=\"boolean\">" + db.toString(user.role == "mod" || user.role == "admin" || user.role == "owner") + "</Value>");
                 } else {
                     res.send("<Value Type=\"boolean\">false</Value>");
                 }
@@ -1610,7 +1610,7 @@ module.exports = {
                 const groupid = parseInt(req.query.groupid);
                 const playerid = parseInt(req.query.playerid);
                 const user = await db.getUser(playerid);
-                if (groupid == 1200769 && (user && user.isAdmin)) {
+                if (groupid == 1200769 && (user && (user.role == "mod" || user.role == "admin" || user.role == "owner"))) {
                     res.send("<Value Type=\"integer\">100</Value>");
                 } else {
                     res.send("<Value Type=\"integer\">0</Value>");
@@ -1710,11 +1710,11 @@ module.exports = {
                 res.status(403).send("Developer products are disabled");
                 return;
             }
-            if (db.getSiteConfig().backend.devProducuts.isAdminOnly == false && !req.user.isAdmin) {
+            if (db.getSiteConfig().backend.devProducuts.isAdminOnly == false && !(user.role == "admin" || user.role == "owner")) {
                 res.status(403).send("Developer products are disabled");
                 return;
             }
-            if ((await db.getDevProducts(game.gameid)).length >= (req.user.isAdmin ? db.getSiteConfig().backend.devProducuts.maxPerPlace.admin : db.getSiteConfig().backend.devProducuts.maxPerPlace.user)) {
+            if ((await db.getDevProducts(game.gameid)).length >= ((req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().backend.devProducuts.maxPerPlace.admin : db.getSiteConfig().backend.devProducuts.maxPerPlace.user)) {
                 res.status(401).send("Developer products limit reached");
                 return;
             }
@@ -2527,7 +2527,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://www.rbx2016.tk/library/${asset.id}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.id}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.id}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -2577,7 +2577,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://www.rbx2016.tk/library/${asset.id}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png"}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png"}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -2627,7 +2627,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://www.rbx2016.tk/library/${asset.id}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg"}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg"}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -2677,7 +2677,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://www.rbx2016.tk/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -2777,7 +2777,7 @@ module.exports = {
 
             let id = 0;
             if (assetTypeId == 34) {
-                if ((await db.getGamepasses(game.gameid)).length >= (req.user.isAdmin ? db.getSiteConfig().shared.maxGamepassesPerGame.admin : db.getSiteConfig().shared.maxGamepassesPerGame.user)) {
+                if ((await db.getGamepasses(game.gameid)).length >= ((req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxGamepassesPerGame.admin : db.getSiteConfig().shared.maxGamepassesPerGame.user)) {
                     res.status(401).send("Gamepass limit reached");
                     return;
                 }
@@ -2785,7 +2785,7 @@ module.exports = {
             } else if (assetTypeId == 13) {
                 if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
                     if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
-                        if (db.getAssetsThisDay(req.userid) >= ((req.user.isAdmin || req.user.isMod) ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                        if (db.getAssetsThisDay(req.userid) >= (((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner")) ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
                             res.status(401).send("You have reached the daily asset upload limit");
                             return;
                         }
@@ -2805,7 +2805,7 @@ module.exports = {
                 }
                 const file = req.files.file;
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
-                    id = await db.createAsset(req.user.userid, name, desc, "Decal", req.user.isAdmin || req.user.isMod);
+                    id = await db.createAsset(req.user.userid, name, desc, "Decal", (req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
                     req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
@@ -2814,7 +2814,7 @@ module.exports = {
             } else if (assetTypeId == 11) {
                 if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
                     if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
-                        if (db.getAssetsThisDay(req.userid) >= ((req.user.isAdmin || req.user.isMod) ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
                             res.status(401).send("You have reached the daily asset upload limit");
                             return;
                         }
@@ -2843,7 +2843,7 @@ module.exports = {
                 }
                 const file = req.files.file;
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
-                    id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.userid, req.user.isAdmin || req.user.isMod);
+                    id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     await db.createCatalogItem(name, desc, 0, "Shirt", req.user.userid, id);
                     req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.ShirtUploadCost);
@@ -2854,7 +2854,7 @@ module.exports = {
             } else if (assetTypeId == 3) {
                 if (req.user.firstMonthlyAssetUpload && req.user.firstMonthlyAssetUpload != 0) {
                     if (db.getUnixTimestamp() - req.user.firstMonthlyAssetUpload < 30 * 24 * 60 * 60) {
-                        if (db.getAssetsThisDay(req.userid) >= ((req.user.isAdmin || req.user.isMod) ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
                             res.status(401).send("You have reached the monthly asset upload limit");
                             return;
                         }
@@ -2881,7 +2881,7 @@ module.exports = {
                         res.status(400).send("Audio too long");
                         return;
                     }
-                    id = await db.createAsset(req.user.userid, name, desc, "Audio", req.user.isAdmin || req.user.isMod);
+                    id = await db.createAsset(req.user.userid, name, desc, "Audio", req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
@@ -2890,7 +2890,7 @@ module.exports = {
             } else if (assetTypeId == 4) {
                 if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
                     if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
-                        if (db.getAssetsThisDay(req.userid) >= ((req.user.isAdmin || req.user.isMod) ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
                             res.status(401).send("You have reached the daily asset upload limit");
                             return;
                         }
@@ -2914,7 +2914,7 @@ module.exports = {
                     await req.files.file.mv(fp0);
                     const s = await db.convertMesh(fp0);
                     if (s) {
-                        id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.isAdmin || req.user.isMod);
+                        id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                         const fp = `${__dirname}/../assets/${id}.asset`;
                         fs.renameSync(fp0, fp);
                     } else {
@@ -3665,7 +3665,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png",
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png",
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3741,7 +3741,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.id}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.id}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3817,7 +3817,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg",
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg",
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3893,7 +3893,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemid}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.tk/asset?id=${asset.itemid}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3969,7 +3969,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
+                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -4416,7 +4416,7 @@ module.exports = {
         app.get("/catalog/:id", db.requireAuth, async (req, res) => {
             const id = parseInt(req.params.id);
             const asset = await db.getCatalogItem(id);
-            if (!asset || (asset.deleted && !req.user.isAdmin && !req.user.isMod && req.user.userid != asset.creatorid)) {
+            if (!asset || (asset.deleted && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -4556,7 +4556,7 @@ module.exports = {
                 asset3 = await db.getAsset(asset.itemmeshid);
             }
             if (asset2Expected) {
-                if (!asset2 || ((asset2.deleted || asset2.approvedBy == 0) && !req.user.isAdmin && !req.user.isMod && req.user.userid != asset2.creatorid)) {
+                if (!asset2 || ((asset2.deleted || asset2.approvedBy == 0) && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset2.creatorid)) {
                     if (req.user) {
                         res.status(404).render("404", await db.getRenderObject(req.user));
                     } else {
@@ -4566,7 +4566,7 @@ module.exports = {
                 }
             }
             if (asset3Expected) {
-                if (!asset3 || ((asset3.deleted || asset3.approvedBy == 0) && !req.user.isAdmin && !req.user.isMod && req.user.userid != asset3.creatorid)) {
+                if (!asset3 || ((asset3.deleted || asset3.approvedBy == 0) && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset3.creatorid)) {
                     if (req.user) {
                         res.status(404).render("404", await db.getRenderObject(req.user));
                     } else {
@@ -4587,7 +4587,7 @@ module.exports = {
                 res.render("catalogitem", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.itemid,
-                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemid}`,
+                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemid}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -4615,7 +4615,7 @@ module.exports = {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.itemid,
                 genre: asset.itemgenre,
-                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemid}`,
+                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemid}`,
                 price: asset.price || 0,
                 name: asset.itemname,
                 name2: asset.itemname.replaceAll(" ", "-"),
@@ -4778,7 +4778,7 @@ module.exports = {
             </ul>
         </nav>`;
 
-            app.get(admiPath, db.requireAuth, db.requireMod, async (req, res) => {
+            app.get(admiPath, db.requireAuth, db.requireApprover, async (req, res) => {
                 res.render("admin/index", {
                     ...await db.getRenderObject(req.user),
                     cpuUsage: await db.getCpuUsage(),
@@ -4788,14 +4788,22 @@ module.exports = {
                 });
             });
 
-            app.get(admiPath + "/:page", db.requireAuth, db.requireMod, async (req, res) => {
+            app.get(admiPath + "/:page", db.requireAuth, db.requireApprover, async (req, res) => {
                 const page = req.params.page;
                 const bp = path.resolve(`${__dirname}/../views/admin/`) + path.sep;
                 const fp = path.resolve(bp + page + ".ejs");
                 if (!fp.startsWith(bp)) {
                     res.status(400).render("400", await db.getRenderObject(req.user));
                 }
-                if (!req.user.isAdmin && !db.getSiteConfig().shared.MODS_ACCESS.includes(page)) {
+                if (req.user.role == "approver" && !db.getSiteConfig().shared.APPROVER_ACCESS.includes(page)) {
+                    res.status(403).render("403", await db.getRenderObject(req.user));
+                    return;
+                }
+                if (req.user.role != "owner" && req.user.role != "admin" && !db.getSiteConfig().shared.MODS_ACCESS.includes(page)) {
+                    res.status(403).render("403", await db.getRenderObject(req.user));
+                    return;
+                }
+                if (req.user.role != "owner" && !db.getSiteConfig().shared.ADMINS_ACCESS.includes(page)) {
                     res.status(403).render("403", await db.getRenderObject(req.user));
                     return;
                 }
@@ -5113,7 +5121,7 @@ module.exports = {
         app.get("/library/:id", db.requireAuth, async (req, res) => {
             const id = parseInt(req.params.id);
             const asset = await db.getAsset(id);
-            if (!asset || (asset.deleted && !req.user.isAdmin && !req.user.isMod && req.user.userid != asset.creatorid)) {
+            if (!asset || (asset.deleted && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -5282,7 +5290,7 @@ module.exports = {
                 }
             }
             const userGames = await db.getGamesByCreatorId(req.user.userid);
-            if (userGames.length >= (req.user.isAdmin ? db.getSiteConfig().shared.maxGamesPerUser.admin : db.getSiteConfig().shared.maxGamesPerUser.user)) {
+            if (userGames.length >= ((req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxGamesPerUser.admin : db.getSiteConfig().shared.maxGamesPerUser.user)) {
                 res.status(403).send("You have reached the maximum number of games you can create.");
                 return;
             }
@@ -5982,7 +5990,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             }
             const id = parseInt(req.params.id);
             const asset = await db.getAsset(id);
-            if (!asset || ((asset.deleted || asset.approvedBy == 0) && !req.user.isAdmin && !req.user.isMod && req.user.userid != asset.creatorid)) {
+            if (!asset || ((asset.deleted || asset.approvedBy == 0) && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -6002,7 +6010,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 res.render("asset", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.id,
-                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
+                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -6031,7 +6039,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.render("asset", {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.id,
-                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (!req.user.isAdmin && !req.user.isMod)) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
+                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.tk/asset/?id=${asset.id}`,
                 price: asset.price || 0,
                 name: asset.name,
                 name2: asset.name.replaceAll(" ", "-"),
@@ -6895,7 +6903,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const ip = get_ip(req).clientIp;
             res.json({
                 "ChangeUsernameEnabled": true,
-                "IsAdmin": req.user.isAdmin,
+                "IsAdmin": req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner",
                 "UserId": req.user.userid,
                 "Name": req.user.username,
                 "DisplayName": req.user.username,

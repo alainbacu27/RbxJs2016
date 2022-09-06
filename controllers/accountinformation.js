@@ -76,7 +76,7 @@ module.exports = {
                 }
                 return;
             }
-            if (user.isAdmin){
+            if (user.role == "mod" || user.role == "admin" || user.role == "owner"){
                 badges.push({
                     "id": 1,
                     "name": "Administrator",
