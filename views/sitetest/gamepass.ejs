@@ -1,0 +1,2196 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="ie8" ng-app="robloxApp"><![endif]-->
+<!--[if gt IE 8]><!-->
+<html>
+<!--<![endif]-->
+<head data-machine-id="WEB1846">
+    <!-- MachineID: WEB1846 -->
+    <title><%= name %> - Roblox</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,requiresActiveX=true" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Roblox Corporation" />
+<meta name="description" content="Customize your avatar with the <%= name %> and millions of other items. Mix &amp; match this Gamepass with other items to create an avatar that is unique to you!" />
+<meta name="keywords" content="free games, online games, building games, virtual worlds, free mmo, gaming cloud, physics engine" />
+<meta name="apple-itunes-app" content="app-id=431946152" />
+
+
+
+
+<script type="application/ld+json">
+    {
+    "@context" : "http://schema.org",
+    "@type" : "Organization",
+    "name" : "Roblox",
+    "url" : "https://www.rbx2016.tk/",
+    "logo": "https://images.rbx2016.tk/c69b74f49e785df33b732273fad9dbe0.png",
+    "sameAs" : [
+    "https://www.facebook.com/ROBLOX/",
+    "https://twitter.com/roblox",
+    "https://www.linkedin.com/company/147977",
+    "https://www.instagram.com/roblox/",
+    "https://www.youtube.com/user/roblox",
+    "https://plus.google.com/+roblox",
+    "https://www.twitch.tv/roblox"
+    ]
+    }
+</script>    <meta property="og:site_name" content="ROBLOX" />
+    <meta property="og:title" content="<%= name %>" />
+    <meta property="og:type" content="game"/>
+        <meta property="og:url" content="https://www.rbx2016.tk/catalog/<%= id %>/<%= name2 %>" />
+    <meta property="og:description" content="Customize your avatar with the <%= name %> and millions of other items. Mix &amp; match this Gamepass with other items to create an avatar that is unique to you!"/>
+            <meta property="og:image" content="https://tr.rbx2016.tk/e4fe2972f2e403c3325b1223dcc7245a/420/420/Gamepass/Png" />
+    <meta property="fb:app_id" content="190191627665278">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@Roblox">
+    <meta name="twitter:title" content="<%= name %>">
+    <meta name="twitter:description" content="Customize your avatar with the <%= name %> and millions of other items. Mix &amp; match this Gamepass with other items to create an avatar that is unique to you!">
+    <meta name="twitter:creator" content="@ROBLOX">
+            <meta name=twitter:image1 content="https://tr.rbx2016.tk/e4fe2972f2e403c3325b1223dcc7245a/420/420/Gamepass/Png" />
+    <meta name="twitter:app:country" content="US">
+    <meta name="twitter:app:name:iphone" content="ROBLOX Mobile">
+    <meta name="twitter:app:id:iphone" content="431946152">
+    <meta name="twitter:app:url:iphone">
+    <meta name="twitter:app:name:ipad" content="ROBLOX Mobile">
+    <meta name="twitter:app:id:ipad" content="431946152">
+    <meta name="twitter:app:url:ipad">
+    <meta name="twitter:app:name:googleplay" content="ROBLOX">
+    <meta name="twitter:app:id:googleplay" content="com.roblox.client">
+    <meta name="twitter:app:url:googleplay"/>
+    <meta name="user-data"
+          data-userid="<%= userid %>"
+          data-name="<%= username %>"
+          data-isunder13="false" />
+
+<meta name="locale-data" 
+      data-language-code="en_us" 
+      data-language-name="English" 
+      data-locale-api-url="https://locale.rbx2016.tk" /><meta name="device-meta"
+      data-device-type="computer"
+      data-is-in-app="false"
+      data-is-desktop="true"
+      data-is-phone="false"
+      data-is-tablet="false"
+      data-is-console="false"
+      data-is-android-app="false"
+      data-is-ios-app="false"
+      data-is-uwp-app="false"
+      data-is-xbox-app="false"
+      data-is-amazon-app="false"
+      data-is-studio="false"
+      data-app-type="unknown"
+/>
+
+<meta name="page-meta" data-internal-page-name="CatalogItem" />
+    
+
+<script type="text/javascript">
+    var Roblox = Roblox || {};
+
+    Roblox.BundleVerifierConstants = {
+        isMetricsApiEnabled: true,
+        eventStreamUrl: "//ecsv2.rbx2016.tk/pe?t=diagnostic",
+        deviceType: "Computer",
+        cdnLoggingEnabled: JSON.parse("true")
+    };
+</script>        <script type="text/javascript">
+            var Roblox = Roblox || {};
+
+Roblox.BundleDetector = (function () {
+    var isMetricsApiEnabled = Roblox.BundleVerifierConstants && Roblox.BundleVerifierConstants.isMetricsApiEnabled;
+
+    var loadStates = {
+        loadSuccess: "loadSuccess",
+        loadFailure: "loadFailure",
+        executionFailure: "executionFailure"
+    };
+
+    var bundleContentTypes = {
+        javascript: "javascript",
+        css: "css"
+    };
+
+    var ephemeralCounterNames = {
+        cdnPrefix: "CDNBundleError_",
+        unknown: "CDNBundleError_unknown",
+        cssError: "CssBundleError",
+        jsError: "JavascriptBundleError",
+        jsFileError: "JsFileExecutionError",
+        resourceError: "ResourcePerformance_Error",
+        resourceLoaded: "ResourcePerformance_Loaded"
+    };
+
+    return {
+        jsBundlesLoaded: {},
+        bundlesReported: {},
+
+        counterNames: ephemeralCounterNames,
+        loadStates: loadStates,
+        bundleContentTypes: bundleContentTypes,
+
+        timing: undefined,
+
+        setTiming: function (windowTiming) {
+            this.timing = windowTiming;
+        },
+
+        getLoadTime: function () {
+            if (this.timing && this.timing.domComplete) {
+                return this.getCurrentTime() - this.timing.domComplete;
+            }
+        },
+
+        getCurrentTime: function () {
+            return new Date().getTime();
+        },
+
+        getCdnProviderName: function (bundleUrl, callBack) {
+            if (Roblox.BundleVerifierConstants.cdnLoggingEnabled) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', bundleUrl, true);
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === xhr.HEADERS_RECEIVED) {
+                        try {
+                            var headerValue = xhr.getResponseHeader("rbx-cdn-provider");
+                            if (headerValue) {
+                                callBack(headerValue);
+                            } else {
+                                callBack();
+                            }
+                        } catch (e) {
+                            callBack();
+                        }
+                    }
+                };
+
+                xhr.onerror = function () {
+                    callBack();
+                };
+
+                xhr.send();
+            } else {
+                callBack();
+            }
+        },
+
+        getCdnProviderAndReportMetrics: function (bundleUrl, bundleName, loadState, bundleContentType) {
+            this.getCdnProviderName(bundleUrl, function (cdnProviderName) {
+                Roblox.BundleDetector.reportMetrics(bundleUrl, bundleName, loadState, bundleContentType, cdnProviderName);
+            });
+        },
+
+        reportMetrics: function (bundleUrl, bundleName, loadState, bundleContentType, cdnProviderName) {
+            if (!isMetricsApiEnabled
+                || !bundleUrl
+                || !loadState
+                || !loadStates.hasOwnProperty(loadState)
+                || !bundleContentType
+                || !bundleContentTypes.hasOwnProperty(bundleContentType)) {
+                return;
+            }
+
+            var xhr = new XMLHttpRequest();
+            var metricsApiUrl = (Roblox.EnvironmentUrls && Roblox.EnvironmentUrls.metricsApi) || "https://metrics.rbx2016.tk";
+
+            xhr.open("POST", metricsApiUrl + "/v1/bundle-metrics/report", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.withCredentials = true;
+            xhr.send(JSON.stringify({
+                bundleUrl: bundleUrl,
+                bundleName: bundleName || "",
+                bundleContentType: bundleContentType,
+                loadState: loadState,
+                cdnProviderName: cdnProviderName,
+                loadTimeInMilliseconds: this.getLoadTime() || 0
+            }));
+        },
+
+        logToEphemeralStatistics: function (sequenceName, value) {
+            var deviceType = Roblox.BundleVerifierConstants.deviceType;
+            sequenceName += "_" + deviceType;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/game/report-stats?name=' + sequenceName + "&value=" + value, true);
+            xhr.withCredentials = true;
+            xhr.send();
+        },
+
+        logToEphemeralCounter: function (ephemeralCounterName) {
+            var deviceType = Roblox.BundleVerifierConstants.deviceType;
+            ephemeralCounterName += "_" + deviceType;
+            //log to ephemeral counters - taken from eventTracker.js
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/game/report-event?name=' + ephemeralCounterName, true);
+            xhr.withCredentials = true;
+            xhr.send();
+        },
+
+        logToEventStream: function (failedBundle, ctx, cdnProvider, status) {
+            var esUrl = Roblox.BundleVerifierConstants.eventStreamUrl,
+                currentPageUrl = encodeURIComponent(window.location.href);
+
+            var deviceType = Roblox.BundleVerifierConstants.deviceType;
+            ctx += "_" + deviceType;
+            //try and grab performance data.
+            //Note that this is the performance of the xmlhttprequest rather than the original resource load.
+            var duration = 0;
+            if (window.performance) {
+                var perfTiming = window.performance.getEntriesByName(failedBundle);
+                if (perfTiming.length > 0) {
+                    var data = perfTiming[0];
+                    duration = data.duration || 0;
+                }
+            }
+            //log to event stream (diagnostic)
+            var params = "&evt=webBundleError&url=" + currentPageUrl +
+                "&ctx=" + ctx + "&fileSourceUrl=" + encodeURIComponent(failedBundle) +
+                "&cdnName=" + (cdnProvider || "unknown") +
+                "&statusCode=" + (status || "unknown") +
+                "&loadDuration=" + Math.floor(duration);
+            var img = new Image();
+            img.src = esUrl + params;
+        },
+
+        getCdnInfo: function (failedBundle, ctx, fileType) {
+            if (Roblox.BundleVerifierConstants.cdnLoggingEnabled) {
+                var xhr = new XMLHttpRequest();
+                var counter = this.counterNames;
+                xhr.open('GET', failedBundle, true);
+                var cdnProvider;
+
+                //succesful request
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === xhr.HEADERS_RECEIVED) {
+                        cdnProvider = xhr.getResponseHeader("rbx-cdn-provider");
+                        if (cdnProvider && cdnProvider.length > 0) {
+                            Roblox.BundleDetector.logToEphemeralCounter(counter.cdnPrefix + cdnProvider + "_" + fileType);
+                        }
+                        else {
+                            Roblox.BundleDetector.logToEphemeralCounter(counter.unknown + "_" + fileType);
+                        }
+                    }
+                    else if (xhr.readyState === xhr.DONE) {
+                        // append status to cdn provider so we know its not related to network error. 
+                        Roblox.BundleDetector.logToEventStream(failedBundle, ctx, cdnProvider, xhr.status);
+                    }
+                };
+
+                //attach to possible things that can go wrong with the request.
+                //additionally a network error will trigger this callback
+                xhr.onerror = function () {
+                    Roblox.BundleDetector.logToEphemeralCounter(counter.unknown + "_" + fileType);
+                    Roblox.BundleDetector.logToEventStream(failedBundle, ctx, counter.unknown);
+                };
+
+                xhr.send();
+            }
+            else {
+                this.logToEventStream(failedBundle, ctx);
+            }
+        },
+
+        reportResourceError: function (resourceName) {
+            var ephemeralCounterName = this.counterNames.resourceError + "_" + resourceName;
+            this.logToEphemeralCounter(ephemeralCounterName);
+        },
+
+        reportResourceLoaded: function (resourceName) {
+            var loadTimeInMs = this.getLoadTime();
+            if (loadTimeInMs) {
+                var sequenceName = this.counterNames.resourceLoaded + "_" + resourceName;
+                this.logToEphemeralStatistics(sequenceName, loadTimeInMs);
+            }
+        },
+
+        reportBundleError: function (bundleTag) {
+            var ephemeralCounterName, failedBundle, ctx, contentType;
+            if (bundleTag.rel && bundleTag.rel === "stylesheet") {
+                ephemeralCounterName = this.counterNames.cssError;
+                failedBundle = bundleTag.href;
+                ctx = "css";
+                contentType = bundleContentTypes.css;
+            } else {
+                ephemeralCounterName = this.counterNames.jsError;
+                failedBundle = bundleTag.src;
+                ctx = "js";
+                contentType = bundleContentTypes.javascript;
+            }
+
+            //mark that we logged this bundle
+            this.bundlesReported[failedBundle] = true;
+
+            //e.g. javascriptBundleError_Computer
+            this.logToEphemeralCounter(ephemeralCounterName);
+            //this will also log to event stream
+            this.getCdnInfo(failedBundle, ctx, ctx);
+
+            var bundleName;
+            if (bundleTag.dataset) {
+                bundleName = bundleTag.dataset.bundlename;
+            }
+            else {
+                bundleName = bundleTag.getAttribute('data-bundlename');
+            }
+
+            this.getCdnProviderAndReportMetrics(failedBundle, bundleName, loadStates.loadFailure, contentType);
+        },
+
+        bundleDetected: function (bundleName) {
+            this.jsBundlesLoaded[bundleName] = true;
+        },
+
+        verifyBundles: function (document) {
+            var ephemeralCounterName = this.counterNames.jsFileError,
+                eventContext = ephemeralCounterName;
+            //grab all roblox script tags in the page. 
+            var scripts = (document && document.scripts) || window.document.scripts;
+            var errorsList = [];
+            var bundleName;
+            var monitor;
+            for (var i = 0; i < scripts.length; i++) {
+                var item = scripts[i];
+
+                if (item.dataset) {
+                    bundleName = item.dataset.bundlename;
+                    monitor = item.dataset.monitor;
+                }
+                else {
+                    bundleName = item.getAttribute('data-bundlename');
+                    monitor = item.getAttribute('data-monitor');
+                }
+
+                if (item.src && monitor && bundleName) {
+                    if (!Roblox.BundleDetector.jsBundlesLoaded.hasOwnProperty(bundleName)) {
+                        errorsList.push(item);
+                    }
+                }
+            }
+            if (errorsList.length > 0) {
+                for (var j = 0; j < errorsList.length; j++) {
+                    var script = errorsList[j];
+                    if (!this.bundlesReported[script.src]) {
+                        //log the counter only if the file is actually corrupted, not just due to failure to load
+                        //e.g. JsFileExecutionError_Computer
+                        this.logToEphemeralCounter(ephemeralCounterName);
+                        this.getCdnInfo(script.src, eventContext, 'js');
+
+                        if (script.dataset) {
+                            bundleName = script.dataset.bundlename;
+                        }
+                        else {
+                            bundleName = script.getAttribute('data-bundlename');
+                        }
+
+                        this.getCdnProviderAndReportMetrics(script.src, bundleName, loadStates.executionFailure, bundleContentTypes.javascript);
+                    }
+                }
+            }
+        }
+    };
+})();
+
+window.addEventListener("load", function (evt) {
+    Roblox.BundleDetector.verifyBundles();
+});
+
+Roblox.BundleDetector.setTiming(window.performance.timing);
+            //# sourceURL=somename.js
+        </script>
+    
+    <link href="https://images.rbx2016.tk/23421382939a9f4ae8bbe60dbe2a3e7e.ico.gzip" rel="icon" />
+
+
+        <link rel="manifest" href="https://notifications.rbx2016.tk/v2/push-notifications/chrome-manifest" crossorigin="use-credentials">
+    <link onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' rel='stylesheet' data-bundlename='StyleGuide' href='https://static.rbx2016.tk/css/4db56b05c02c8ab6a24e3aec5aca644b3a2ac54ae5c1157bc697e7d8918f9918.css' />
+
+
+
+    <link rel="canonical" href="https://www.rbx2016.tk/catalog/<%= id %>/<%= name2 %>" />
+    
+<link onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' rel='stylesheet'  href='https://static.rbx2016.tk/css/leanbase___9b9fc145916d65f94e610d1f02775894_m.css' />
+
+
+    
+<link onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' rel='stylesheet'  href='https://static.rbx2016.tk/css/page___2734452ad08702f8d10fd93190f266b8_m.css' />
+
+
+
+<link onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' rel='stylesheet' data-bundlename='Thumbnails' href='https://static.rbx2016.tk/css/e3a341febe3b8871291bbd49425371fb533cab903374592a92d4ccc6cd0ed325.css' />
+
+<link onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' rel='stylesheet' data-bundlename='Recommendations' href='https://static.rbx2016.tk/css/f15169675c4d888ccaed4e0fb8f0a449659f6f5ebcf70a3ea433058470e3b5cb.css' />
+
+<link onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' rel='stylesheet' data-bundlename='Captcha' href='https://static.rbx2016.tk/css/1b4a454048320339d1a8e7459370f628af99f171c07767bf505492f5650c3b4d.css' />
+
+
+<link onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' rel='stylesheet' data-bundlename='NotificationStream' href='https://static.rbx2016.tk/css/8e03cf8e84202810e737631ed5ee4dae790b444bf7607217cccc44be5c36133a.css' />
+
+    <link onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' rel='stylesheet' data-bundlename='Chat' href='https://static.rbx2016.tk/css/d4ea5fce70b8009044c02f73117827c92c07782ab871b64a0b22a078e74989e3.css' />
+
+
+
+
+
+    <script type="text/javascript">
+    var Roblox = Roblox || {};
+    Roblox.RealTimeSettings = Roblox.RealTimeSettings ||
+        {
+            NotificationsEndpoint: "https://realtime.rbx2016.tk",
+            MaxConnectionTime: "21600000",
+            IsEventPublishingEnabled: false,
+            IsDisconnectOnSlowConnectionDisabled: true,
+            IsSignalRClientTransportRestrictionEnabled: true,
+            IsLocalStorageInRealTimeEnabled: true,
+            IsDebuggerEnabled: "False"
+        }
+    </script>
+
+
+<script type="text/javascript">
+    var Roblox = Roblox || {};
+    Roblox.EnvironmentUrls = Roblox.EnvironmentUrls || {};
+    // please keep the list in alphabetical order
+    Roblox.EnvironmentUrls = {
+        abtestingApiSite: "https://abtesting.rbx2016.tk",
+        accountInformationApi: "https://accountinformation.rbx2016.tk",
+        accountSettingsApi: "https://accountsettings.rbx2016.tk",
+        amazonStoreLink: "http://amzn.com/B00NUF4YOA",
+        apiGatewayUrl: "https://apis.rbx2016.tk",
+        apiProxyUrl: "https://api.rbx2016.tk",
+        appProtocolUrl: "robloxmobile://",
+        appStoreLink: "https://itunes.apple.com/us/app/roblox-mobile/id431946152",
+        authApi: "https://auth.rbx2016.tk",
+        authAppSite: "https://authsite.rbx2016.tk",
+        avatarApi: "https://avatar.rbx2016.tk",
+        avatarAppSite: "https://avatarsite.rbx2016.tk",
+        badgesApi: "https://badges.rbx2016.tk",
+        billingApi: "https://billing.rbx2016.tk",
+        captchaApi: "https://captcha.rbx2016.tk",
+        catalogApi: "https://catalog.rbx2016.tk",
+        chatApi: "https://chat.rbx2016.tk",
+        contactsApi: "https://contacts.rbx2016.tk",
+        developApi: "https://develop.rbx2016.tk",
+        domain: "rbx2016.tk",
+        economyApi: "https://economy.rbx2016.tk",
+        followingsApi: "https://followings.rbx2016.tk",
+        friendsApi: "https://friends.rbx2016.tk",
+        friendsAppSite: "https://friendsite.rbx2016.tk",
+        gamesApi: "https://games.rbx2016.tk",
+        gamesAppSite: "https://gamesite.rbx2016.tk",
+        gameInternationalizationApi: "https://gameinternationalization.rbx2016.tk",
+        googlePlayStoreLink: "https://play.google.com/store/apps/details?id=com.roblox.client&amp;hl=en",
+        groupsApi: "https://groups.rbx2016.tk",
+        inventoryApi: "https://inventory.rbx2016.tk",
+        itemConfigurationApi: "https://itemconfiguration.rbx2016.tk",
+        iosAppStoreLink: "https://itunes.apple.com/us/app/roblox-mobile/id431946152",
+        localeApi: "https://locale.rbx2016.tk",
+        localizationTablesApi: "https://localizationtables.rbx2016.tk",
+        metricsApi: "https://metrics.rbx2016.tk",
+        midasApi: "https://midas.rbx2016.tk",
+        notificationApi: "https://notifications.rbx2016.tk",
+        notificationAppSite: "https://notificationsite.rbx2016.tk",
+        premiumFeaturesApi: "https://premiumfeatures.rbx2016.tk",
+        presenceApi: "https://presence.rbx2016.tk",
+        publishApi: "https://publish.rbx2016.tk",
+        surveysAppSite: "https://surveyssite.rbx2016.tk",
+        thumbnailsApi: "https://thumbnails.rbx2016.tk",
+        translationRolesApi: "https://translationroles.rbx2016.tk",
+        voiceApi: "https://voice.rbx2016.tk",
+        websiteUrl: "https://www.rbx2016.tk",
+        windowsStoreLink: "https://www.microsoft.com/en-us/store/games/roblox/9nblgggzm6wm",
+        xboxStoreLink: "https://www.microsoft.com/en-us/p/roblox/bq1tn1t79v9k"
+    }
+</script>
+
+
+
+<script type="text/javascript">
+    var Roblox = Roblox || {};
+    Roblox.GaEventSettings = {
+        gaDFPPreRollEnabled: "false" === "true",
+        gaLaunchAttemptAndLaunchSuccessEnabled: "false" === "true",
+        gaPerformanceEventEnabled: "false" === "true"
+    };
+</script>
+
+
+    
+    <script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='headerinit' type='text/javascript' src='https://js.rbx2016.tk/175a4c92837369e0600f5343486a24f9.js.gzip'></script>
+
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='RealTime' type='text/javascript' src='https://js.rbx2016.tk/2a27a86cbeb8a17802e9cca5ac801621a17b7c9f88f9c9bbb82e3d06203313b0.js'></script>
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='CrossTabCommunication' type='text/javascript' src='https://js.rbx2016.tk/a3d58af86c198c153ba6efea6e93cf05a1343c124f70e763f9194684644a9c52.js'></script>
+
+    
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+
+<script type="text/javascript">
+    var Roblox = Roblox || {};
+    Roblox.AdsHelper = Roblox.AdsHelper || {};
+    Roblox.AdsLibrary = Roblox.AdsLibrary || {};
+
+    Roblox.AdsHelper.toggleAdsSlot = function (slotId, GPTRandomSlotIdentifier) {
+        var gutterAdsEnabled = false;
+        if (gutterAdsEnabled) {
+            googletag.display(GPTRandomSlotIdentifier);
+            return;
+        }
+        
+        if (typeof slotId !== 'undefined' && slotId && slotId.length > 0) {
+            var slotElm = $("#"+slotId);
+            if (slotElm.is(":visible")) {
+                googletag.display(GPTRandomSlotIdentifier);
+            }else {
+                var adParam = Roblox.AdsLibrary.adsParameters[slotId];
+                if (adParam) {
+                    adParam.template = slotElm.html();
+                    slotElm.empty();
+                }
+            }
+        }
+    }
+</script>    <script type="text/javascript">
+        $(function () {
+            Roblox.JSErrorTracker.initialize({ 'suppressConsoleError': true});
+        });
+    </script>
+
+    <script type="text/javascript" src="https://cdns.gigya.com/js/gigya.js?apiKey=3_OsvmtBbTg6S_EUbwTPtbbmoihFY5ON6v6hbVrTbuqpBs7SyF_LQaJwtwKJ60sY1p" async defer></script>
+
+
+
+    
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+<script>
+    //Set if it browser's do not track flag is enabled
+    var Roblox = Roblox || {};
+    (function() {
+        var dnt = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+        if (typeof window.external !== "undefined" &&
+            typeof window.external.msTrackingProtectionEnabled !== "undefined") {
+            dnt = dnt || window.external.msTrackingProtectionEnabled();
+        }
+        Roblox.browserDoNotTrack = dnt == "1" || dnt == "yes" || dnt === true;
+    })();
+</script>
+
+
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+
+                window.GoogleAnalyticsDisableRoblox2 = true;
+        _gaq.push(['b._setAccount', 'UA-486632-1']);
+            _gaq.push(['b._setSampleRate', '10']);
+        _gaq.push(['b._setCampSourceKey', 'rbx_source']);
+        _gaq.push(['b._setCampMediumKey', 'rbx_medium']);
+        _gaq.push(['b._setCampContentKey', 'rbx_campaign']);
+
+            _gaq.push(['b._setDomainName', 'rbx2016.tk']);
+
+            _gaq.push(['b._setCustomVar', 1, 'Visitor', 'Member', 2]);
+                _gaq.push(['b._setPageGroup', 1, 'CatalogItem']);
+            _gaq.push(['b._trackPageview']);
+
+        _gaq.push(['c._setAccount', 'UA-26810151-2']);
+            _gaq.push(['c._setSampleRate', '1']);
+                    _gaq.push(['c._setDomainName', 'rbx2016.tk']);
+                    _gaq.push(['c._setPageGroup', 1, 'CatalogItem']);
+
+        (function () {
+            if (!Roblox.browserDoNotTrack) {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            }
+        })();
+    </script>
+    
+            <script type="text/javascript">
+            if (Roblox && Roblox.EventStream) {
+                Roblox.EventStream.Init("//ecsv2.rbx2016.tk/www/e.png",
+                    "//ecsv2.rbx2016.tk/www/e.png",
+                    "//ecsv2.rbx2016.tk/pe?t=studio",
+                    "//ecsv2.rbx2016.tk/pe?t=diagnostic");
+            }
+        </script>
+
+
+
+<script type="text/javascript">
+    if (Roblox && Roblox.PageHeartbeatEvent) {
+        Roblox.PageHeartbeatEvent.Init([2,8,20,60]);
+    }
+</script>        <script type="text/javascript">
+if (typeof(Roblox) === "undefined") { Roblox = {}; }
+Roblox.Endpoints = Roblox.Endpoints || {};
+Roblox.Endpoints.Urls = Roblox.Endpoints.Urls || {};
+Roblox.Endpoints.Urls['/api/item.ashx'] = 'https://www.rbx2016.tk/api/item.ashx';
+Roblox.Endpoints.Urls['/asset/'] = 'https://assetgame.rbx2016.tk/asset/';
+Roblox.Endpoints.Urls['/client-status/set'] = 'https://www.rbx2016.tk/client-status/set';
+Roblox.Endpoints.Urls['/client-status'] = 'https://www.rbx2016.tk/client-status';
+Roblox.Endpoints.Urls['/game/'] = 'https://assetgame.rbx2016.tk/game/';
+Roblox.Endpoints.Urls['/game-auth/getauthticket'] = 'https://www.rbx2016.tk/game-auth/getauthticket';
+Roblox.Endpoints.Urls['/game/edit.ashx'] = 'https://assetgame.rbx2016.tk/game/edit.ashx';
+Roblox.Endpoints.Urls['/game/getauthticket'] = 'https://assetgame.rbx2016.tk/game/getauthticket';
+Roblox.Endpoints.Urls['/game/get-hash'] = 'https://assetgame.rbx2016.tk/game/get-hash';
+Roblox.Endpoints.Urls['/game/placelauncher.ashx'] = 'https://assetgame.rbx2016.tk/game/placelauncher.ashx';
+Roblox.Endpoints.Urls['/game/preloader'] = 'https://assetgame.rbx2016.tk/game/preloader';
+Roblox.Endpoints.Urls['/game/report-stats'] = 'https://assetgame.rbx2016.tk/game/report-stats';
+Roblox.Endpoints.Urls['/game/report-event'] = 'https://assetgame.rbx2016.tk/game/report-event';
+Roblox.Endpoints.Urls['/game/updateprerollcount'] = 'https://assetgame.rbx2016.tk/game/updateprerollcount';
+Roblox.Endpoints.Urls['/login/default.aspx'] = 'https://www.rbx2016.tk/login/default.aspx';
+Roblox.Endpoints.Urls['/my/avatar'] = 'https://www.rbx2016.tk/my/avatar';
+Roblox.Endpoints.Urls['/my/money.aspx'] = 'https://www.rbx2016.tk/my/money.aspx';
+Roblox.Endpoints.Urls['/navigation/userdata'] = 'https://www.rbx2016.tk/navigation/userdata';
+Roblox.Endpoints.Urls['/chat/chat'] = 'https://www.rbx2016.tk/chat/chat';
+Roblox.Endpoints.Urls['/chat/data'] = 'https://www.rbx2016.tk/chat/data';
+Roblox.Endpoints.Urls['/presence/users'] = 'https://www.rbx2016.tk/presence/users';
+Roblox.Endpoints.Urls['/presence/user'] = 'https://www.rbx2016.tk/presence/user';
+Roblox.Endpoints.Urls['/friends/list'] = 'https://www.rbx2016.tk/friends/list';
+Roblox.Endpoints.Urls['/navigation/getcount'] = 'https://www.rbx2016.tk/navigation/getCount';
+Roblox.Endpoints.Urls['/regex/email'] = 'https://www.rbx2016.tk/regex/email';
+Roblox.Endpoints.Urls['/catalog/browse.aspx'] = 'https://www.rbx2016.tk/catalog/browse.aspx';
+Roblox.Endpoints.Urls['/catalog/html'] = 'https://search.rbx2016.tk/catalog/html';
+Roblox.Endpoints.Urls['/catalog/json'] = 'https://search.rbx2016.tk/catalog/json';
+Roblox.Endpoints.Urls['/catalog/contents'] = 'https://search.rbx2016.tk/catalog/contents';
+Roblox.Endpoints.Urls['/catalog/lists.aspx'] = 'https://search.rbx2016.tk/catalog/lists.aspx';
+Roblox.Endpoints.Urls['/catalog/items'] = 'https://search.rbx2016.tk/catalog/items';
+Roblox.Endpoints.Urls['/asset-hash-thumbnail/image'] = 'https://assetgame.rbx2016.tk/asset-hash-thumbnail/image';
+Roblox.Endpoints.Urls['/asset-hash-thumbnail/json'] = 'https://assetgame.rbx2016.tk/asset-hash-thumbnail/json';
+Roblox.Endpoints.Urls['/asset-thumbnail-3d/json'] = 'https://assetgame.rbx2016.tk/asset-thumbnail-3d/json';
+Roblox.Endpoints.Urls['/asset-thumbnail/image'] = 'https://assetgame.rbx2016.tk/asset-thumbnail/image';
+Roblox.Endpoints.Urls['/asset-thumbnail/json'] = 'https://assetgame.rbx2016.tk/asset-thumbnail/json';
+Roblox.Endpoints.Urls['/asset-thumbnail/url'] = 'https://assetgame.rbx2016.tk/asset-thumbnail/url';
+Roblox.Endpoints.Urls['/asset/request-thumbnail-fix'] = 'https://assetgame.rbx2016.tk/asset/request-thumbnail-fix';
+Roblox.Endpoints.Urls['/avatar-thumbnail-3d/json'] = 'https://www.rbx2016.tk/avatar-thumbnail-3d/json';
+Roblox.Endpoints.Urls['/avatar-thumbnail/image'] = 'https://www.rbx2016.tk/avatar-thumbnail/image';
+Roblox.Endpoints.Urls['/avatar-thumbnail/json'] = 'https://www.rbx2016.tk/avatar-thumbnail/json';
+Roblox.Endpoints.Urls['/avatar-thumbnails'] = 'https://www.rbx2016.tk/avatar-thumbnails';
+Roblox.Endpoints.Urls['/avatar/request-thumbnail-fix'] = 'https://www.rbx2016.tk/avatar/request-thumbnail-fix';
+Roblox.Endpoints.Urls['/bust-thumbnail/json'] = 'https://www.rbx2016.tk/bust-thumbnail/json';
+Roblox.Endpoints.Urls['/group-thumbnails'] = 'https://www.rbx2016.tk/group-thumbnails';
+Roblox.Endpoints.Urls['/groups/getprimarygroupinfo.ashx'] = 'https://www.rbx2016.tk/groups/getprimarygroupinfo.ashx';
+Roblox.Endpoints.Urls['/headshot-thumbnail/json'] = 'https://www.rbx2016.tk/headshot-thumbnail/json';
+Roblox.Endpoints.Urls['/item-thumbnails'] = 'https://www.rbx2016.tk/item-thumbnails';
+Roblox.Endpoints.Urls['/outfit-thumbnail/json'] = 'https://www.rbx2016.tk/outfit-thumbnail/json';
+Roblox.Endpoints.Urls['/place-thumbnails'] = 'https://www.rbx2016.tk/place-thumbnails';
+Roblox.Endpoints.Urls['/thumbnail/asset/'] = 'https://www.rbx2016.tk/thumbnail/asset/';
+Roblox.Endpoints.Urls['/thumbnail/avatar-headshot'] = 'https://www.rbx2016.tk/thumbnail/avatar-headshot';
+Roblox.Endpoints.Urls['/thumbnail/avatar-headshots'] = 'https://www.rbx2016.tk/thumbnail/avatar-headshots';
+Roblox.Endpoints.Urls['/thumbnail/user-avatar'] = 'https://www.rbx2016.tk/thumbnail/user-avatar';
+Roblox.Endpoints.Urls['/thumbnail/resolve-hash'] = 'https://www.rbx2016.tk/thumbnail/resolve-hash';
+Roblox.Endpoints.Urls['/thumbnail/place'] = 'https://www.rbx2016.tk/thumbnail/place';
+Roblox.Endpoints.Urls['/thumbnail/get-asset-media'] = 'https://www.rbx2016.tk/thumbnail/get-asset-media';
+Roblox.Endpoints.Urls['/thumbnail/remove-asset-media'] = 'https://www.rbx2016.tk/thumbnail/remove-asset-media';
+Roblox.Endpoints.Urls['/thumbnail/set-asset-media-sort-order'] = 'https://www.rbx2016.tk/thumbnail/set-asset-media-sort-order';
+Roblox.Endpoints.Urls['/thumbnail/place-thumbnails'] = 'https://www.rbx2016.tk/thumbnail/place-thumbnails';
+Roblox.Endpoints.Urls['/thumbnail/place-thumbnails-partial'] = 'https://www.rbx2016.tk/thumbnail/place-thumbnails-partial';
+Roblox.Endpoints.Urls['/thumbnail_holder/g'] = 'https://www.rbx2016.tk/thumbnail_holder/g';
+Roblox.Endpoints.Urls['/users/{id}/profile'] = 'https://www.rbx2016.tk/users/{id}/profile';
+Roblox.Endpoints.Urls['/service-workers/push-notifications'] = 'https://www.rbx2016.tk/service-workers/push-notifications';
+Roblox.Endpoints.Urls['/notification-stream/notification-stream-data'] = 'https://www.rbx2016.tk/notification-stream/notification-stream-data';
+Roblox.Endpoints.Urls['/api/friends/acceptfriendrequest'] = 'https://www.rbx2016.tk/api/friends/acceptfriendrequest';
+Roblox.Endpoints.Urls['/api/friends/declinefriendrequest'] = 'https://www.rbx2016.tk/api/friends/declinefriendrequest';
+Roblox.Endpoints.Urls['/authentication/is-logged-in'] = 'https://www.rbx2016.tk/authentication/is-logged-in';
+Roblox.Endpoints.addCrossDomainOptionsToAllRequests = true;
+</script>
+
+    <script type="text/javascript">
+if (typeof(Roblox) === "undefined") { Roblox = {}; }
+Roblox.Endpoints = Roblox.Endpoints || {};
+Roblox.Endpoints.Urls = Roblox.Endpoints.Urls || {};
+</script>
+
+    <script>
+    Roblox = Roblox || {};
+    Roblox.AbuseReportPVMeta = {
+        desktopEnabled: true,
+        phoneEnabled: false,
+        inAppEnabled: false
+    };
+</script>
+
+</head>
+<body id="rbx-body"
+      class="rbx-body    gotham-font"
+      data-performance-relative-value="0.005"
+      data-internal-page-name="CatalogItem"
+      data-send-event-percentage="0">
+
+      <script>
+        // Use matchMedia to check the user preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        const userSystemTheme = prefersDark.matches ? "dark" : "light";
+
+        let theme = "<%= theme %>";
+        if (theme == ""){
+            theme = userSystemTheme;
+        }
+
+        if (theme === "dark") {
+            toggleDarkTheme(true);
+        }
+
+        // Listen for changes to the prefers-color-scheme media query
+        prefersDark.addListener((mediaQuery) => toggleDarkTheme(mediaQuery.matches));
+
+        // Add or remove the "dark" class based on if the media query matches
+        function toggleDarkTheme(shouldAdd) {
+            const heads = document.getElementsByTagName("head");
+            for (let i = 0; i < heads.length; i++) {
+                const head = heads[i];
+                const cssFile = document.createElement('link');
+                cssFile.rel = 'stylesheet';
+                cssFile.href = "/css/dark.css";
+                head.appendChild(cssFile);
+            }
+        }
+    </script>
+    <div id="roblox-linkify" data-enabled="true" data-regex="(https?\:\/\/)?(?:www\.)?([a-z0-9-]{2,}\.)*(((m|de|www|web|api|blog|wiki|corp|polls|bloxcon|developer|devforum|forum)\.roblox\.com|robloxlabs\.com)|(www\.shoproblox\.com)|help\.roblox\.com(?![A-Za-z0-9\/.]*\/attachments\/))(?!\/[A-Za-z0-9-+&amp;@#\/=~_|!:,.;]*%)((\/[A-Za-z0-9-+&amp;@#\/%?=~_|!:,.;]*)|(?=\s|\b))" data-regex-flags="gm" data-as-http-regex="(([^.]help|polls)\.roblox\.com)"></div>
+
+<div id="image-retry-data"
+     data-image-retry-max-times="10"
+     data-image-retry-timer="1500"
+     data-ga-logging-percent="10">
+</div>
+<div id="http-retry-data"
+     data-http-retry-max-timeout="0"
+     data-http-retry-base-timeout="0"
+     data-http-retry-max-times="1">
+</div>
+                <div id="TosAgreementInfo"
+                 data-terms-check-needed="False">
+            </div>
+
+    
+
+
+<div id="fb-root"></div>
+
+<div id="wrap" class="wrap no-gutter-ads logged-in"
+     data-gutter-ads-enabled="false">
+
+
+
+     <div id="wrap" class="wrap no-gutter-ads logged-in" data-gutter-ads-enabled="false">
+
+        <div id="header" class="navbar-fixed-top rbx-header" data-isfriendshiprealtimeupdateenabled="true"
+            role="navigation">
+            <div class="container-fluid">
+                <div class="rbx-navbar-header">
+                    <div data-behavior="nav-notification" class="rbx-nav-collapse" onselectstart="return false;">
+                        <span class="icon-nav-menu"></span>
+
+                    </div>
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="https://www.rbx2016.tk/">
+                            <span class="icon-logo"></span>
+                            <span class="icon-logo-r"></span>
+                        </a>
+                    </div>
+                </div>
+                <ul class="nav rbx-navbar hidden-xs hidden-sm col-md-4 col-lg-3">
+                    <li>
+                        <a class="nav-menu-title" href="https://www.rbx2016.tk/games">Games</a>
+                    </li>
+                    <li>
+                        <a class="nav-menu-title" href="https://www.rbx2016.tk/catalog/">Catalog</a>
+                    </li>
+                    <li>
+                        <a class="nav-menu-title" href="https://www.rbx2016.tk/develop">Develop</a>
+                    </li>
+                    <li>
+                        <a class="buy-robux nav-menu-title"
+                            href="https://www.rbx2016.tk/upgrades/robux?ctx=nav">ROBUX</a>
+                    </li>
+                </ul>
+                <!--rbx-navbar-->
+                <div id="navbar-universal-search" class="navbar-left rbx-navbar-search col-xs-5 col-sm-6 col-md-3"
+                    data-behavior="univeral-search" role="search">
+                    <div class="input-group">
+
+                        <input id="navbar-search-input" class="form-control input-field" type="text"
+                            placeholder="Search" maxlength="120" />
+                        <div class="input-group-btn">
+                            <button id="navbar-search-btn" class="input-addon-btn" type="submit">
+                                <span class="icon-nav-search"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <ul data-toggle="dropdown-menu" class="dropdown-menu" role="menu">
+                        <li class="rbx-navbar-search-option selected"
+                            data-searchurl="https://www.rbx2016.tk/search/users?keyword=">
+                            <span class="rbx-navbar-search-text">Search <span class="rbx-navbar-search-string"></span>
+                                in People</span>
+                        </li>
+                        <li class="rbx-navbar-search-option" data-searchurl="https://www.rbx2016.tk/games/?Keyword=">
+                            <span class="rbx-navbar-search-text">Search <span class="rbx-navbar-search-string"></span>
+                                in Games</span>
+                        </li>
+                        <li class="rbx-navbar-search-option"
+                            data-searchurl="https://www.rbx2016.tk/catalog/browse.aspx?CatalogContext=1&amp;Keyword=">
+                            <span class="rbx-navbar-search-text">Search <span class="rbx-navbar-search-string"></span>
+                                in Catalog</span>
+                        </li>
+                        <li class="rbx-navbar-search-option"
+                            data-searchurl="https://www.rbx2016.tk/groups/search.aspx?val=">
+                            <span class="rbx-navbar-search-text">Search <span class="rbx-navbar-search-string"></span>
+                                in Groups</span>
+                        </li>
+                        <li class="rbx-navbar-search-option"
+                            data-searchurl="https://www.rbx2016.tk/develop/library?CatalogContext=2&amp;Category=6&amp;Keyword=">
+                            <span class="rbx-navbar-search-text">Search <span class="rbx-navbar-search-string"></span>
+                                in Library</span>
+                        </li>
+                    </ul>
+                </div>
+                <!--rbx-navbar-search-->
+                <div class="navbar-right rbx-navbar-right col-xs-4 col-sm-3">
+                    <ul class="nav navbar-right rbx-navbar-icon-group">
+                        <li id="navbar-setting" class="navbar-icon-item">
+                            <a class="rbx-menu-item roblox-popover-close" data-toggle="popover"
+                                data-bind="popover-setting" data-viewport="#header" data-original-title="" title="">
+                                <span class="icon-nav-settings roblox-popover-close" id="nav-settings"></span>
+                                <span class="notification-red nav-setting-highlight hidden">0</span>
+                            </a>
+                            <div class="rbx-popover-content" data-toggle="popover-setting">
+                                <ul class="dropdown-menu" role="menu">
+                                    <li>
+                                        <a class="rbx-menu-item" href="https://www.rbx2016.tk/my/account">
+                                            <p>Settings</p>
+                                            <span class="notification-blue nav-setting-highlight hidden">0</span>
+                                        </a>
+                                    </li>
+                                    <% if (isAdmin == "true" || isMod == "true") { %>
+                                        <li><a class="rbx-menu-item"
+                                            href="https://www.rbx2016.tk/admi"><p>Admin</p></a></li>
+                                    <% } %>
+                                    <li><a class="rbx-menu-item" href="https://www.rbx2016.tk/Help/Builderman.aspx"
+                                            target="_blank"><p>Help</p></a></li>
+                                    <li><a class="rbx-menu-item" data-behavior="logout"
+                                            data-bind="https://www.rbx2016.tk/authentication/logout"><p>Logout</p></a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li id="navbar-tix" class="navbar-icon-item">
+                            <a id="nav-tix-icon" class="rbx-menu-item" data-original-title="" title="">
+                                <span class="icon-nav-tix roblox-popover-close" id="nav-tix"></span>
+                                <span class="rbx-text-navbar-right" id="nav-tix-amount"><%= tixFormatted %></span>
+                            </a>
+                            <script>
+                                var tixIcon = document.getElementById('nav-tix-icon');
+                                tixIcon.addEventListener('click', function () {
+                                    window.location.replace(
+                                        "https://www.rbx2016.tk/My/Money.aspx#/#Summary_tab");
+                                });
+                            </script>
+                        </li>
+                        <li id="navbar-robux" class="navbar-icon-item">
+                            <a id="nav-robux-icon" class="rbx-menu-item" data-toggle="popover" data-bind="popover-robux"
+                                data-original-title="" title="">
+                                <span class="icon-nav-robux roblox-popover-close" id="nav-robux"></span>
+                                <span class="rbx-text-navbar-right" id="nav-robux-amount"><%= robuxFormatted %></span>
+                            </a>
+                            <div class="rbx-popover-content" data-toggle="popover-robux">
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="https://www.rbx2016.tk/My/Money.aspx#/#Summary_tab"
+                                            id="nav-robux-balance" class="rbx-menu-item"><%= robux2 %> ROBUX</a></li>
+                                    <li><a href="https://www.rbx2016.tk/upgrades/robux?ctx=navpopover"
+                                            class="rbx-menu-item">Buy ROBUX</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="rbx-navbar-right-search" data-toggle="toggle-search">
+                            <a class="rbx-menu-icon rbx-menu-item">
+                                <span class="icon-nav-search-white"></span>
+                            </a>
+                        </li>
+                    </ul>
+                </div><!-- navbar right-->
+                <ul class="nav rbx-navbar hidden-md hidden-lg col-xs-12">
+                    <li>
+                        <a class="nav-menu-title" href="https://www.rbx2016.tk/games">Games</a>
+                    </li>
+                    <li>
+                        <a class="nav-menu-title" href="https://www.rbx2016.tk/catalog/">Catalog</a>
+                    </li>
+                    <li>
+                        <a class="nav-menu-title" href="https://www.rbx2016.tk/develop">Develop</a>
+                    </li>
+                    <li>
+                        <a class="buy-robux nav-menu-title"
+                            href="https://www.rbx2016.tk/upgrades/robux?ctx=nav">ROBUX</a>
+                    </li>
+                </ul>
+                <!--rbx-navbar-->
+            </div>
+        </div>
+
+
+        <% if (userid != 0) { %>
+        <!-- LEFT NAV MENU -->
+        <div id="navigation" class="rbx-left-col nav-show" data-behavior="left-col">
+            <ul>
+                <li class="text-lead">
+                    <a class="text-overflow"
+                        href="https://www.rbx2016.tk/users/<%= userid %>/profile"><%= username %></a>
+                </li>
+                <li class="rbx-divider"></li>
+            </ul>
+
+            <div class="rbx-scrollbar mCustomScrollbar _mCS_1 mCS_no_scrollbar" data-toggle="scrollbar"
+                onselectstart="return false;">
+                <div id="mCSB_1" class="mCustomScrollBox mCS-light mCSB_vertical mCSB_inside" style="max-height: 685px;"
+                    tabindex="0">
+                    <div id="mCSB_1_container" class="mCSB_container mCS_y_hidden mCS_no_scrollbar_y"
+                        style="position:relative; top:0; left:0;" dir="ltr">
+                        <ul>
+                            <li><a href="https://www.rbx2016.tk/home" id="nav-home"><span
+                                        class="icon-nav-home"></span><span>Home</span></a></li>
+                            <li><a href="https://www.rbx2016.tk/users/<%= userid %>/profile" id="nav-profile"><span
+                                        class="icon-nav-profile"></span><span>Profile</span></a></li>
+                            <li>
+                                <a href="/my/messages" id="nav-message" data-count="0">
+                                    <span class="icon-nav-message"></span><span>Messages</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.rbx2016.tk/users/<%= userid %>/friends#!/friend-requests"
+                                    id="nav-friends" data-count="999+">
+                                    <span class="icon-nav-friends"></span><span>Friends</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.rbx2016.tk/my/character.aspx" id="nav-character">
+                                    <span class="icon-nav-charactercustomizer"></span><span>Avatar</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.rbx2016.tk/users/<%= userid %>/inventory" id="nav-inventory">
+                                    <span class="icon-nav-inventory"></span><span>Inventory</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.rbx2016.tk/my/money.aspx#/#TradeItems_tab" id="nav-trade">
+                                    <span class="icon-nav-trade"></span><span>Trade</span>
+                            </li>
+                            <li>
+                                <a href="https://www.rbx2016.tk/my/groups.aspx" id="nav-group">
+                                    <span class="icon-nav-group"></span><span>Groups</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://forum.rbx2016.tk/forum/" id="nav-forum">
+                                    <span class="icon-nav-forum"></span><span>Forum</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://blog.rbx2016.tk" id="nav-blog">
+                                    <span class="icon-nav-blog"></span><span>Blog</span>
+                                </a>
+                            </li>
+                            <li class="rbx-upgrade-now">
+                                <a href="https://www.rbx2016.tk/premium/membership?ctx=leftnav" class="btn-secondary-md"
+                                    id="upgrade-now-button">Upgrade Now</a>
+                            </li>
+                            <li class="font-bold small">
+                                Events
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="mCSB_draggerContainer">
+                        <div id="mCSB_1_dragger_vertical" class="mCSB_dragger"
+                            style="position: absolute; min-height: 30px; display: block; height: 0px; max-height: 650px; top: 0px;"
+                            oncontextmenu="return false;">
+                            <div class="mCSB_dragger_bar" style="line-height: 30px;"></div>
+                        </div>
+                        <div class="mCSB_draggerRail"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% } %>
+
+<div id="i18nForAmazonShopSwitch"
+     data-is-i18n-enabled-for-shop-amazon-dialog=true
+     data-amazon-store-url="https://www.amazon.com/roblox?&amp;_encoding=UTF8&amp;tag=r05d13-20&amp;linkCode=ur2&amp;linkId=4ba2e1ad82f781c8e8cc98329b1066d0&amp;camp=1789&amp;creative=9325"
+     style="display: none">
+</div>
+
+<script type="text/javascript">
+    var Roblox = Roblox || {};
+    (function () {
+        if (Roblox && Roblox.Performance) {
+            Roblox.Performance.setPerformanceMark("navigation_end");
+        }
+    })();
+</script>
+
+    <div class="container-main 
+                
+                
+                
+                
+                ">
+            <script type="text/javascript">
+                if (top.location != self.location) {
+                    top.location = self.location.href;
+                }
+            </script>
+
+        <div class="alert-container">
+
+            <noscript><div><div class="alert-info" role="alert">Please enable Javascript to use all the features on this site.</div></div></noscript>
+
+                        
+        </div>
+
+
+        <div class="content">
+
+                            <div id="Leaderboard-Abp" class="abp leaderboard-abp">
+                    
+
+<iframe name="Roblox_Item_Top_728x90" 
+        allowtransparency="true"
+        frameborder="0"
+        height="110"
+        scrolling="no"
+        data-src=""
+        src="https://www.rbx2016.tk/user-sponsorship/1"
+        width="728"
+        data-js-adtype="iframead"
+        data-ad-slot="Roblox_Item_Top_728x90"></iframe>
+                </div>
+            
+
+
+
+
+<div id="item-container"
+     class="page-content
+     inline-social
+     
+     
+     "
+     data-item-id="<%= id %>"
+     data-item-type="Asset"
+     data-item-name="<%= name %>"
+     data-asset-type="Game Pass"
+     data-asset-type-display-name="Gamepass"
+     data-userasset-id=""
+     data-is-purchase-enabled="true"
+     data-product-id="<%= id %>"
+     data-bc-requirement="0"
+     data-expected-currency="1"
+     data-expected-price="<%= price %>"
+     data-seller-name="<%= creatorname %>"
+     data-expected-seller-id="<%= creatorid %>"
+     data-lowest-private-sale-userasset-id=""
+     data-is-limited-unique="false"
+     data-user-id="<%= userid %>"
+     data-asset-granted="False"
+     data-forward-url=""
+     data-avatar-wear-url="https://avatar.rbx2016.tk/v1/avatar/assets/<%= id %>/wear"
+     data-avatar-remove-url="https://avatar.rbx2016.tk/v1/avatar/assets/<%= id %>/remove"
+     data-current-time="7/27/2019 1:18:02 AM">
+     
+<div class="system-feedback">
+    <div class="alert-system-feedback">
+        <div class="alert alert-success">Purchase Completed</div>
+    </div>
+    <div class="alert-system-feedback">
+        <div class="alert alert-warning">Error occurred</div>
+    </div>
+</div>
+    <div class="remove-panel section-content top-section">
+        <div class="border-bottom item-name-container">
+            <h2><%= name %></h2>
+            <div>
+
+                <span class="text-label">By <a href='https://www.rbx2016.tk/users/<%= creatorid %>/profile/' class='text-name'><%= creatorname %></a></span>
+
+            </div>
+        </div>
+        <div class="item-thumbnail-container ">
+
+
+ 
+
+<div id="use-dynamic-thumbnail-lighting" class="hidden" data-use-dynamic-thumbnail-lighting="False"></div>
+
+<div id="AssetThumbnail" class="asset-thumb-container thumbnail-holder
+     
+     thumbnail-Large
+     three-dee-static"
+     
+     data-reset-enabled-every-page
+     data-3d-thumbs-enabled
+     three-dee-static
+     data-3dtype="static"
+     data-url="/thumbnail/asset?assetId=<%= id %>&amp;thumbnailFormatId=254&amp;width=420&amp;height=420">
+    <div id="current-animation-name"></div>
+
+<span class="thumbnail-span" data-3d-url="/asset-thumbnail-3d/json?assetId=<%= id %>" ><img  class='' src='https://tr.rbx2016.tk/e4fe2972f2e403c3325b1223dcc7245a/420/420/Gamepass/Png'/></span><span class="thumbnail-span-original hidden" data-3d-url="/asset-thumbnail-3d/json?assetId=<%= id %>" ><img  class='' src='https://tr.rbx2016.tk/e4fe2972f2e403c3325b1223dcc7245a/420/420/Gamepass/Png'/></span><span class="thumbnail-span-try-it-on hidden" data-3d-url="/temp-outfit-thumbnail-3d/json?assetId=<%= id %>" data-retry-url="/temp-outfit-thumbnail/json?assetId=<%= id %>&amp;width=420&amp;height=420&amp;format=Png" data-orig-retry-url="/temp-outfit-thumbnail/json?assetId=<%= id %>&amp;width=420&amp;height=420&amp;format=Png" ><img alt='You, trying the asset on.' class='' src=''/></span>    <div class="equipped-marker"></div>
+
+    <!-- <div class="thumbnail-buttons">
+            <span class="try-it-on btn-control-sm">Try On</span>
+                    <button class="border enable-three-dee three-dee-static-icon thumb-interactive-btn btn-control-md"></button>
+    </div> -->
+
+
+        <div class="asset-status-icon">
+        </div>
+
+
+</div>
+<script type="text/javascript">
+    (function () {
+        if (Roblox && Roblox.Performance) {
+            Roblox.Performance.setPerformanceMark("itemReskin_thumbnail_loaded");
+        }
+    })();
+</script>
+        </div>
+
+        <div id="item-details" class="content-overflow-toggle content-height content-overflow-page-loading item-details">
+                    <div class="clearfix price-container">
+                        <% if (!onSale) { %>
+                        <div class="price-container-text">
+                                <div class="item-first-line">This item is not currently for sale.</div>
+                                                            <div class="price-info">
+
+                                </div>
+                        </div>
+                        <div class="action-button">
+                            <button type="button" class="btn-fixed-width-lg btn-growth-lg" disabled="">Buy</button>
+                        </div>
+                        <% } else if (!owned) { %>
+                        <div class="font-header-1 text-subheader text-label text-overflow field-label">Price</div>
+                        <div class="action-button">
+                            <button class="PurchaseButton btn-fixed-width-lg btn-growth-lg" data-item-id="<%= id %>" data-item-name="<%= name %>" data-product-id="<%= id %>" data-expected-price="<%= price %>" data-asset-type="Game Pass" data-bc-requirement="" data-expected-seller-id="<%= creatorid %>" data-seller-name="<%= creatorname %>" data-expected-currency="1">
+                                <span>Buy</span>
+                            </button>
+                        </div>
+                        <div class="price-container-text">
+                            <div class="robux-title">
+                                <span class="icon-robux" style="position: absolute; bottom: 72.5%; left: 55%;"></span>
+                                <h3 class="text-robux" style="position: absolute; bottom: 72.25%; left: 58.5%;"><%= price %></h3>
+                            </div>
+                        </div>
+                        <% } else if (owned) { %>
+                            <div class="price-container-text">
+                                <div class="item-first-line">This item is availiable in your inventory.</div>
+                                                            <div class="price-info">
+
+                                </div>
+                        </div>
+                        <div class="action-button">
+                            <a id="inventory-button" href="https://www.rbx2016.tk/users/<%= userid %>/inventory" class="btn-fixed-width-lg btn-control-md" data-button-action="inventory">
+                                Inventory
+                            </a>
+                                                    </div>
+                        <% } %>
+                    </div>
+                    <div class="clearfix item-mobile-description item-field-container">
+                        <pre class="description-content font-body text wait-for-i18n-format-render invisible"><%= desc %></pre>
+                    </div>
+                <div class="clearfix item-type-field-container">
+                    <div class="font-header-1 text-subheader text-label text-overflow field-label">Type</div>
+                    <span id="type-content" class="font-body text wait-for-i18n-format-render invisible">Gamepass</span>
+                </div>
+                    <div class="clearfix item-field-container">
+                        <div class="font-header-1 text-subheader text-label text-overflow field-label">Genres</div>
+                        <div class="field-content">
+                                    <a class="text-name item-genre wait-for-i18n-format-render invisible" href="https://www.rbx2016.tk/all-catalog">
+                                        <%= gamegenre %>
+                                    </a>
+                                    <span class="wait-for-i18n-format-render invisible"></span>
+                        </div>
+                    </div>
+                    <!-- <div class="clearfix item-field-container">
+                        <div class="font-header-1 text-subheader text-label text-overflow field-label">Attributes</div>
+                        <div class="field-content">
+                                    <div class="attribute-container">
+                                        <span class="icon-Melee attribute-icon wait-for-i18n-format-render invisible"></span>
+                                        <span class="wait-for-i18n-format-render invisible">Melee</span>
+                                    </div>
+                                    <div class="attribute-container">
+                                        <span class="icon-Navigation attribute-icon wait-for-i18n-format-render invisible"></span>
+                                        <span class="wait-for-i18n-format-render invisible">Navigation</span>
+                                    </div>
+                        </div>
+                    </div> -->
+                    <div class="clearfix toggle-target item-field-container">
+                        <div class="font-header-1 text-subheader text-label text-overflow field-label">Description</div>
+                        <pre id="item-details-description" class="content-overflow-toggle content-height content-overflow-page-loading font-body text description-content wait-for-i18n-format-render invisible"><%= desc %><span class="hidden toggle-content" data-container-id="item-details-description" data-show-label="Read More" data-hide-label="Show Less">Read More</span></pre>
+                    </div>
+                    <div id="item-context-menu">
+                        <a class="rbx-menu-item" data-toggle="popover" data-bind="item-context-menu"
+                            data-original-title="" title="" data-viewport=".remove-panel" style="position: absolute; bottom: 92.5%; left: 95.85%;">
+                            <span class="icon-more"></span>
+                        </a>
+                        <div class="rbx-popover-content" data-toggle="item-context-menu">
+                            <ul class="dropdown-menu" role="menu">
+                                <% if (owned) { %>
+                                <li id="delete">
+                                    <a id="deleteBtn">Delete from Inventory</a>
+                                </li>
+                                <script>
+                                    function deleteItem() {
+                                        const sleep = (milliseconds) => {
+                                            return new Promise(resolve => setTimeout(resolve, milliseconds))
+                                        }
+                                        Roblox.GenericConfirmation.open({
+                                            //<sl:translate>
+                                            titleText: "Delete Item",
+                                            bodyContent: "Are you sure you want to permanently DELETE this item from your inventory?",
+                                            //</sl:translate>
+                                            onAccept: async function (e) {
+                                                let errored = false;
+                                                // __DELETE_OK();
+                                                $.ajax({
+                                                    type: "POST",
+                                                    url: "/v1/delete/item",
+                                                    data: {
+                                                        itemId: <%= id %>
+                                                    },
+                                                    error: function () {
+                                                        errored = true;
+                                                        Roblox.GenericConfirmation
+                                                            .open({
+                                                                titleText: "An error occured.",
+                                                                bodyContent: "Failed to remove item.",
+                                                                acceptText: "OK",
+                                                                acceptColor: Roblox
+                                                                    .GenericConfirmation
+                                                                    .blue,
+                                                                declineColor: Roblox
+                                                                    .GenericConfirmation
+                                                                    .none,
+                                                                allowHtmlContentInBody: true,
+                                                                dismissable: true,
+                                                                onAccept: function (e) {
+                                                                    window.location.reload();
+                                                                }
+                                                            });
+                                                    }
+                                                });
+                                                await sleep(1000);
+                                                if (!errored){
+                                                    window.location.reload();
+                                                }
+                                            },
+                                            acceptColor: Roblox.GenericConfirmation.blue,
+                                            //<sl:translate>
+                                            acceptText: "OK"
+                                            //</sl:translate>
+                                        });
+                                    }
+                                    document.getElementById("deleteBtn").addEventListener("click", deleteItem);
+                                </script>
+                                <% } %>
+                                <% if (isCreator) { %>
+                                <li id="configure">
+                                    <a href="https://www.rbx2016.tk/game-pass/configure?id=<%= id %>">Configure</a>
+                                </li>
+                                <% } %>
+                            </ul>
+                        </div>
+                    </div>
+                <div class="hide show-more-end" data-container-id="item-details"></div>
+                <button type="button" class="hidden btn-full-width btn-control-md toggle-content" data-container-id="item-details" data-show-label="Read More" data-hide-label="Show Less">Read More</button>
+
+        </div>
+        <!-- <ul class="item-social-container clearfix include-favorite  include-social"> -->
+            <ul class="item-social-container clearfix  include-social">
+        <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+
+        <!-- <li class="favorite-button-container">
+            <div class="tooltip-container" data-toggle="tooltip" title="" data-original-title="Add to Favorites">
+                <a id="toggle-favorite" data-toggle-url="/v2/favorite/toggle" data-targetId="<%= id %>" data-isguest="False" data-favoriteType="Asset" 
+                   data-signin-url="https://www.rbx2016.tk/newlogin?returnUrl=%2Fcatalog%2F<%= id %>%2F<%= name2 %>">
+                    <span title="<%= favorites %>" class="text-favorite favoriteCount <%= favorites %>" id="result"><%= favorites %></span>
+                    <div id="favorite-icon" class="icon-favorite "></div>
+                </a>
+            </div>
+        </li>
+        <div id="favorite-captcha"></div> -->
+<script type="text/javascript">
+    var Roblox = Roblox || {};
+    $(function () {
+        var captcha = Roblox.Captcha;
+        //set captcha values
+        captcha.setInvisibleMode("true" === "true" ? true : false);
+        captcha.setSiteKey("6LcpwSQUAAAAAPN5nICO6tHekrkrSIYvsl9jAPW4");
+        var types = ["Favorite"];
+        captcha.setMultipleEndpoints(types, "https://api.rbx2016.tk/captcha/validate/user");
+        //for truly invisible
+        var trulyInvisibleEnabled = "false" === "true";
+        if (trulyInvisibleEnabled) {
+            var trulyInvisibleCaptchaContainer = "truly-invisible-captcha";
+            var elem = $("#" + trulyInvisibleCaptchaContainer);
+            if (elem.length) {
+                Roblox.Captcha.renderTrulyInvisible(trulyInvisibleCaptchaContainer, types[0]);
+            }
+        }
+    });
+</script>
+                                         <li class="social-media-share">
+
+
+<div class="social-share-container">
+        <a class="icon-share" id="rbx-share-btn"></a>
+    <div class="rbx-share-container">
+        <div class="share-container-inner">
+            <div id="gigya-target"></div>
+        </div>
+    </div>
+</div>
+<script>
+    var shareType = "item";
+    var context = "itemDetails";
+    var shareItemId = <%= id %>;
+
+    function sendSocialIconClickEvent(shareTarget) {
+        if (Roblox && Roblox.SocialShareEvents) {
+            Roblox.SocialShareEvents.SendSocialShareIntentEvent(context, shareType, shareItemId, shareTarget);
+        }
+    }
+
+    var facebookScraped = false;
+    //TODO we will get rid of this when Facebook fixes their problem
+    function facebookScrapeBugWorkaround(url) {
+        if (!facebookScraped) {
+            $.getJSON("https://graph.facebook.com/",
+            {
+                id: url,
+                scrape: true
+            }, function(data) { facebookScraped = true; });
+        }
+    }
+
+    facebookScrapeBugWorkaround("https://www.rbx2016.tk/library/<%= id %>/<%= name2 %>?rbxp=<%= userid %>");
+    socialShareButtons = [
+        {
+            'provider': "Facebook",
+            'enableCount': "true",
+            'iconImgUp': "https://images.rbx2016.tk/4799659a1367d6c6e235b5986cb9b6b9.png"
+        },
+        {
+            'provider': "Twitter",
+            'enableCount': "true",
+            'iconImgUp': "https://images.rbx2016.tk/d75e7a07fd4db793d79060cc5976cb29.png"
+        }
+    ];
+
+    $(window).on('load', function () {
+        Roblox.InlineSocial.loadIcons({
+            text: "<%= name %>",
+            link: "https://www.rbx2016.tk/library/<%= id %>/<%= name2 %>?rbxp=<%= userid %>",
+            countUrl: "https://www.rbx2016.tk/catalog/<%= id %>/<%= name2 %>",
+            imageUrl: "https://tr.rbx2016.tk/e4fe2972f2e403c3325b1223dcc7245a/140/140/Gamepass/Png"
+        });
+
+        $('.social-share-container').on('click', '.gig-button-container-facebook', function () {
+            sendSocialIconClickEvent("facebook");
+        });
+
+        $('.social-share-container').on('click', '.gig-button-container-twitter', function () {
+            sendSocialIconClickEvent("twitter");
+        });
+    });
+</script>
+
+                </li>
+        </ul>
+
+            </div>
+
+
+    <div id="recommendations-container">
+                <recommendations recommendation-target-id="<%= id %>"
+                                 recommendation-type="0"
+                                 recommendation-subtype="19"
+                                 page-name="CatalogItem"></recommendations>
+
+    </div>
+
+
+
+</div>
+
+
+<div class="GenericModal modalPopup unifiedModal smallModal" style="display:none;">
+    <div class="Title"></div>
+    <div class="GenericModalBody">
+        <div>
+            <div class="ImageContainer">
+                <img class="GenericModalImage" alt="generic image"/>
+            </div>
+            <div class="Message"></div>
+        </div>
+        <div class="clear"></div>
+        <div id="GenericModalButtonContainer" class="GenericModalButtonContainer">
+            <a class="ImageButton btn-neutral btn-large roblox-ok">OK</a>
+        </div>
+    </div>
+</div>
+
+
+<div id="ItemPurchaseAjaxData"
+     data-has-currency-service-error="False"
+     data-currency-service-error-message=""
+     data-authenticateduser-isnull="False"
+     data-user-balance-robux="<%= robux %>"
+     data-user-bc="<%= membership %>"
+     data-continueshopping-url="https://www.rbx2016.tk/catalog/<%= id %>/<%= name2 %>"
+     data-imageurl ="https://tr.rbx2016.tk/e4fe2972f2e403c3325b1223dcc7245a/110/110/Gamepass/Png"
+     data-alerturl ="https://images.rbx2016.tk/75af9e2cb6a75450bee5245f5ee11c86.svg.gzip"
+     data-inSufficentFundsurl ="https://images.rbx2016.tk/b80339ddf867ccfe6ab23a2c263d8000.png"
+     data-is-economy-api-enabled="False"
+     data-is-bc-only-requirement-enabled ="False"
+     >
+    
+</div>
+                <div id="Skyscraper-Abp-Right" class="abp abp-container right-abp">
+                    
+
+<iframe name="Roblox_Item_Right_160x600" 
+        allowtransparency="true"
+        frameborder="0"
+        height="612"
+        scrolling="no"
+        data-src=""
+        src="https://www.rbx2016.tk/user-sponsorship/2"
+        width="160"
+        data-js-adtype="iframead"
+        data-ad-slot="Roblox_Item_Right_160x600"></iframe>
+                </div>
+
+        </div>
+            </div> 
+            <footer class="container-footer">
+                <div class="footer">
+                    <ul class="row footer-links">
+                        <li class="col-4 col-xs-1 footer-link">
+                            <a href="http://corp.rbx2016.tk" class="text-footer-nav roblox-interstitial" target="_blank">
+                                About Us
+                            </a>
+                        </li>
+                        <li class="col-4 col-xs-1 footer-link">
+                            <a href="http://corp.rbx2016.tk/jobs" class="text-footer-nav roblox-interstitial"
+                                target="_blank">
+                                Jobs
+                            </a>
+                        </li>
+                        <li class="col-4 col-xs-1 footer-link">
+                            <a href="http://blog.rbx2016.tk" class="text-footer-nav" target="_blank">
+                                Blog
+                            </a>
+                        </li>
+                        <li class="col-4 col-xs-1 footer-link">
+                            <a href="http://corp.rbx2016.tk/parents" class="text-footer-nav roblox-interstitial"
+                                target="_blank">
+                                Parents
+                            </a>
+                        </li>
+                        <li class="col-4 col-xs-1 footer-link">
+                            <a href="http://help.rbx2016.tk/" class="text-footer-nav roblox-interstitial" target="_blank">
+                                Help
+                            </a>
+                        </li>
+                        <li class="col-4 col-xs-1 footer-link">
+                            <a href="https://www.rbx2016.tk/Info/terms-of-service" class="text-footer-nav" target="_blank">
+                                Terms
+                            </a>
+                        </li>
+                        <li class="col-4 col-xs-1 footer-link">
+                            <a href="https://www.rbx2016.tk/Info/Privacy.aspx" class="text-footer-nav privacy"
+                                target="_blank">
+                                Privacy
+                            </a>
+                        </li>
+                    </ul>
+                    <!-- NOTE: "ROBLOX Corporation" is a healthcheck; be careful when updating! -->
+                    <p class="text-footer footer-note">
+                        ©2016 ROBLOX Corporation
+                    </p>
+                </div>
+            </footer>
+
+
+</div> 
+
+    <!-- <div class="notification-stream-base" notification-stream-base></div>
+    <div id="chat-container"
+         class="chat chat-container"
+         chat-base>
+    </div> -->
+
+
+    <script type="text/javascript">function urchinTracker() {}</script>
+
+
+<script type="text/javascript">
+    if (typeof Roblox === "undefined") {
+        Roblox = {};
+    }
+    if (typeof Roblox.PlaceLauncher === "undefined") {
+        Roblox.PlaceLauncher = {};
+    }
+    Roblox.PlaceLauncher.Resources = {
+        RefactorEnabled: "True",
+        IsProtocolHandlerBaseUrlParamEnabled: "False",
+        ProtocolHandlerAreYouInstalled: {
+            play: {
+                content: "<img src='https://images.rbx2016.tk/6304dfebadecbb3b338a79a6a528936c.svg.gzip' width='90' height='90' alt='R'/><p>You&#39;re moments away from getting into the game!</p>",
+                buttonText: "Download and Install Roblox",
+                footerContent: "<a href='https://assetgame.rbx2016.tk/game/help'class= 'text-name small' target='_blank' >Click here for help</a> "
+            },
+            studio: {
+                content: "<img src='https://images.rbx2016.tk/3da410727fa2670dcb4f31316643138a.svg.gzip' width='95' height='95' alt='R' /><p>Get started creating your own games!</p>",
+                buttonText: "Download Studio"
+            }
+        },
+        ProtocolHandlerStartingDialog: {
+            play: {
+                content: "<img src='https://images.rbx2016.tk/6304dfebadecbb3b338a79a6a528936c.svg.gzip' width='90' height='90' alt='R'/><p>Roblox is now loading. Get ready to play!</p>"
+            },
+            studio: {
+                content: "<img src='https://images.rbx2016.tk/3da410727fa2670dcb4f31316643138a.svg.gzip' width='95' height='95' alt='R' /><p>Checking for Roblox Studio...</p>"
+            },
+            loader: "<span class='spinner spinner-default'></span>"
+        }
+    };
+</script>
+<div id="PlaceLauncherStatusPanel" style="display:none;width:300px"
+     data-new-plugin-events-enabled="True"
+     data-event-stream-for-plugin-enabled="True"
+     data-event-stream-for-protocol-enabled="True"
+     data-is-game-launch-interface-enabled="False"
+     data-is-protocol-handler-launch-enabled="True"
+     data-is-user-logged-in="True"
+     data-os-name="Unknown"
+     data-protocol-name-for-client="roblox-player"
+     data-protocol-name-for-studio="roblox-studio"
+     data-protocol-roblox-locale="en_us"
+     data-protocol-game-locale="en_us"
+     data-protocol-url-includes-launchtime="true"
+     data-protocol-detection-enabled="true"
+     data-protocol-separate-script-parameters-enabled="true"
+     data-protocol-avatar-parameter-enabled="true"
+     data-protocol-sending-locales-enabled="true"
+     data-protocol-enable-api-site-authentication-tickets="true"
+     data-protocol-enable-authentication-tickets="true"
+>
+    <div class="modalPopup blueAndWhite PlaceLauncherModal" style="min-height: 160px">
+        <div id="Spinner" class="Spinner" style="padding:20px 0;">
+            <img data-delaysrc="https://images.rbx2016.tk/e998fb4c03e8c2e30792f2f3436e9416.gif" height="32" width="32" alt="Progress" />
+        </div>
+        <div id="status" style="min-height:40px;text-align:center;margin:5px 20px">
+            <div id="Starting" class="PlaceLauncherStatus MadStatusStarting" style="display:block">
+                Starting Roblox...
+            </div>
+            <div id="Waiting" class="PlaceLauncherStatus MadStatusField">Connecting to Players...</div>
+            <div id="StatusBackBuffer" class="PlaceLauncherStatus PlaceLauncherStatusBackBuffer MadStatusBackBuffer"></div>
+        </div>
+        <div style="text-align:center;margin-top:1em">
+            <input type="button" class="Button CancelPlaceLauncherButton translate" value="Cancel" />
+        </div>
+    </div>
+</div>
+<div id="ProtocolHandlerClickAlwaysAllowed"
+        class="ph-clickalwaysallowed"
+        
+        style="display:none;">
+    <p class="larger-font-size">
+        <span class="icon-moreinfo"></span>
+                
+                    Check <strong>Always open links for URL: Roblox Protocol</strong> and click <strong>Open URL: Roblox Protocol</strong> in the dialog box above to join games faster in the future!
+                
+    </p>
+</div>
+
+
+    <div id="videoPrerollPanel" style="display:none">
+        <div id="videoPrerollTitleDiv">
+            Gameplay sponsored by:
+        </div>
+        <div id="content">
+            <video id="contentElement" style="width:0; height:0;" />
+        </div>
+        <div id="videoPrerollMainDiv"></div>
+        <div id="videoPrerollCompanionAd">
+        </div>
+        <div id="videoPrerollLoadingDiv">
+            Loading <span id="videoPrerollLoadingPercent">0%</span> - <span id="videoPrerollMadStatus" class="MadStatusField">Starting game...</span><span id="videoPrerollMadStatusBackBuffer" class="MadStatusBackBuffer"></span>
+            <div id="videoPrerollLoadingBar">
+                <div id="videoPrerollLoadingBarCompleted">
+                </div>
+            </div>
+        </div>
+        <div id="videoPrerollJoinBC">
+            <span>Get more with Builders Club!</span>
+            <a href="https://www.rbx2016.tk/premium/membership?ctx=preroll" target="_blank" class="btn-medium btn-primary" id="videoPrerollJoinBCButton">Join Builders Club</a>
+        </div>
+    </div>   
+    <script type="text/javascript">
+        $(function () {
+            var videoPreRollDFP = Roblox.VideoPreRollDFP;
+            if (videoPreRollDFP) {
+                var customTargeting = Roblox.VideoPreRollDFP.customTargeting;
+                videoPreRollDFP.showVideoPreRoll = false;
+                videoPreRollDFP.loadingBarMaxTime = 33000;
+                videoPreRollDFP.videoLoadingTimeout = 11000;
+                videoPreRollDFP.videoPlayingTimeout = 41000;
+                videoPreRollDFP.videoLogNote = "";
+                videoPreRollDFP.logsEnabled = true;
+                videoPreRollDFP.adUnit = "/1015347/VideoPreroll";
+                videoPreRollDFP.adTime = 15;
+                videoPreRollDFP.includedPlaceIds = "707652019,447452406,461482416,2563455047,2056459358";
+                videoPreRollDFP.isSwfPreloaderEnabled = false;
+                videoPreRollDFP.isPrerollShownEveryXMinutesEnabled = true;
+                videoPreRollDFP.isAgeTargetingEnabled = true;
+                videoPreRollDFP.isAgeOrSegmentTargetingEnabled = true;
+                videoPreRollDFP.isCompanionAdRenderedByGoogleTag = true;
+                customTargeting.userAge = "13";
+                customTargeting.userAgeOrSegment = "13";
+                customTargeting.userGender = "Male";
+                customTargeting.gameGenres = "";
+                customTargeting.environment = "Production";
+                customTargeting.adTime = "15";
+                customTargeting.PLVU = false;
+                $(videoPreRollDFP.checkEligibility);
+            }
+        });
+    </script>                                                     
+
+
+<script type="text/javascript">
+function checkRobloxInstall() {
+             window.location = 'https://www.rbx2016.tk/install/unsupported.aspx?osx=10.5'; return false;
+}
+</script>
+
+    <div id="InstallationInstructions" class="" style="display:none;">
+        <div class="ph-installinstructions">
+            <div class="ph-modal-header">
+                    <span class="icon-close simplemodal-close"></span>
+                    <h3 class="title">Thanks for playing Roblox</h3>
+            </div>
+            <div class="modal-content-container"> 
+                <div class="ph-installinstructions-body ">
+
+
+        <ul class="modal-col-4">
+            <li class="step1-of-4">
+                <h2>1</h2>
+                <p class="larger-font-size">Click <strong>RobloxPlayer.exe</strong> to run the Roblox installer, which just downloaded via your web browser.</p>
+                <img data-delaysrc="https://images.rbx2016.tk/8b0052e4ff81d8e14f19faff2a22fcf7.png" />
+            </li>
+            <li class="step2-of-4">
+                <h2>2</h2>
+                <p class="larger-font-size">Click <strong>Run</strong> when prompted by your computer to begin the installation process.</p>
+                <img data-delaysrc="https://images.rbx2016.tk/27e0e77ae7b5d726ca231c5d338fa473.png" />
+            </li>
+            <li class="step3-of-4">
+                <h2>3</h2>
+                <p class="larger-font-size">Click <strong>Ok</strong> once you've successfully installed Roblox.</p>
+                <img data-delaysrc="https://images.rbx2016.tk/6e23e4971ee146e719fb1abcb1d67d59.png" />
+            </li>
+            <li class="step4-of-4">
+                <h2>4</h2>
+                <p class="larger-font-size">After installation, click <strong>Play</strong> below to join the action!</p>
+                <div class="VisitButton VisitButtonContinueGLI">
+                    <a class="btn btn-primary-lg disabled btn-full-width">Play</a>
+                </div>
+            </li>
+        </ul>
+
+                </div>
+            </div>
+            <div class="xsmall">
+                The Roblox installer should download shortly. If it doesn’t, start the <a id="GameLaunchManualInstallLink" href="#" class="text-link">download now.</a>
+ <script>
+                       if (Roblox.ProtocolHandlerClientInterface && typeof Roblox.ProtocolHandlerClientInterface.attachManualDownloadToLink === 'function') {
+                           Roblox.ProtocolHandlerClientInterface.attachManualDownloadToLink();
+                       }
+                   </script>
+            </div>
+        </div>
+    </div>
+    <div class="InstallInstructionsImage" data-modalwidth="970" style="display:none;"></div>
+
+
+<div id="pluginObjDiv" style="height:1px;width:1px;visibility:hidden;position: absolute;top: 0;"></div>
+<iframe id="downloadInstallerIFrame" name="downloadInstallerIFrame" style="visibility:hidden;height:0;width:1px;position:absolute"></iframe>
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='clientinstaller' type='text/javascript' src='https://js.rbx2016.tk/3f2a863e0026fe90136944e1837e13df.js.gzip'></script>
+
+<script type="text/javascript">
+    Roblox.Client._skip = '/install/unsupported.aspx';
+    Roblox.Client._CLSID = '';
+    Roblox.Client._installHost = '';
+    Roblox.Client.ImplementsProxy = false;
+    Roblox.Client._silentModeEnabled = false;
+    Roblox.Client._bringAppToFrontEnabled = false;
+    Roblox.Client._currentPluginVersion = '';
+    Roblox.Client._eventStreamLoggingEnabled = false;
+
+        
+        Roblox.Client._installSuccess = function() {
+            if(GoogleAnalyticsEvents){
+                GoogleAnalyticsEvents.ViewVirtual('InstallSuccess');
+                GoogleAnalyticsEvents.FireEvent(['Plugin','Install Success']);
+                if (Roblox.Client._eventStreamLoggingEnabled && typeof Roblox.GamePlayEvents != "undefined") {
+                    Roblox.GamePlayEvents.SendInstallSuccess(Roblox.Client._launchMode, play_placeId);
+                }
+            }
+        }
+        
+            
+        if ((window.chrome || window.safari) && window.location.hash == '#chromeInstall') {
+            window.location.hash = '';
+            var continuation = '(' + $.cookie('chromeInstall') + ')';
+            play_placeId = $.cookie('chromeInstallPlaceId');
+            Roblox.GamePlayEvents.lastContext = $.cookie('chromeInstallLaunchMode');
+            $.cookie('chromeInstallPlaceId', null);
+            $.cookie('chromeInstallLaunchMode', null);
+            $.cookie('chromeInstall', null);
+            RobloxLaunch._GoogleAnalyticsCallback = function() { var isInsideRobloxIDE = 'website'; if (Roblox && Roblox.Client && Roblox.Client.isIDE && Roblox.Client.isIDE()) { isInsideRobloxIDE = 'Studio'; };GoogleAnalyticsEvents.FireEvent(['Plugin Location', 'Launch Attempt', isInsideRobloxIDE]);GoogleAnalyticsEvents.FireEvent(['Plugin', 'Launch Attempt', 'Play']);EventTracker.fireEvent('GameLaunchAttempt_Unknown', 'GameLaunchAttempt_Unknown_Plugin'); if (typeof Roblox.GamePlayEvents != 'undefined') { Roblox.GamePlayEvents.SendClientStartAttempt(null, play_placeId); }  }; 
+            Roblox.Client.ResumeTimer(eval(continuation));
+        }
+        
+</script>
+
+
+<div class="ConfirmationModal modalPopup unifiedModal smallModal" data-modal-handle="confirmation" style="display:none;">
+    <a class="genericmodal-close ImageButton closeBtnCircle_20h"></a>
+    <div class="Title"></div>
+    <div class="GenericModalBody">
+        <div class="TopBody">
+            <div class="ImageContainer roblox-item-image" data-image-size="small" data-no-overlays data-no-click>
+                <img class="GenericModalImage" alt="generic image" />
+            </div>
+            <div class="Message"></div>
+        </div>
+        <div class="ConfirmationModalButtonContainer GenericModalButtonContainer">
+            <a href id="roblox-confirm-btn"><span></span></a>
+            <a href id="roblox-decline-btn"><span></span></a>
+        </div>
+        <div class="ConfirmationModalFooter">
+        
+        </div>  
+    </div>  
+    <script type="text/javascript">
+        Roblox = Roblox || {};
+        Roblox.Resources = Roblox.Resources || {};
+        
+        //<sl:translate>
+        Roblox.Resources.GenericConfirmation = {
+            yes: "Yes",
+            No: "No",
+            Confirm: "Confirm",
+            Cancel: "Cancel"
+        };
+        //</sl:translate>
+    </script>
+</div>
+
+<div id="modal-confirmation" class="modal-confirmation" data-modal-type="confirmation">
+    <div id="modal-dialog"  class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true"><span class="icon-close"></span></span><span class="sr-only">Close</span>
+                </button>
+                <h5 class="modal-title"></h5>
+            </div>
+
+            <div class="modal-body">
+                <div class="modal-top-body">
+                    <div class="modal-message"></div>
+                    <div class="modal-image-container roblox-item-image" data-image-size="medium" data-no-overlays data-no-click>
+                        <img class="modal-thumb" alt="generic image"/>
+                    </div>
+                    <div class="modal-checkbox checkbox">
+                        <input id="modal-checkbox-input" type="checkbox"/>
+                        <label for="modal-checkbox-input"></label>
+                    </div>
+                </div>
+                <div class="modal-btns">
+                    <a href id="confirm-btn"><span></span></a>
+                    <a href id="decline-btn"><span></span></a>
+                </div>
+                <div class="loading modal-processing">
+                    <img class="loading-default" src='https://images.rbx2016.tk/4bed93c91f909002b1f17f05c0ce13d1.gif' alt="Processing..." />
+                </div>
+            </div>
+            <div class="modal-footer text-footer">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<script type="text/javascript">
+    var Roblox = Roblox || {};
+    Roblox.jsConsoleEnabled = false;
+</script>
+
+
+
+    <script type="text/javascript">
+        $(function () {
+            Roblox.CookieUpgrader.domain = 'rbx2016.tk';
+            Roblox.CookieUpgrader.upgrade("GuestData", { expires: Roblox.CookieUpgrader.thirtyYearsFromNow });
+            Roblox.CookieUpgrader.upgrade("RBXSource", { expires: function (cookie) { return Roblox.CookieUpgrader.getExpirationFromCookieValue("rbx_acquisition_time", cookie); } });
+            Roblox.CookieUpgrader.upgrade("RBXViralAcquisition", { expires: function (cookie) { return Roblox.CookieUpgrader.getExpirationFromCookieValue("time", cookie); } });
+                
+                Roblox.CookieUpgrader.upgrade("RBXMarketing", { expires: Roblox.CookieUpgrader.thirtyYearsFromNow });
+                
+                            
+                Roblox.CookieUpgrader.upgrade("RBXSessionTracker", { expires: Roblox.CookieUpgrader.fourHoursFromNow });
+                
+                            
+                Roblox.CookieUpgrader.upgrade("RBXEventTrackerV2", {expires: Roblox.CookieUpgrader.thirtyYearsFromNow});
+                
+        });
+    </script>
+
+
+
+    
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='intl-polyfill' type='text/javascript' src='https://js.rbx2016.tk/ee40f2a1a1a92c3ddcfbd6941428ebc0.js.gzip'></script>
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='InternationalCore' type='text/javascript' src='https://js.rbx2016.tk/b7765265afdb7c76d94552b635c3d3b9003e39e810227f3d25432466a817b0f1.js'></script>
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='TranslationResources' type='text/javascript' src='https://js.rbx2016.tk/73a89de8a6dbe8005fb3d6be12e361fddac57c13295171d3a8d5f397e761615d.js'></script>
+
+
+    <script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='leanbase' type='text/javascript' src='https://js.rbx2016.tk/f45665e7e5db98201fe7b2507178cf22.js.gzip'></script>
+
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='CoreUtilities' type='text/javascript' src='https://js.rbx2016.tk/e39d717145fdd1164dc2880ed356b8e529fa8124c5dfbed43c20a5614fc3821f.js'></script>
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='CoreRobloxUtilities' type='text/javascript' src='https://js.rbx2016.tk/ccc5b6b92eb7dba88eef70b0f6da0f5df2ed8da5168b590d67f69856068983af.js'></script>
+
+    <script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='React' type='text/javascript' src='https://js.rbx2016.tk/3485182d26ebdd16cc205fc1dc5d7de152529918cf897b07865339de5d5abfce.js'></script>
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='ReactStyleGuide' type='text/javascript' src='https://js.rbx2016.tk/f686b3f78964914c1e500373348a30f7bab55ef4dd196044f191e2862be822c0.js'></script>
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='ReactUtilities' type='text/javascript' src='https://js.rbx2016.tk/3bfcca1f8bb2298e510c1baa286b2033ae6209a08bdf8967dacd2de45229730e.js'></script>
+
+
+    <script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='angular' type='text/javascript' src='https://js.rbx2016.tk/ae5b5a047c32177e8d21426c506865aa.js.gzip'></script>
+
+    <div ng-modules="baseTemplateApp">
+        <script type="text/javascript" src="https://js.rbx2016.tk/cbd9a121217c4887264ffe32686ecd52.js.gzip"></script>
+    </div>
+
+    <div ng-modules="pageTemplateApp">
+        <!-- Template bundle: page -->
+<script type="text/javascript">
+"use strict"; angular.module("pageTemplateApp", []).run(['$templateCache', function($templateCache) { 
+
+ }]);
+</script>
+
+    </div>
+
+    
+
+    
+    <script type='text/javascript'>Roblox.config.externalResources = [];Roblox.config.paths['Pages.Catalog'] = 'https://js.rbx2016.tk/baa0c90950583c77f295ecd0748e32ce.js.gzip';Roblox.config.paths['Pages.CatalogShared'] = 'https://js.rbx2016.tk/fac702cb852bab6006d426d83c56f8ab.js.gzip';Roblox.config.paths['Widgets.AvatarImage'] = 'https://js.rbx2016.tk/76e30b0ae6a1be83cbf018579681b891.js.gzip';Roblox.config.paths['Widgets.DropdownMenu'] = 'https://js.rbx2016.tk/c948a7edd36e01db699c8cf19303376d.js.gzip';Roblox.config.paths['Widgets.GroupImage'] = 'https://js.rbx2016.tk/3afc03adcc2aaca01500baaf69b52d9c.js.gzip';Roblox.config.paths['Widgets.HierarchicalDropdown'] = 'https://js.rbx2016.tk/c90aea1e430a241776db6775e98c3e03.js.gzip';Roblox.config.paths['Widgets.ItemImage'] = 'https://js.rbx2016.tk/de56e6c24a3e70ee7d1ec900c24042e8.js.gzip';Roblox.config.paths['Widgets.PlaceImage'] = 'https://js.rbx2016.tk/6003f8790df31d5445169faea5c04fd7.js.gzip';</script>
+
+    
+    <script>
+        Roblox.XsrfToken.setToken('7BeqSUnCkLHh');
+    </script>
+
+        <script>
+            $(function () {
+                Roblox.DeveloperConsoleWarning.showWarning();
+            });
+        </script>
+        <script type="text/javascript">
+        $(function () {
+            Roblox.JSErrorTracker.initialize({ 'suppressConsoleError': true});
+        });
+    </script>
+
+
+<script type="text/javascript">
+    $(function(){
+        function trackReturns() {
+            function dayDiff(d1, d2) {
+                return Math.floor((d1-d2)/86400000);
+            }
+            if (!localStorage) {
+                return false;
+            }
+
+            var cookieName = 'RBXReturn';
+            var cookieOptions = {expires:9001};
+            var cookieStr = localStorage.getItem(cookieName) || "";
+            var cookie = {};
+
+            try {
+                cookie = JSON.parse(cookieStr);
+            } catch (ex) {
+                // busted cookie string from old previous version of the code
+            }
+
+            try {
+                if (typeof cookie.ts === "undefined" || isNaN(new Date(cookie.ts))) {
+                    localStorage.setItem(cookieName, JSON.stringify({ ts: new Date().toDateString() }));
+                    return false;
+                }
+            } catch (ex) {
+                return false;
+            }
+
+            var daysSinceFirstVisit = dayDiff(new Date(), new Date(cookie.ts));
+            if (daysSinceFirstVisit == 1 && typeof cookie.odr === "undefined") {
+                RobloxEventManager.triggerEvent('rbx_evt_odr', {});
+                cookie.odr = 1;
+            }
+            if (daysSinceFirstVisit >= 1 && daysSinceFirstVisit <= 7 && typeof cookie.sdr === "undefined") {
+                RobloxEventManager.triggerEvent('rbx_evt_sdr', {});
+                cookie.sdr = 1;
+            }
+            try {
+                localStorage.setItem(cookieName, JSON.stringify(cookie));
+            } catch (ex) {
+                return false;
+            }
+        }
+
+        GoogleListener.init();
+
+
+    
+        RobloxEventManager.initialize(true);
+        RobloxEventManager.triggerEvent('rbx_evt_pageview');
+        trackReturns();
+        
+
+    
+        RobloxEventManager._idleInterval = 450000;
+        RobloxEventManager.registerCookieStoreEvent('rbx_evt_initial_install_start');
+        RobloxEventManager.registerCookieStoreEvent('rbx_evt_ftp');
+        RobloxEventManager.registerCookieStoreEvent('rbx_evt_initial_install_success');
+        RobloxEventManager.registerCookieStoreEvent('rbx_evt_fmp');
+        RobloxEventManager.startMonitor();
+        
+
+    });
+
+</script>
+
+
+    
+    
+
+<script type="text/javascript">
+    var Roblox = Roblox || {};
+    Roblox.UpsellAdModal = Roblox.UpsellAdModal || {};
+
+    Roblox.UpsellAdModal.Resources = {
+        //<sl:translate>
+        title: "Remove Ads Like This",
+        body: "Builders Club members do not see external ads like these.",
+        accept: "Upgrade Now",
+        decline: "No, thanks"
+        //</sl:translate>
+    };
+</script>
+
+    
+    <script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='page' type='text/javascript' src='https://js.rbx2016.tk/d94004e742ebc79b530e0ebd92ce8851.js.gzip'></script>
+
+
+
+    <script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='StyleGuide' type='text/javascript' src='https://js.rbx2016.tk/935ce03d7733b2b55182ed4e77db83394692ba7e345a74c2240128f802d1af0d.js'></script>
+
+
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='AngularJs' type='text/javascript' src='https://js.rbx2016.tk/6b22b635f054ed4dcad6ad7eb5c468aa6a0c9a76c7095b495254074b7adee076.js'></script>
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='Thumbnails' type='text/javascript' src='https://js.rbx2016.tk/ae67830eabea13b92f04b8829d06841387fe911369da886f3acc0f8bd51ca300.js'></script>
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='Recommendations' type='text/javascript' src='https://js.rbx2016.tk/80ef4743723d71f372ab4b6dc28ea06e59412ec87f9c7f8aa9aa88beb0da99e5.js'></script>
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='Captcha' type='text/javascript' src='https://js.rbx2016.tk/1965f11892da8fa42119379fc51fe26aea319b648001660aa7415518bfb2c308.js'></script>
+
+
+<!-- <script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='NotificationStream' type='text/javascript' src='https://js.rbx2016.tk/8247b4782d09fc937d74cfd74b7e524b8ca057239d691ce1af2a488392df0499.js'></script> -->
+
+
+<!-- <script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='Chat' type='text/javascript' src='https://js.rbx2016.tk/54b3d6bacb9354a5abe5524e4160eadd123934187d8b81fb37b025f992299c0b.js'></script> -->
+
+
+
+
+    
+
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='serviceworkerregistrar' type='text/javascript' src='https://js.rbx2016.tk/7dddf6fdb21fde44544221254d039501.js.gzip'></script>
+
+<script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='pushnotifications' type='text/javascript' src='https://js.rbx2016.tk/e795d08fc25dc32f62c4d5959bef0edb.js.gzip'></script>
+
+<div id="push-notification-registrar-settings"
+        data-notificationshost="https://notifications.rbx2016.tk"
+        data-reregistrationinterval="0"
+        data-registrationpath="register-chrome"
+        data-shoulddeliveryendpointbesentduringregistration="False"
+        data-platformtype="ChromeOnDesktop">
+</div>
+<div id="push-notification-registration-ui-settings"
+        data-noncontextualpromptallowed="true"
+        data-promptonfriendrequestsentenabled="true"
+        data-promptonprivatemessagesentenabled="false"
+        data-promptintervals="[604800000,1209600000,2419200000]"
+        data-notificationsdomain="https://notifications.rbx2016.tk"
+        data-userid="<%= userid %>">
+</div>
+
+<script type="text/template" id="push-notifications-initial-global-prompt-template">
+    <div class="push-notifications-global-prompt">
+        <div class="alert-info push-notifications-global-prompt-site-wide-body">
+            <div class="push-notifications-prompt-content">
+                <h5>
+                    <span class="push-notifications-prompt-text">
+                        Can we send you notifications on this computer?
+                    </span>
+                </h5>
+            </div>
+            <div class="push-notifications-prompt-actions">
+                <button type="button" class="btn-min-width btn-control-xs push-notifications-prompt-accept">Notify Me</button>
+                <span class="icon-close push-notifications-dismiss-prompt"></span>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/template" id="push-notifications-permissions-prompt-template">
+    <div class="modal fade" id="push-notifications-permissions-prompt-modal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog rbx-modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">
+                            <span class="icon-close"></span>
+                        </span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <h5>Enable Desktop Push Notifications</h5>
+                </div>
+                <div class="modal-body">
+                        <div>
+                            Now just click <strong>Allow</strong> in your browser, and we'll start sending you push notifications!
+                        </div>
+                        <div class="push-notifications-permissions-prompt-instructional-image">
+                                <img width="380" height="250" src="https://static.rbx2016.tk/images/Notifications/push-permission-prompt-chrome-windows-20160701.png" />
+                        </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/template" id="push-notifications-permissions-disabled-instruction-template">
+    <div class="modal fade" id="push-notifications-permissions-disabled-instruction-modal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog rbx-modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">
+                            <span class="icon-close"></span>
+                        </span>
+                        <span class="sr-only">Close</span>
+                    </button>
+                    <h5>Turn Push Notifications Back On</h5>
+                </div>
+                <div class="instructions-body">
+                    <div class="reenable-step reenable-step1-of3">
+                        <h1>1</h1>
+                            <p class="larger-font-size push-notifications-modal-step-instruction">Click the green lock next to the URL bar to open up your site permissions.</p>
+                            <img width="270" height="139" src="https://static.rbx2016.tk/images/Notifications/push-permission-unblock-step1-chrome-20160701.png">
+                    </div>
+                    <div class="reenable-step reenable-step2-of3">
+                        <h1>2</h1>
+                                <p class="larger-font-size push-notifications-modal-step-instruction">Click the drop-down arrow next to Notifications in the <strong>Permissions</strong> tab.</p>
+                            <img width="270" height="229" src="https://static.rbx2016.tk/images/Notifications/push-permission-unblock-step2-chrome-20160701.png">
+                    </div>
+                    <div class="reenable-step reenable-step3-of3">
+                        <h1>3</h1>
+                            <p class="larger-font-size push-notifications-modal-step-instruction">Select <strong>Always allow on this site</strong> to turn notifications back on.</p>
+                            <img width="270" height="229" src="https://static.rbx2016.tk/images/Notifications/push-permission-unblock-step3-chrome-20160701.png">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/template" id="push-notifications-successfully-enabled-template">
+    <div class="push-notifications-global-prompt">
+        <div class="alert-system-feedback">
+            <div class="alert alert-success">
+                Push notifications have been enabled!
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/template" id="push-notifications-successfully-disabled-template">
+    <div class="push-notifications-global-prompt">
+        <div class="alert-system-feedback">
+            <div class="alert alert-success">
+                Push notifications have been disabled.
+            </div>
+        </div>
+    </div>
+</script>
+        <script>
+        var _comscore = _comscore || [];
+        _comscore.push({ c1: "2", c2: "6035605", c3: "", c4: "", c15: "Over13" });
+
+        (function() {
+            var s = document.createElement("script"), el = document.getElementsByTagName("script")[0];
+            s.async = true;
+            s.src = (document.location.protocol == "https:" ? "https://sb" : "http://b") + ".scorecardresearch.com/beacon.js";
+            el.parentNode.insertBefore(s, el);
+        })();
+    </script>
+    <noscript>
+        <img src="http://b.scorecardresearch.com/p?c1=2&c2=&c3=&c4=&c5=&c6=&c15=&cv=2.0&cj=1"/>
+    </noscript>
+        
+    
+
+
+    <script onerror='Roblox.BundleDetector && Roblox.BundleDetector.reportBundleError(this)' data-monitor='true' data-bundlename='pageEnd' type='text/javascript' src='https://js.rbx2016.tk/d81f48de357bd519da5133a2546beb59.js.gzip'></script>
+
+</body>
+</html>

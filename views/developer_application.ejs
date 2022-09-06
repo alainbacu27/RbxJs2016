@@ -819,7 +819,7 @@
                                 return false;
                                 }
                                 const dcUser = document.getElementById('data_14').value.trim();
-                                if (!dcUser.match(/^[a-zA-Z0-9_]{3,32}#\d{4}$/)) {
+                                if (!dcUser.match(/^[a-zA-Z0-9_"'/]{3,32}#\d{4}$/)) {
                                 alert('Discord User must be of format username#1234');
                                 return false;
                                 }
