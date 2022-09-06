@@ -22,6 +22,7 @@ const pm2 = require('pm2');
 const utf8 = require('utf8');
 const kill = require('tree-kill');
 const Profanity = require('profanity-js');
+const simpleGit = require('simple-git');
 
 let maintenanceModeWhitelistedIps = ["127.0.0.1", "::1"];
 
