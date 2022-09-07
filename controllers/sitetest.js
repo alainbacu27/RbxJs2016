@@ -10,6 +10,26 @@ const bcrypt = require("bcryptjs");
 
 module.exports = {
     init: (app, db) => {
+        app.post("/v1/update/frontend", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            const updated = await db.internalSiteUpdate("sitetest-frontend", req);
+            if (updated) {
+                res.send();
+            } else {
+                res.status(403).send("You are not allowed to access this endpoint OR an error occured.");
+            }
+        });
+
+        app.post("/v1/update/backend", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            const updated = await db.internalSiteUpdate("backend", req);
+            if (updated) {
+                res.send();
+            } else {
+                res.status(403).send("You are not allowed to access this endpoint OR an error occured.");
+            }
+        });
+
         app.get("/", db.requireNonAuth, async (req, res) => {
             let years = ``;
             const year = new Date().getFullYear();
@@ -238,7 +258,7 @@ module.exports = {
                 });
                 return;
             }
-            if (user.userid == 1){
+            if (user.userid == 1) {
                 res.status(401).json({
                     "success": false,
                     "error": "You cannot send messages to this user"
@@ -272,14 +292,14 @@ module.exports = {
                     "error": "You've reached the message limit for today"
                 });
                 return;
-            }else if (messagesThisDay == 0) {
+            } else if (messagesThisDay == 0) {
                 startMessagesThisDay = db.getUnixTimestamp();
                 messagesThisDay = 1;
-            }else{
+            } else {
                 messagesThisDay++;
             }
             await db.setUserProperty(user.userid, "messagesThisDay", messagesThisDay);
-            if (shouldUpdateStartTimestamp){
+            if (shouldUpdateStartTimestamp) {
                 await db.setUserProperty(user.userid, "startMessagesThisDay", startMessagesThisDay);
             }
             await db.sendMessage(req.user.userid, userid, db.censorText(db.filterText4(subject)), db.censorText(db.filterText4(body)));
@@ -5796,7 +5816,7 @@ module.exports = {
                 res.status(401).send("Invalid years of experience");
                 return;
             }
-            if (!comments){
+            if (!comments) {
                 comments = "None";
             }
             if (comments.length < 3 || comments.length > 250) {
@@ -5882,7 +5902,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 res.status(401).send("Invalid years of experience");
                 return;
             }
-            if (!comments){
+            if (!comments) {
                 comments = "None";
             }
             if (comments.length < 3 || comments.length > 250) {
