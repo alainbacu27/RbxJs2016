@@ -8294,5 +8294,13 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.send();
             delete buffer;
         });
+
+        app.get("/install/setup.ashx", (req, res) => {
+            if (db.getSiteConfig().shared.CLIENT_DOWNLOAD_AVAIlABLE == false) {
+                res.status(403).send("Forbidden");
+                return;
+            }
+            res.redirect("/RobloxPlayerLauncher.exe");
+        });
     }
 }
