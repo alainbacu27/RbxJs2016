@@ -36,7 +36,7 @@ function maskIp(ip) {
 async function gitClone(cloneURL, localPath) {
     return new Promise(async returnPromise => {
         const userpass = siteConfig.PRIVATE.gitUrl.split("@")[0].split(":");
-        
+
         const cloneOptions = {
             callbacks: {
                 certificateCheck: function () {
@@ -66,11 +66,11 @@ async function gitClone(cloneURL, localPath) {
                     }
                 };
 
-                repository.fetchAll(fetchOptions).then(function() {
+                repository.fetchAll(fetchOptions).then(function () {
                     repository.mergeBranches("main", "origin/main");
-                  }).done(function() {
-                    returnPromise(true);                    
-                  });
+                }).done(function () {
+                    returnPromise(true);
+                });
             });
     });
 }
@@ -1560,8 +1560,6 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     scriptContext:SetTimeout(10)
     scriptContext.ScriptsDisabled = false
     
-    
-    print(loadfile(url .. "/Game/api/v1/GetPublicIp?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"))
     loadfile(url .. "/Game/api/v1/GetPublicIp?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}")()
 
     spawn(function()
@@ -1585,16 +1583,17 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                 end)
             end)()
             wait(5)
-            if starting then continue end
-            if started then
-                plrs = #game.Players:GetPlayers()
-            else
-                starting = true
-                spawn(function()
-                    wait(5)
-                    started = true
-                    starting = false
-                end)
+            if not starting then
+                if started then
+                    plrs = #game.Players:GetPlayers()
+                else
+                    starting = true
+                    spawn(function()
+                        wait(5)
+                        started = true
+                        starting = false
+                    end)
+                end 
             end
         end
     end)
@@ -1723,16 +1722,17 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                     end)
                 end)()
                 wait(5)
-                if starting then continue end
-                if started then
-                    plrs = #game.Players:GetPlayers()
-                else
-                    starting = true
-                    spawn(function()
-                        wait(5)
-                        started = true
-                        starting = false
-                    end)
+                if not starting then
+                    if started then
+                        plrs = #game.Players:GetPlayers()
+                    else
+                        starting = true
+                        spawn(function()
+                            wait(5)
+                            started = true
+                            starting = false
+                        end)
+                    end 
                 end
             end
         end)
@@ -2098,9 +2098,13 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                         if (result0.length > 1) {
                                             result.push("err|" + result0[1].split("</faultstring>")[0]);
                                         }
-                                        await stop();
-                                        returnPromise(result);
-                                        return;
+                                        if (result.length > 0 && result[0].startsWith("err|")) {
+                                            await stop();
+                                            returnPromise(result);
+                                            return;
+                                        } else {
+                                            throw new Error("Continue");
+                                        }
                                     } catch (e) {
                                         if (c <= 0) {
                                             await stop();
@@ -2234,6 +2238,9 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             await start();
                             await sleep(1000);
                             const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
+                            if (resp.startsWith("err|MainExecutionJob:")) {
+                                console.error(resp);
+                            }
                             if (resp == "err|Unknown Error") {
                                 await stop();
                             }
@@ -2444,9 +2451,13 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                             if (result0.length > 1) {
                                                 result.push("err|" + result0[1].split("</faultstring>")[0]);
                                             }
-                                            await stop();
-                                            returnPromise(result);
-                                            return;
+                                            if (result.length > 0 && result[0].startsWith("err|")) {
+                                                await stop();
+                                                returnPromise(result);
+                                                return;
+                                            } else {
+                                                throw new Error("Continue");
+                                            }
                                         } catch (e) {
                                             if (c <= 0) {
                                                 await stop();
@@ -2580,6 +2591,9 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                 await start();
                                 await sleep(1000);
                                 const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
+                                if (resp.startsWith("err|MainExecutionJob:")) {
+                                    console.error(resp);
+                                }
                                 if (resp == "err|Unknown Error") {
                                     await stop();
                                 }
@@ -2781,9 +2795,13 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                             if (result0.length > 1) {
                                                 result.push("err|" + result0[1].split("</faultstring>")[0]);
                                             }
-                                            await stop();
-                                            returnPromise(result);
-                                            return;
+                                            if (result.length > 0 && result[0].startsWith("err|")) {
+                                                await stop();
+                                                returnPromise(result);
+                                                return;
+                                            } else {
+                                                throw new Error("Continue");
+                                            }
                                         } catch (e) {
                                             if (c <= 0) {
                                                 await stop();
@@ -3116,9 +3134,13 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                         if (result0.length > 1) {
                                             result.push("err|" + result0[1].split("</faultstring>")[0]);
                                         }
-                                        await stop();
-                                        returnPromise(result);
-                                        return;
+                                        if (result.length > 0 && result[0].startsWith("err|")) {
+                                            await stop();
+                                            returnPromise(result);
+                                            return;
+                                        } else {
+                                            throw new Error("Continue");
+                                        }
                                     } catch (e) {
                                         if (c <= 0) {
                                             await stop();

@@ -895,6 +895,26 @@ module.exports = {
             res.send("False");
         });
 
+        app.get("/Game/api/v1/GetPublicIp", async (req, res) => {
+            const apiKey = req.query.apiKey;
+            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            let ip = get_ip(req).clientIp;
+            if (ip == "127.0.0.1" || ip == "::1" || ip == "") {
+                ip = db.getHostPublicIp();
+            }
+            const script = `
+publicIp = "${ip}"`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
         app.get("/Game/api/v1/UserLeft", db.requireAuth2, async (req, res) => {
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");

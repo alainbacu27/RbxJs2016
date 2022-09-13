@@ -6,8 +6,6 @@ const get_ip = require('ipware')().get_ip;
 
 module.exports = {
     init: (app, db) => {
-        let hostPublicIp = db.getHostPublicIp();
-
         app.post("/game/validate-machine", (req, res) => {
             res.json({
                 "success": true,
@@ -1450,11 +1448,13 @@ end
                 if (gameSession) {
                     setImmediate(async () => {
                         await gameSession.host();
-                        let interval;
-                        interval = setInterval(async () => {
-                            if (await gameSession.update()) {
-                                clearInterval(interval);
-                            }
+                        setTimeout(() => {
+                            let interval;
+                            interval = setInterval(async () => {
+                                if (await gameSession.update()) {
+                                    clearInterval(interval);
+                                }
+                            }, 5000);
                         }, 5000);
                     });
                 }
@@ -1521,11 +1521,13 @@ end
                 if (gameSession) {
                     setImmediate(async () => {
                         await gameSession.host();
-                        let interval;
-                        interval = setInterval(async () => {
-                            if (await gameSession.update()) {
-                                clearInterval(interval);
-                            }
+                        setTimeout(() => {
+                            let interval;
+                            interval = setInterval(async () => {
+                                if (await gameSession.update()) {
+                                    clearInterval(interval);
+                                }
+                            }, 5000);
                         }, 5000);
                     });
                 }
@@ -1603,11 +1605,13 @@ end
                 if (gameSession) {
                     setImmediate(async () => {
                         await gameSession.host();
-                        let interval;
-                        interval = setInterval(async () => {
-                            if (await gameSession.update()) {
-                                clearInterval(interval);
-                            }
+                        setTimeout(() => {
+                            let interval;
+                            interval = setInterval(async () => {
+                                if (await gameSession.update()) {
+                                    clearInterval(interval);
+                                }
+                            }, 5000);
                         }, 5000);
                     });
                 }
@@ -1672,13 +1676,13 @@ end
             }
             let ip = get_ip(req).clientIp;
             if (ip == "127.0.0.1" || ip == "::1" || ip == "") {
-                ip = hostPublicIp;
+                ip = db.getHostPublicIp();
             }
             const script = `
 publicIp = "${ip}"`
             const signature = db.sign(script);
             res.send(`--rbxsig%${signature}%` + script);
-        })
+        });
 
         app.get("/game/PlaceLauncher.ashx", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
@@ -1716,11 +1720,13 @@ publicIp = "${ip}"`
                 if (gameSession) {
                     setImmediate(async () => {
                         await gameSession.host();
-                        let interval;
-                        interval = setInterval(async () => {
-                            if (await gameSession.update()) {
-                                clearInterval(interval);
-                            }
+                        setTimeout(() => {
+                            let interval;
+                            interval = setInterval(async () => {
+                                if (await gameSession.update()) {
+                                    clearInterval(interval);
+                                }
+                            }, 5000);
                         }, 5000);
                     });
                 }
@@ -1787,11 +1793,13 @@ publicIp = "${ip}"`
                 if (gameSession) {
                     setImmediate(async () => {
                         await gameSession.host();
-                        let interval;
-                        interval = setInterval(async () => {
-                            if (await gameSession.update()) {
-                                clearInterval(interval);
-                            }
+                        setTimeout(() => {
+                            let interval;
+                            interval = setInterval(async () => {
+                                if (await gameSession.update()) {
+                                    clearInterval(interval);
+                                }
+                            }, 5000);
                         }, 5000);
                     });
                 }
@@ -1869,11 +1877,13 @@ publicIp = "${ip}"`
                 if (gameSession) {
                     setImmediate(async () => {
                         await gameSession.host();
-                        let interval;
-                        interval = setInterval(async () => {
-                            if (await gameSession.update()) {
-                                clearInterval(interval);
-                            }
+                        setTimeout(() => {
+                            let interval;
+                            interval = setInterval(async () => {
+                                if (await gameSession.update()) {
+                                    clearInterval(interval);
+                                }
+                            }, 5000);
                         }, 5000);
                     });
                 }
