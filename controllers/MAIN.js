@@ -5308,6 +5308,7 @@ module.exports = {
         app.post("/gametransactions/settransactionstatuscomplete", (req, res) => {
             const receipt = req.body.receipt;
             console.log("GOT RECEIPT: " + receipt);
+            res.send();
         });
 
         app.get("/gametransactions/getpendingtransactions", async (req, res) => {

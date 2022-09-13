@@ -682,6 +682,66 @@ module.exports = {
             })
         });
 
+        app.get("/currency/balance", db.requireAuth2, async (req, res) => {
+            let user = req.user;
+            if (!user) {
+                let sessionid = req.get("roblox-session-id");
+                if (sessionid) {
+                    sessionid = sessionid.split("|")
+                    if (sessionid.length >= 3) {
+                        const cookie = sessionid[sessionid.length - 3].replaceAll("Â§", "|");
+                        user = await db.findUserByCookie(cookie);
+                    }
+                }
+            }
+            if (!user) {
+                res.json({
+                    "robux": 0,
+                    "tix": 0
+                });
+                return;
+            }
+            res.json({
+                "robux": user.robux,
+                "tix": user.tix
+            });
+        });
+
+        app.post("/gametransactions/settransactionstatuscomplete", (req, res) => {
+            const receipt = req.body.receipt;
+            console.log("GOT RECEIPT: " + receipt);
+            res.send();
+        });
+
+        app.get("/gametransactions/getpendingtransactions", async (req, res) => {
+            const PlaceId = parseInt(req.query.PlaceId);
+            const PlayerId = parseInt(req.query.PlayerId);
+
+            const products = await db.getRecipes(PlaceId, PlayerId);
+            let out = [];
+            for (let i = 0; i < products.length; i++) {
+                const recipe = products[i];
+                const product = await db.getDevProduct(recipe.id);
+                out.push({
+                    playerId: PlayerId,
+                    placeId: PlaceId,
+                    receipt: recipe.recipe,
+
+                    actionArgs: [{
+                        Key: "productId",
+                        Value: product.id.toString()
+                    }, {
+                        Key: "currencyTypeId",
+                        Value: product.currency.toString()
+                    }, {
+                        Key: "unitPrice",
+                        Value: product.price.toString()
+                    }]
+                });
+            }
+            res.json(out);
+        });
+
         app.post("/universes/create", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.games.canCreateGames == false) {
                 res.status(404).render("404", await db.getBlankRenderObject());
