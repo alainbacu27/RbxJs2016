@@ -1531,6 +1531,7 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     
     local plrs = 1
     local started = false
+    local starting = false
 
     game:GetService("Players").PlayerAdded:connect(function(plr)
         if not started then
@@ -1584,10 +1585,16 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                 end)
             end)()
             wait(5)
+            if starting then continue end
             if started then
                 plrs = #game.Players:GetPlayers()
             else
-                started = true
+                starting = true
+                spawn(function()
+                    wait(5)
+                    started = true
+                    starting = false
+                end)
             end
         end
     end)
@@ -1662,6 +1669,7 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
         
         local plrs = 1
         local started = false
+        local starting = false
 
         game:GetService("Players").PlayerAdded:connect(function(plr)
             if not started then
@@ -1715,10 +1723,16 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                     end)
                 end)()
                 wait(5)
+                if starting then continue end
                 if started then
                     plrs = #game.Players:GetPlayers()
                 else
-                    started = true
+                    starting = true
+                    spawn(function()
+                        wait(5)
+                        started = true
+                        starting = false
+                    end)
                 end
             end
         end)
