@@ -48,6 +48,10 @@
                     <p>New File
                     </p>
                 </li>
+                <li id="Logout" class="lastnav">
+                    <p>Logout
+                    </p>
+                </li>
                 <!---
             <li id="MyProjects" class="lastnav">
                 <p>My Files
@@ -156,6 +160,21 @@
         </div>
     </div>
     <script type="text/javascript">
+        function deleteAllCookies() {
+            var cookies = document.cookie.split(";");
+
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i];
+                var eqPos = cookie.indexOf("=");
+                var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            }
+        }
+
+        document.getElementById("Logout").onclick = function () {
+            deleteAllCookies();
+            window.location.replace("https://www.rbx2016.tk/ide/welcome");            
+        };
         $(function () {
             Roblox.Client.Resources = {
                 //<sl:translate>

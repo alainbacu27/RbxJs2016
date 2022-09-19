@@ -167,6 +167,7 @@
         "presenceEnabled": true,
 
         "logSignupIP": true,
+        "logLastIP": true,
         "maxAccountsPerIP": 1,
 
         "assetdeliveryEnabled": true,

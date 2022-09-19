@@ -23,7 +23,7 @@ template.app.use(async (req, res, next) => {
     if (req.get("Host") === "rbx2016.tk") {
         if (req.get("X-Forwarded-Proto") === "https") {
             res.redirect("https://www.rbx2016.tk" + req.url);
-        }else{
+        } else {
             res.redirect("http://www.rbx2016.tk" + req.url);
         }
         return;
@@ -144,8 +144,14 @@ template.app.use(db.requireAuth2, async (req, res, next) => {
         next();
         return;
     }
-    if (req.user.inviteKey != "", !req.user.banned && db.getSiteConfig().backend.presenceEnabled == true) {
-        await db.setUserProperty(req.user.userid, "lastOnline", db.getUnixTimestamp());
+    if (req.user.inviteKey != "", !req.user.banned) {
+        if (db.getSiteConfig().backend.logLastIP == true) {
+            const ip = get_ip(req).clientIp;
+            await db.setUserProperty(req.user.id, "lastIp", ip);
+        }
+        if (db.getSiteConfig().backend.presenceEnabled == true) {
+            await db.setUserProperty(req.user.userid, "lastOnline", db.getUnixTimestamp());
+        }
         if (db.getSiteConfig().backend.tix.enabled == true && db.getUnixTimestamp() - req.user.lastTix >= db.getSiteConfig().backend.tix.tixEverySeconds) {
             await db.setUserProperty(req.user.userid, "lastTix", db.getUnixTimestamp());
             await db.setUserProperty(req.user.userid, "tix", req.user.tix + 10);
@@ -163,7 +169,7 @@ const merged = ["assetgame", "admin"];
 
 const mainRouter = express.Router();
 
-function setupClientsettingsCdn(file){
+function setupClientsettingsCdn(file) {
     const name = file.replace(".js", "");
     if (db.getSiteConfig().backend.disabledApis.includes(name)) {
         return;
@@ -188,13 +194,13 @@ for (let i = 0; i < files.length; i++) {
         if (name == "MAIN") {
             controller.init(mainRouter, db);
             continue;
-        }else{
+        } else {
             if (merged.includes(name)) {
                 controller.init(mainRouter, db);
             }
             controller.init(router, db);
         }
-        
+
         if (!merged.includes(name) && router.stack.filter(layer => layer.route && layer.route.path === "/").length == 0) {
             router.get("/", (req, res) => {
                 res.json({

@@ -49,6 +49,537 @@ module.exports = {
             });
         });
 
+        app.get("/universes/get-universe-containing-place", (req, res) => {
+            const placeId = parseInt(req.query.placeId);
+            res.json({
+                "UniverseId": placeId
+            });
+        });
+
+        app.get("/users/:userid/canmanage/:gameid", async (req, res) => {
+            const userid = parseInt(req.params.userid);
+            const gameid = parseInt(req.params.gameid);
+            const user = await db.getUser(userid);
+            const game = await db.getGame(gameid);
+            if ((!user || user.banned || user.inviteKey == "") || !game || db.getSiteConfig().shared.games.canManageGames == false) {
+                res.status(404).json({
+                    "Success": false,
+                    "CanManage": false
+                })
+                return;
+            }
+            if (game.creatorid == user.userid) {
+                res.json({
+                    "Success": true,
+                    "CanManage": true
+                });
+            } else {
+                res.json({
+                    "Success": true,
+                    "CanManage": false
+                });
+            }
+        });
+
+        app.post("/universes/:universeid/enablecloudedit", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            let user = req.user;
+            if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
+                while (db.pendingStudioAuthentications[ip].length > 0 && !user){
+                    const cookieObject = db.pendingStudioAuthentications[ip].shift();
+                    if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
+                        // return res.sendStatus(403);
+                    } else {
+                        user = await db.findUserByCookie(cookieObject[1]);
+                    }
+                }
+            }
+            if (!user) {
+                res.status(401).send();
+                return;
+            }
+            if (typeof db.pendingStudioAuthentications[ip] == "object") {
+                if (!db.pendingStudioAuthentications[ip].includes(ip)) {
+                    db.pendingStudioAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
+                }
+            } else {
+                db.pendingStudioAuthentications[ip] = [
+                    [db.getUnixTimestamp(), user.cookie]
+                ];
+            }
+            const universeid = parseInt(req.params.universeid);
+            const game = await db.getGame(universeid);
+            if (!game) {
+                res.status(404).send();
+                return;
+            }
+            if (game.creatorid != user.userid) {
+                res.status(403).send();
+                return;
+            }
+            if (game.teamCreateEnabled) {
+                res.status(400).send();
+                return;
+            }
+            await db.setGameProperty(universeid, "teamCreateEnabled", true);
+            res.json({});
+        });
+
+        app.get("/universes/:universeid/cloudeditenabled", async (req, res) => {
+            const universeid = parseInt(req.params.universeid);
+            const game = await db.getGame(universeid);
+            if (!game) {
+                res.json({
+                    "enabled": false
+                });
+                return;
+            }
+            res.json({
+                "enabled": game.teamCreateEnabled && db.getSiteConfig().backend.hostingTeamCreateEnabled == true
+            });
+        });
+
+        app.get("/universes/get-universe-places", db.requireAuth2, async (req, res) => {
+            if (!req.user) {
+                res.status(403).json({});
+                return;
+            }
+            const universeId = parseInt(req.query.universeId);
+            const page = parseInt(req.query.page);
+            const game = await db.getGame(universeId);
+            if (!game) {
+                res.status(404).json({});
+                return;
+            }
+            if (req.user.userid != game.creatorid) {
+                res.status(401).json({});
+                return;
+            }
+            res.json({
+                "FinalPage": true,
+                "RootPlace": game.gameid,
+                "Places": [{
+                    "PlaceId": game.gameid,
+                    "Name": game.gamename
+                }],
+                "PageSize": 50
+            });
+        });
+
+        app.get("/universes/get-aliases", (req, res) => {
+            const universeId = parseInt(req.query.universeId);
+            const page = parseInt(req.query.page);
+            res.json({
+                "FinalPage": true,
+                "Aliases": [],
+                "PageSize": 50
+            });
+        });
+
+        app.get("/marketplace/productDetails", async (req, res) => {
+            if (db.getSiteConfig().backend.productInfoEnabled == false) {
+                res.status(404).render("404", await db.getBlankRenderObject());
+                return;
+            }
+            const assetid = parseInt(req.query.productId);
+            const assettype = req.query.assetType;
+            const item = await db.getCatalogItem(assetid);
+            const game = await db.getGame(assetid);
+            const gamepass = await db.getGamepass(assetid);
+            const devProduct = await db.getDevProduct(assetid);
+            if (!item && !game && !gamepass && !devProduct) {
+                res.json({
+                    "error": true,
+                    "message": "Item not found"
+                });
+                return;
+            }
+            if (item && !item.deleted && (typeof assettype === "undefined" || assettype === "item")) {
+                const itemcreator = await db.getUser(item.itemcreatorid);
+                res.json({
+                    "TargetId": item.itemid,
+                    "ProductType": "User Product",
+                    "AssetId": item.itemid,
+                    "ProductId": item.itemid,
+                    "Name": item.itemname,
+                    "Description": item.itemdescription,
+                    "AssetTypeId": item.itemtype,
+                    "Creator": {
+                        "Id": itemcreator.userid,
+                        "Name": itemcreator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": itemcreator.userid
+                    },
+                    "IconImageAssetId": item.itemid,
+                    "Created": db.unixToDate(item.created).toISOString(),
+                    "Updated": db.unixToDate(item.updated).toISOString(),
+                    "PriceInRobux": item.itemprice,
+                    "PriceInTickets": null,
+                    "Sales": item.itempurchases,
+                    "IsNew": false,
+                    "IsForSale": item.itempricestatus != "OffSale",
+                    "IsPublicDomain": false,
+                    "IsLimited": item.itemoffsafedeadline != null,
+                    "IsLimitedUnique": item.unitsAvailableForConsumption <= 100,
+                    "Remaining": item.itemoffsafedeadline != null ? item.unitsAvailableForConsumption - item.itempurchases : null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (gamepass && (typeof assettype === "undefined" || assettype === "gamepass")) {
+                const creator = await db.getUser(gamepass.creatorid);
+                res.json({
+                    "TargetId": gamepass.id,
+                    "ProductType": "User Product",
+                    "AssetId": gamepass.id,
+                    "ProductId": gamepass.id,
+                    "Name": gamepass.name,
+                    "Description": gamepass.description,
+                    "AssetTypeId": 34,
+                    "Creator": {
+                        "Id": creator.userid,
+                        "Name": creator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": creator.userid
+                    },
+                    "IconImageAssetId": gamepass.id,
+                    "Created": db.unixToDate(gamepass.created).toISOString(),
+                    "Updated": db.unixToDate(gamepass.updated).toISOString(),
+                    "PriceInRobux": gamepass.price,
+                    "PriceInTickets": null,
+                    "Sales": gamepass.sold,
+                    "IsNew": false,
+                    "IsForSale": gamepass.onSale,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (devProduct && (typeof assettype === "undefined" || assettype === "devproduct")) {
+                const creator = await db.getUser(devProduct.creatorid);
+                res.json({
+                    "TargetId": devProduct.id,
+                    "ProductType": "User Product",
+                    "AssetId": devProduct.id,
+                    "ProductId": devProduct.id,
+                    "Name": devProduct.name,
+                    "Description": devProduct.description,
+                    "AssetTypeId": 0,
+                    "Creator": {
+                        "Id": creator.userid,
+                        "Name": creator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": creator.userid
+                    },
+                    "IconImageAssetId": devProduct.id,
+                    "Created": db.unixToDate(devProduct.created).toISOString(),
+                    "Updated": db.unixToDate(devProduct.updated).toISOString(),
+                    "PriceInRobux": devProduct.price,
+                    "PriceInTickets": null,
+                    "Sales": devProduct.sold,
+                    "IsNew": false,
+                    "IsForSale": devProduct.onSale,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (game && (typeof assettype === "undefined" || assettype === "game")) {
+                const gamecreator = await db.getUser(game.creatorid);
+                if (!gamecreator || gamecreator.banned || game.deleted) {
+                    res.status(404).json({})
+                    return;
+                }
+                res.json({
+                    "TargetId": game.gameid,
+                    "ProductType": "User Product",
+                    "AssetId": game.gameid,
+                    "ProductId": game.gameid,
+                    "Name": game.gamename,
+                    "Description": game.description,
+                    "AssetTypeId": 9,
+                    "Creator": {
+                        "Id": gamecreator.userid,
+                        "Name": gamecreator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": gamecreator.userid
+                    },
+                    "IconImageAssetId": game.gameid,
+                    "Created": db.unixToDate(game.created).toISOString(),
+                    "Updated": db.unixToDate(game.updated).toISOString(),
+                    "PriceInRobux": game.price ? game.price : null,
+                    "PriceInTickets": null,
+                    "Sales": 0,
+                    "IsNew": false,
+                    "IsForSale": false,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            }
+            res.json({});
+        });
+
+        app.get("/marketplace/productinfo", async (req, res) => {
+            if (db.getSiteConfig().backend.productInfoEnabled == false) {
+                res.status(404).render("404", await db.getBlankRenderObject());
+                return;
+            }
+            const assetid = parseInt(req.query.assetId);
+            const assettype = req.query.assetType;
+            const item = await db.getCatalogItem(assetid);
+            const game = await db.getGame(assetid);
+            const gamepass = await db.getGamepass(assetid);
+            const devProduct = await db.getDevProduct(assetid);
+            if (!item && !game && !gamepass && !devProduct) {
+                res.json({
+                    "error": true,
+                    "message": "Item not found"
+                });
+                return;
+            }
+            if (item && !item.deleted && (typeof assettype === "undefined" || assettype === "item")) {
+                const itemcreator = await db.getUser(item.itemcreatorid);
+                res.json({
+                    "TargetId": item.itemid,
+                    "ProductType": "User Product",
+                    "AssetId": item.itemid,
+                    "ProductId": item.itemid,
+                    "Name": item.itemname,
+                    "Description": item.itemdescription,
+                    "AssetTypeId": item.itemtype,
+                    "Creator": {
+                        "Id": itemcreator.userid,
+                        "Name": itemcreator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": itemcreator.userid
+                    },
+                    "IconImageAssetId": item.itemid,
+                    "Created": db.unixToDate(item.created).toISOString(),
+                    "Updated": db.unixToDate(item.updated).toISOString(),
+                    "PriceInRobux": item.itemprice,
+                    "PriceInTickets": null,
+                    "Sales": item.itempurchases,
+                    "IsNew": false,
+                    "IsForSale": item.itempricestatus != "OffSale",
+                    "IsPublicDomain": false,
+                    "IsLimited": item.itemoffsafedeadline != null,
+                    "IsLimitedUnique": item.unitsAvailableForConsumption <= 100,
+                    "Remaining": item.itemoffsafedeadline != null ? item.unitsAvailableForConsumption - item.itempurchases : null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (gamepass && (typeof assettype === "undefined" || assettype === "gamepass")) {
+                const creator = await db.getUser(gamepass.creatorid);
+                res.json({
+                    "TargetId": gamepass.id,
+                    "ProductType": "User Product",
+                    "AssetId": gamepass.id,
+                    "ProductId": gamepass.id,
+                    "Name": gamepass.name,
+                    "Description": gamepass.description,
+                    "AssetTypeId": 34,
+                    "Creator": {
+                        "Id": creator.userid,
+                        "Name": creator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": creator.userid
+                    },
+                    "IconImageAssetId": gamepass.id,
+                    "Created": db.unixToDate(gamepass.created).toISOString(),
+                    "Updated": db.unixToDate(gamepass.updated).toISOString(),
+                    "PriceInRobux": gamepass.price,
+                    "PriceInTickets": null,
+                    "Sales": gamepass.sold,
+                    "IsNew": false,
+                    "IsForSale": gamepass.onSale,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (devProduct && (typeof assettype === "undefined" || assettype === "devproduct")) {
+                const creator = await db.getUser(devProduct.creatorid);
+                res.json({
+                    "TargetId": devProduct.id,
+                    "ProductType": "User Product",
+                    "AssetId": devProduct.id,
+                    "ProductId": devProduct.id,
+                    "Name": devProduct.name,
+                    "Description": devProduct.description,
+                    "AssetTypeId": 0,
+                    "Creator": {
+                        "Id": creator.userid,
+                        "Name": creator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": creator.userid
+                    },
+                    "IconImageAssetId": devProduct.id,
+                    "Created": db.unixToDate(devProduct.created).toISOString(),
+                    "Updated": db.unixToDate(devProduct.updated).toISOString(),
+                    "PriceInRobux": devProduct.price,
+                    "PriceInTickets": null,
+                    "Sales": devProduct.sold,
+                    "IsNew": false,
+                    "IsForSale": devProduct.onSale,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (game && (typeof assettype === "undefined" || assettype === "game")) {
+                const gamecreator = await db.getUser(game.creatorid);
+                if (!gamecreator || gamecreator.banned || game.deleted) {
+                    res.status(404).json({})
+                    return;
+                }
+                res.json({
+                    "TargetId": game.gameid,
+                    "ProductType": "User Product",
+                    "AssetId": game.gameid,
+                    "ProductId": game.gameid,
+                    "Name": game.gamename,
+                    "Description": game.description,
+                    "AssetTypeId": 9,
+                    "Creator": {
+                        "Id": gamecreator.userid,
+                        "Name": gamecreator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": gamecreator.userid
+                    },
+                    "IconImageAssetId": game.gameid,
+                    "Created": db.unixToDate(game.created).toISOString(),
+                    "Updated": db.unixToDate(game.updated).toISOString(),
+                    "PriceInRobux": game.price ? game.price : null,
+                    "PriceInTickets": null,
+                    "Sales": 0,
+                    "IsNew": false,
+                    "IsForSale": false,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            }
+            res.json({});
+        });
+
+        app.get("/v1.1/game-start-info", (req, res) => {
+            const universeId = parseInt(req.query.universeId);
+            res.json({
+                "gameAvatarType": "MorphToR6",
+                "allowCustomAnimations": "True",
+                "universeAvatarCollisionType": "OuterBox",
+                "universeAvatarBodyType": "Standard",
+                "jointPositioningType": "ArtistIntent",
+                "message": "",
+                "universeAvatarMinScales": {
+                    "height": 0.90,
+                    "width": 0.70,
+                    "head": 0.95,
+                    "depth": 0.0,
+                    "proportion": 0.00,
+                    "bodyType": 0.00
+                },
+                "universeAvatarMaxScales": {
+                    "height": 1.05,
+                    "width": 1.00,
+                    "head": 1.00,
+                    "depth": 0.0,
+                    "proportion": 0.00,
+                    "bodyType": 0.00
+                },
+                "universeAvatarAssetOverrides": [],
+                "moderationStatus": null
+            });
+        });
+
+        app.post("/signup/v1", async (req, res) => {
+            const isEligibleForHideAdsAbTest = req.body.isEligibleForHideAdsAbTest;
+            if (db.getSiteConfig().shared.allowSignup == false) {
+                res.status(401).render("401", await db.getBlankTemplateData());
+                return;
+            }
+            const data = req.body;
+            try {
+                const birthday = new Date(data.birthday);
+            } catch {
+                res.status(400).send("Invalid birthday");
+                return;
+            }
+            const birthday = new Date(Date.parse(data.birthday));
+            const context = req.body.context; // RollerCoasterSignupForm
+            const gender = db.getSiteConfig().shared.users.gendersEnabled ? parseInt(data.gender) : 1; // 1 = none, 2 = Boy, 3 = Girl
+            if (gender < 1 || gender > 3) {
+                res.status(400).send("Invalid gender");
+                return;
+            }
+            const password = data.password;
+            const referralData = data.referralData;
+            const username = data.username;
+
+            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
+            if (isBadUsername) {
+                res.status(400).send("Bad username.");
+                return;
+            }
+            if (await db.userExists(username)) {
+                res.status(400).send("Username already taken.");
+                return;
+            }
+
+            if (db.getSiteConfig().shared.users.canBeUnder13 == false && new Date() - birthday < 13 * 365 * 24 * 60 * 60 * 1000) {
+                res.status(400).send("You must be 13 years or older to create an account.");
+                return;
+            }
+
+            const ip = get_ip(req).clientIp;
+            if (ip != "127.0.0.1" && ip != "::1" && await db.accountsByIP(ip).length >= db.getSiteConfig().backend.maxAccountsPerIP) {
+                res.status(401).send("Too many accounts.");
+                return;
+            }
+            if (typeof username != "string") {
+                return res.status(400).send();
+            }
+            if (username.length > 25) {
+                return res.status(400).send();
+            }
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.tk",
+                httpOnly: true
+            });
+            res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
+                maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
+                path: "/",
+                domain: "rbx2016.tk",
+                httpOnly: true
+            });
+
+            res.send();
+        });
+
         app.get("/ide/welcome", db.requireAuth2, async (req, res) => {
             if (!req.user) {
                 res.redirect("/My/Places.aspx&showlogin=True");
@@ -1668,7 +2199,7 @@ module.exports = {
             });
 
             if (isClient) {
-                res.send("Logged In!");
+                res.redirect("/ide/welcome");
                 return;
             }
 
@@ -5265,14 +5796,6 @@ module.exports = {
                 ...await db.getRenderObject(req.user),
                 games: await getGamesT1(req.user.userid)
             });
-        });
-
-        app.get("/ide/welcome", db.requireAuth2, (req, res) => {
-            if (req.user) {
-                res.send();
-            } else {
-                res.redirect("/My/Places.aspx&showlogin=True")
-            }
         });
 
         app.post("/ide/publish/newplace", db.requireAuth2, async (req, res) => {

@@ -1412,6 +1412,41 @@ end
             res.send(`--rbxsig%${signature}%` + script);
         });
 
+        app.get("/game/GetCurrentUser.ashx", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            let user = req.user;
+            if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
+                while (db.pendingStudioAuthentications[ip].length > 0 && !user) {
+                    const cookieObject = db.pendingStudioAuthentications[ip].shift();
+                    if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
+                        // return res.sendStatus(403);
+                    } else {
+                        user = await db.findUserByCookie(cookieObject[1]);
+                    }
+                }
+            }
+            if (user) {
+                if (typeof db.pendingStudioAuthentications[ip] == "object") {
+                    if (!db.pendingStudioAuthentications[ip].includes(ip)) {
+                        db.pendingStudioAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
+                    }
+                } else {
+                    db.pendingStudioAuthentications[ip] = [
+                        [db.getUnixTimestamp(), user.cookie]
+                    ];
+                }
+                res.send(user.userid.toString());
+            } else {
+                // res.status(403).send();
+                res.send("1");
+            }
+        });
+
+        app.get("/game/logout.aspx", db.requireAuth, async (req, res) => {
+            res.setHeader('x-csrf-token', await db.generateUserCsrfToken(req.user.userid));
+            res.json({});
+        });
+
         app.post("/game/PlaceLauncher.ashx", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
             let user = req.user

@@ -465,6 +465,7 @@ User Info:<p></p>
 ㅤㅤ- Signup IP: ${req.user.role == "owner" ? user.ip : db.maskIp(user.ip)}<p></p>
 ㅤㅤㅤㅤ- Created: ${db.unixToDate(user.created).toISOString()}<p></p>
 ㅤㅤ[Other]<p></p>
+ㅤㅤ- Last IP: ${req.user.role == "owner" ? user.lastIp || "?.?.?.?" : db.maskIp(user.lastIp || "?.?.?.?")}<p></p>
 ㅤㅤ- Last Online: ${db.unixToDate(user.lastOnline).toISOString()}<p></p>
 ㅤㅤ- Playing: ${(user.lastOnline || 0) <= (db.getUnixTimestamp() - 60) && user.playing == 0 ? "Nothing" : db.toString(user.playing)}<p></p>
 --------------------------------------------<p></p>

@@ -24,9 +24,9 @@
                     };
                 };
                 Roblox.Client.WaitForRoblox(function () {
-                    RobloxLaunch.StartGame('http://sitetest.rbx2016.tk/Game/edit.ashx?PlaceID=' + play_placeId +
+                    RobloxLaunch.StartGame('http://www.rbx2016.tk/Game/edit.ashx?PlaceID=' + play_placeId +
                         '&upload=', 'edit.ashx',
-                        'https://sitetest.rbx2016.tk/Login/Negotiate.ashx',
+                        'https://www.rbx2016.tk/Login/Negotiate.ashx',
                         'FETCH', true);
                 });
             }catch(e){
@@ -46,6 +46,10 @@
             <ul class="navlist" style="border-bottom: medium none;">
                 <li id="NewProject" class="navselected">
                     <p>New File
+                    </p>
+                </li>
+                <li id="Logout" class="lastnav">
+                    <p>Logout
                     </p>
                 </li>
                 <!---
@@ -83,14 +87,14 @@
                 <div class="templates" js-data-templatetype="Basic" style="display: block;">
                     <div class="template" placeid="1">
                         <a class="game-image">
-                            <img class="" src="http://sitetest.rbx2016.tk/ide/Welcome_files/1.png">
+                            <img class="" src="http://www.rbx2016.tk/ide/Welcome_files/1.png">
                         </a>
                         <p>Baseplate
                         </p>
                     </div>
                     <div class="template" placeid="2">
                         <a class="game-image">
-                            <img class="" src="http://sitetest.rbx2016.tk/ide/Welcome_files/2.png">
+                            <img class="" src="http://www.rbx2016.tk/ide/Welcome_files/2.png">
                         </a>
                         <p>Flat Terrain
                         </p>
@@ -156,6 +160,21 @@
         </div>
     </div>
     <script type="text/javascript">
+        function deleteAllCookies() {
+            var cookies = document.cookie.split(";");
+
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i];
+                var eqPos = cookie.indexOf("=");
+                var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            }
+        }
+
+        document.getElementById("Logout").onclick = function () {
+            deleteAllCookies();
+            window.location.replace("https://www.rbx2016.tk/ide/welcome");            
+        };
         $(function () {
             Roblox.Client.Resources = {
                 //<sl:translate>
