@@ -147,7 +147,7 @@ template.app.use(db.requireAuth2, async (req, res, next) => {
     if (req.user.inviteKey != "", !req.user.banned) {
         if (db.getSiteConfig().backend.logLastIP == true) {
             const ip = get_ip(req).clientIp;
-            await db.setUserProperty(req.user.id, "lastIp", ip);
+            await db.setUserProperty(req.user.userid, "lastIp", ip);
         }
         if (db.getSiteConfig().backend.presenceEnabled == true) {
             await db.setUserProperty(req.user.userid, "lastOnline", db.getUnixTimestamp());
