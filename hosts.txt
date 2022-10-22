@@ -203,8 +203,5 @@
 127.0.0.1 css.rbx2016.tk
 127.0.0.1 static.rbx2016.tk
 127.0.0.1 images.rbx2016.tk
-127.0.0.1 clientsettings.api.rbx2016.t
-127.0.0.1 clientsettings.api.co
-127.0.0.1 analytics.rboxlo.loc
-127.0.0.1 api.rbx2016.t
+127.0.0.1 sitetest.rbx2016.tk
 # End of section #
