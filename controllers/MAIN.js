@@ -6449,60 +6449,6 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.send("Application sent!");
         });
 
-        app.get("/game-pass/configure", db.requireAuth, async (req, res) => {
-            if (db.getSiteConfig().shared.gamepassesEnabled == false) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const id = parseInt(req.query.id);
-            const gamepass = await db.getGamepass(id);
-            if (!gamepass) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            if (gamepass.creatorid != req.user.userid) {
-                res.status(401).send("Unauthorized");
-                return;
-            }
-            const game = await db.getGame(gamepass.gameid);
-            const created = db.unixToDate(gamepass.created);
-            const updated = db.unixToDate(gamepass.updated);
-            res.render("gamepassconfigure", {
-                ...(await db.getRenderObject(req.user)),
-                id: gamepass.id,
-                icon: gamepass.thumbnailurl,
-                gameid: game.gameid,
-                gamename: game.gamename,
-                gamegenre: game.genre,
-                gamethumb: game.iconthumbnail,
-                price: gamepass.price,
-                name: gamepass.name,
-                name2: gamepass.name.replaceAll(" ", "-"),
-                desc: gamepass.description,
-                likes: gamepass.likes.length,
-                dislikes: gamepass.dislikes.length,
-                userVoted: await db.userLikeStatus(req.user.userid, gamepass.id),
-                favorites: gamepass.favorites.length,
-                userFavorited: await db.userHasFavorited(req.user.userid, gamepass.id),
-                creatorname: req.user.username,
-                creatorid: gamepass.creatorid,
-                sold: gamepass.sold,
-                owned: gamepass.owners.includes(req.user.userid),
-                likeratio: gamepass.likes.length == 0 && gamepass.dislikes.length == 0 ? 50 : gamepass.likes.length / (gamepass.likes.length + gamepass.dislikes.length),
-                created: `${created.getDate()}/${created.getMonth()}/${created.getFullYear()}`,
-                updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
-                onSale: gamepass.onSale,
-            });
-        });
-
         app.get("/library/:id/:name", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.assetsEnabled == false) {
                 if (req.user) {

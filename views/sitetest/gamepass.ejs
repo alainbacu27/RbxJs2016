@@ -42,14 +42,14 @@
     <meta property="og:type" content="game"/>
         <meta property="og:url" content="https://sitetest.rbx2016.tk/catalog/<%= id %>/<%= name2 %>" />
     <meta property="og:description" content="Customize your avatar with the <%= name %> and millions of other items. Mix &amp; match this Gamepass with other items to create an avatar that is unique to you!"/>
-            <meta property="og:image" content="https://tr.rbx2016.tk/e4fe2972f2e403c3325b1223dcc7245a/420/420/Gamepass/Png" />
+            <meta property="og:image" content="<%= icon %>" />
     <meta property="fb:app_id" content="190191627665278">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@Roblox">
     <meta name="twitter:title" content="<%= name %>">
     <meta name="twitter:description" content="Customize your avatar with the <%= name %> and millions of other items. Mix &amp; match this Gamepass with other items to create an avatar that is unique to you!">
     <meta name="twitter:creator" content="@ROBLOX">
-            <meta name=twitter:image1 content="https://tr.rbx2016.tk/e4fe2972f2e403c3325b1223dcc7245a/420/420/Gamepass/Png" />
+            <meta name=twitter:image1 content="<%= icon %>" />
     <meta name="twitter:app:country" content="US">
     <meta name="twitter:app:name:iphone" content="ROBLOX Mobile">
     <meta name="twitter:app:id:iphone" content="431946152">
@@ -1144,7 +1144,7 @@ Roblox.Endpoints.Urls = Roblox.Endpoints.Urls || {};
      data-url="/thumbnail/asset?assetId=<%= id %>&amp;thumbnailFormatId=254&amp;width=420&amp;height=420">
     <div id="current-animation-name"></div>
 
-<span class="thumbnail-span" data-3d-url="/asset-thumbnail-3d/json?assetId=<%= id %>" ><img  class='' src='https://tr.rbx2016.tk/e4fe2972f2e403c3325b1223dcc7245a/420/420/Gamepass/Png'/></span><span class="thumbnail-span-original hidden" data-3d-url="/asset-thumbnail-3d/json?assetId=<%= id %>" ><img  class='' src='https://tr.rbx2016.tk/e4fe2972f2e403c3325b1223dcc7245a/420/420/Gamepass/Png'/></span><span class="thumbnail-span-try-it-on hidden" data-3d-url="/temp-outfit-thumbnail-3d/json?assetId=<%= id %>" data-retry-url="/temp-outfit-thumbnail/json?assetId=<%= id %>&amp;width=420&amp;height=420&amp;format=Png" data-orig-retry-url="/temp-outfit-thumbnail/json?assetId=<%= id %>&amp;width=420&amp;height=420&amp;format=Png" ><img alt='You, trying the asset on.' class='' src=''/></span>    <div class="equipped-marker"></div>
+<span class="thumbnail-span" data-3d-url="/asset-thumbnail-3d/json?assetId=<%= id %>" ><img  class='' src='<%= icon %>'/></span><span class="thumbnail-span-original hidden" data-3d-url="/asset-thumbnail-3d/json?assetId=<%= id %>" ><img  class='' src='<%= icon %>'/></span><span class="thumbnail-span-try-it-on hidden" data-3d-url="/temp-outfit-thumbnail-3d/json?assetId=<%= id %>" data-retry-url="/temp-outfit-thumbnail/json?assetId=<%= id %>&amp;width=420&amp;height=420&amp;format=Png" data-orig-retry-url="/temp-outfit-thumbnail/json?assetId=<%= id %>&amp;width=420&amp;height=420&amp;format=Png" ><img alt='You, trying the asset on.' class='' src=''/></span>    <div class="equipped-marker"></div>
 
     <!-- <div class="thumbnail-buttons">
             <span class="try-it-on btn-control-sm">Try On</span>

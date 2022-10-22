@@ -873,7 +873,7 @@ Roblox.Endpoints.Urls = Roblox.Endpoints.Urls || {};
                                             <span class="notification-blue nav-setting-highlight hidden">0</span>
                                         </a>
                                     </li>
-                                    <% if (isAdmin == "true" || isMod == "true") { %>
+                                    <% if (role == "approver" || role == "mod" || role == "admin" || role == "owner") { %>
                                         <li><a class="rbx-menu-item"
                                             href="https://sitetest.rbx2016.tk/admi"><p>Admin</p></a></li>
                                     <% } %>
@@ -1077,7 +1077,37 @@ Roblox.Endpoints.Urls = Roblox.Endpoints.Urls || {};
                 </div>
             
 
+            <div id="item-container"
+                class="page-content
+                inline-social
+                
+                
+                "
+                data-item-id="<%= id %>"
+                data-item-type="Asset"
+                data-item-name="<%= name %>"
+                data-asset-type="Game Pass"
+                data-asset-type-display-name="Gamepass"
+                data-userasset-id=""
+                data-is-purchase-enabled="true"
+                data-product-id="<%= id %>"
+                data-bc-requirement="0"
+                data-expected-currency="1"
+                data-expected-price="<%= price %>"
+                data-seller-name="<%= creatorname %>"
+                data-expected-seller-id="<%= creatorid %>"
+                data-lowest-private-sale-userasset-id=""
+                data-is-limited-unique="false"
+                data-user-id="<%= userid %>"
+                data-asset-granted="False"
+                data-forward-url=""
+                data-avatar-wear-url="https://avatar.rbx2016.tk/v1/avatar/assets/<%= id %>/wear"
+                data-avatar-remove-url="https://avatar.rbx2016.tk/v1/avatar/assets/<%= id %>/remove"
+                data-current-time="7/27/2019 1:18:02 AM">
 
+                
+
+            </div>
 
 
 
