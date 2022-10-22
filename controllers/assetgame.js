@@ -210,7 +210,7 @@ module.exports = {
                 coroutine.yield()
                 game:Load("http://www.rbx2016.tk/asset?id=${game.gameid}${token2}")
                 
-                visit:SetUploadUrl("${upload ? `http://www.rbx2016.tk/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
+                visit:SetUploadUrl("${upload ? `http://data.rbx2016.tk/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
                 
                 message.Parent = nil
                 
@@ -288,7 +288,7 @@ module.exports = {
                 coroutine.yield()
                 game:Load("http://www.rbx2016.tk/asset?id=${game.gameid}${token2}")
                 
-                visit:SetUploadUrl("${upload ? `http://www.rbx2016.tk/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
+                visit:SetUploadUrl("${upload ? `http://data.rbx2016.tk/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
                 
                 message.Parent = nil
                 spawn(function()
@@ -377,7 +377,7 @@ module.exports = {
                         analytics("Created Player")
                     end
                     
-                    visit:SetUploadUrl("${upload ? `http://www.rbx2016.tk/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
+                    visit:SetUploadUrl("${upload ? `http://data.rbx2016.tk/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
                     
                     message.Parent = nil
                     
