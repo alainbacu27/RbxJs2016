@@ -1,0 +1,11 @@
+[{
+  "_id": {
+    "$oid": "63077c2040dc5b5d746b3711"
+  },
+  "inviteKey": "system",
+  "created": 0,
+  "usedDate": 0,
+  "createdby": 0,
+  "used": false,
+  "deleted": false
+}]
