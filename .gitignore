@@ -127,7 +127,6 @@ dist
 .pnp.*
 
 public/setup
-public/setup - Old
 internal
 games/*
 assets/*
