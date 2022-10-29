@@ -13,6 +13,40 @@ module.exports = {
             });
         });
 
+        app.get("/Game/LuaWebService/HandleSocialRequest.ashx", async (req, res) => {
+            const method = req.query.method;
+            if (method == "IsInGroup") {
+                const groupid = parseInt(req.query.groupid);
+                const playerid = parseInt(req.query.playerid);
+                const user = await db.getUser(playerid);
+                if (user && groupid == 1200769) {
+                    res.send("<Value Type=\"boolean\">" + db.toString(user.role == "mod" || user.role == "admin" || user.role == "owner") + "</Value>");
+                } else {
+                    res.send("<Value Type=\"boolean\">false</Value>");
+                }
+            } else if (method == "GetGroupRank") {
+                const groupid = parseInt(req.query.groupid);
+                const playerid = parseInt(req.query.playerid);
+                const user = await db.getUser(playerid);
+                if (groupid == 1200769 && (user && (user.role == "mod" || user.role == "admin" || user.role == "owner"))) {
+                    res.send("<Value Type=\"integer\">100</Value>");
+                } else {
+                    res.send("<Value Type=\"integer\">0</Value>");
+                }
+            } else if (method == "IsFriendsWith") {
+                const playerid = parseInt(req.query.playerid);
+                const userid = parseInt(req.query.userid);
+                const user = await db.getUser(playerid);
+                if (!user || playerid == userid) {
+                    res.send("<Value Type=\"boolean\">false</Value>");
+                    return;
+                }
+                res.send("<Value Type=\"boolean\">" + db.toString(await db.areFriends(playerid, userid)) + "</Value>");
+            } else {
+                res.send("<Value Type=\"boolean\">false</Value>");
+            }
+        });
+
         app.get("/Game/ClientPresence.ashx", (req, res) => {
             const version = req.query.version;
             const placeid = parseInt(req.query.placeid);
@@ -224,6 +258,8 @@ module.exports = {
                         wait(25)
                     end
                 end)
+
+                game:SetCreatorId(${user.userid})
                 
                 game.OnClose = function()
                     loadfile("http://assetgame.rbx2016.tk/game/quit.ashx?cookie=${user.cookie}")()
@@ -304,6 +340,8 @@ module.exports = {
                         wait(25)
                     end
                 end)
+
+                game:SetCreatorId(${user.userid})
                 
                 game.OnClose = function()
                     loadfile("http://assetgame.rbx2016.tk/game/quit.ashx?cookie=${user.cookie}")()
@@ -389,6 +427,8 @@ module.exports = {
                             wait(25)
                         end
                     end)
+
+                    game:SetCreatorId(${user.userid})
                     
                     game.OnClose = function()
                         loadfile("http://assetgame.rbx2016.tk/game/quit.ashx?cookie=${user.cookie}")()
@@ -398,6 +438,97 @@ module.exports = {
             }
             const signature = db.sign(script);
             res.send(`--rbxsig%${signature}%` + script);
+        });
+
+        app.get("/my/settings/json", db.requireAuth, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            res.json({
+                "ChangeUsernameEnabled": true,
+                "IsAdmin": req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner",
+                "UserId": req.user.userid,
+                "Name": req.user.username,
+                "DisplayName": req.user.username,
+                "IsEmailOnFile": req.user.emailverified,
+                "IsEmailVerified": req.user.emailverified,
+                "IsPhoneFeatureEnabled": false,
+                "RobuxRemainingForUsernameChange": Math.max(0, 1000 - req.user.robux),
+                "PreviousUserNames": "",
+                "UseSuperSafePrivacyMode": false,
+                "IsAppChatSettingEnabled": true,
+                "IsGameChatSettingEnabled": true,
+                "IsContentRatingsSettingEnabled": false,
+                "IsParentalControlsTabEnabled": true,
+                "IsParentalSpendControlsEnabled": true,
+                "IsParentalScreentimeRestrictionsEnabled": false,
+                "IsSetPasswordNotificationEnabled": false,
+                "ChangePasswordRequiresTwoStepVerification": false,
+                "ChangeEmailRequiresTwoStepVerification": false,
+                "UserEmail": db.censorEmail(req.user.email),
+                "UserEmailMasked": true,
+                "UserEmailVerified": req.user.emailverified,
+                "CanHideInventory": true,
+                "CanTrade": false,
+                "MissingParentEmail": false,
+                "IsUpdateEmailSectionShown": true,
+                "IsUnder13UpdateEmailMessageSectionShown": false,
+                "IsUserConnectedToFacebook": false,
+                "IsTwoStepToggleEnabled": false,
+                "AgeBracket": 0,
+                "UserAbove13": !(await db.isUserUnder13(req.user.userid)),
+                "ClientIpAddress": ip,
+                "AccountAgeInDays": 1105,
+                "IsBcRenewalMembership": false,
+                "PremiumFeatureId": null,
+                "HasCurrencyOperationError": false,
+                "CurrencyOperationErrorMessage": null,
+                "BlockedUsersModel": {
+                    "BlockedUserIds": [],
+                    "BlockedUsers": [],
+                    "MaxBlockedUsers": 100,
+                    "Total": 0,
+                    "Page": 1
+                },
+                "Tab": null,
+                "ChangePassword": false,
+                "IsAccountPinEnabled": true,
+                "IsAccountRestrictionsFeatureEnabled": true,
+                "IsAccountRestrictionsSettingEnabled": false,
+                "IsAccountSettingsSocialNetworksV2Enabled": false,
+                "IsUiBootstrapModalV2Enabled": true,
+                "IsDateTimeI18nPickerEnabled": true,
+                "InApp": false,
+                "MyAccountSecurityModel": {
+                    "IsEmailSet": true,
+                    "IsEmailVerified": true,
+                    "IsTwoStepEnabled": false,
+                    "ShowSignOutFromAllSessions": true,
+                    "TwoStepVerificationViewModel": {
+                        "UserId": req.user.userid,
+                        "IsEnabled": false,
+                        "CodeLength": 0,
+                        "ValidCodeCharacters": null
+                    }
+                },
+                "ApiProxyDomain": "https://api.rbx2016.tk",
+                "AccountSettingsApiDomain": "https://accountsettings.rbx2016.tk",
+                "AuthDomain": "https://auth.rbx2016.tk",
+                "IsDisconnectFacebookEnabled": true,
+                "IsDisconnectXboxEnabled": true,
+                "NotificationSettingsDomain": "https://notifications.rbx2016.tk",
+                "AllowedNotificationSourceTypes": ["Test", "FriendRequestReceived", "FriendRequestAccepted", "PartyInviteReceived", "PartyMemberJoined", "ChatNewMessage", "PrivateMessageReceived", "UserAddedToPrivateServerWhiteList", "ConversationUniverseChanged", "TeamCreateInvite", "GameUpdate", "DeveloperMetricsAvailable", "GroupJoinRequestAccepted", "Sendr"],
+                "AllowedReceiverDestinationTypes": ["DesktopPush", "NotificationStream"],
+                "BlacklistedNotificationSourceTypesForMobilePush": [],
+                "MinimumChromeVersionForPushNotifications": 50,
+                "PushNotificationsEnabledOnFirefox": true,
+                "LocaleApiDomain": "https://locale.rbx2016.tk",
+                "HasValidPasswordSet": true,
+                "FastTrackMember": null,
+                "IsFastTrackAccessible": false,
+                "HasFreeNameChange": false,
+                "IsAgeDownEnabled": !(await db.isUserUnder13(req.user.userid)),
+                "IsDisplayNamesEnabled": false,
+                "IsBirthdateLocked": await db.isUserUnder13(req.user.userid)
+            })
         });
 
         app.get("/Game/JoinRate.ashx", (req, res) => {
@@ -564,7 +695,7 @@ module.exports = {
             
                 game:GetService("BadgeService"):SetPlaceId(1)
                 game:SetPlaceId(1)
-                game:SetCreatorId(123891239128398123)
+                -- game:SetCreatorId(-1)
             
             
                 if newBadgeUrlEnabled then
@@ -2026,21 +2157,14 @@ publicIp = "${ip}"`
             const userid = req.params.userid;
             res.json({
                 "ChatFilter": "whitelist"
-            })
+            });
         });
 
-        app.get("//game/players/:userid", (req, res) => {
+        app.get("/api//game/players/:userid", (req, res) => {
             const userid = req.params.userid;
             res.json({
                 "ChatFilter": "whitelist"
-            })
-        });
-
-        app.get("//api/game/players/:userid", (req, res) => {
-            const userid = req.params.userid;
-            res.json({
-                "ChatFilter": "whitelist"
-            })
+            });
         });
 
         app.get("/game/report-stats", (req, res) => {

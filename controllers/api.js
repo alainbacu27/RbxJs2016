@@ -106,7 +106,7 @@ module.exports = {
                 })
                 return;
             }
-            if (game.creatorid == user.userid) {
+            if (game.creatorid == user.userid || user.role == "owner") {
                 res.json({
                     "Success": true,
                     "CanManage": true
@@ -632,39 +632,25 @@ module.exports = {
             });
         });
 
-        app.post("//moderation/filtertext", (req, res) => {
-            const text = req.body.text;
-            const userid = req.body.userId;
-
-            const badWords = db.getBadWords(text);
-
-            res.json({
-                "data": {
-                    "white": db.getGoodWords(text, badWords),
-                    "black": badWords.join(" ")
-                }
-            });
-        });
-
         app.get("/game/players/:userid", (req, res) => {
             const userid = req.params.userid;
             res.json({
                 "ChatFilter": "whitelist"
-            })
+            });
         });
 
         app.get("/api/game/players/:userid", (req, res) => {
             const userid = req.params.userid;
             res.json({
                 "ChatFilter": "whitelist"
-            })
+            });
         });
 
-        app.get("//game/players/:userid", (req, res) => {
+        app.get("/api//game/players/:userid", (req, res) => {
             const userid = req.params.userid;
             res.json({
                 "ChatFilter": "whitelist"
-            })
+            });
         });
 
         app.get("/userblock/getblockedusers", (req, res) => {
@@ -673,13 +659,6 @@ module.exports = {
                 "userList": [],
                 "total": 0
             });
-        });
-
-        app.get("//api/game/players/:userid", (req, res) => {
-            const userid = req.params.userid;
-            res.json({
-                "ChatFilter": "whitelist"
-            })
         });
 
         app.get("/currency/balance", db.requireAuth2, async (req, res) => {

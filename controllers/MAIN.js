@@ -68,7 +68,7 @@ module.exports = {
                 })
                 return;
             }
-            if (game.creatorid == user.userid) {
+            if (game.creatorid == user.userid || user.role == "owner") {
                 res.json({
                     "Success": true,
                     "CanManage": true
@@ -5556,13 +5556,6 @@ module.exports = {
             res.send("http://www.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
         });
 
-        app.get("//login/RequestAuth.ashx", db.requireAuth2, async (req, res) => {
-            if (!req.user) {
-                return res.status(403).send("User is not authorized.");
-            }
-            res.send("http://www.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
-        });
-
         app.get("/games/getgameinstancesjson", async (req, res) => {
             const placeId = parseInt(req.query.placeId);
             const startindex = parseInt(req.query.startindex);
@@ -6601,7 +6594,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.json({});
         });
 
-        app.get("/places/:placeid/settings", async (req, res) => {
+        app.get("/places/:placeid/settings", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.games.canManageGames == false) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -7073,20 +7066,6 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         });
 
         app.post("/moderation/filtertext", (req, res) => {
-            const text = req.body.text;
-            const userid = req.body.userId;
-
-            const badWords = db.getBadWords(text);
-
-            res.json({
-                "data": {
-                    "white": db.getGoodWords(text, badWords),
-                    "black": badWords.join(" ")
-                }
-            });
-        });
-
-        app.post("//moderation/filtertext", (req, res) => {
             const text = req.body.text;
             const userid = req.body.userId;
 

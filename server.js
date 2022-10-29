@@ -19,12 +19,55 @@ if (!fs.existsSync("./logs/admin.log")) {
     fs.writeFileSync("./logs/admin.log", "");
 }
 
+const exludedRedirects = ["/api//", "/moderation/filtertext/", "//moderation/filtertext/"]
+
+template.app.get("/api//game/players/:userid", (req, res) => { // Cuz yes.
+    const userid = req.params.userid;
+    res.json({
+        "ChatFilter": "whitelist"
+    });
+});
+
 template.app.use(async (req, res, next) => {
+    for (let i = 0; i < exludedRedirects.length; i++) {
+        if (req.path.startsWith(exludedRedirects[i])) {
+            next();
+            return;
+        }
+    }
+    let newPath = req.path;
+    if (newPath.includes("//")) {
+        while (newPath.includes("//")) {
+            newPath = newPath.replaceAll("//", "/");
+        }
+        if (req.method == "GET") {
+            return res.redirect(301, newPath);
+        }
+        return res.redirect(307, newPath);
+    }
+    next();
+});
+
+template.app.use(async (req, res, next) => {
+    for (let i = 0; i < exludedRedirects.length; i++) {
+        if (req.path.startsWith(exludedRedirects[i])) {
+            next();
+            return;
+        }
+    }
     if (req.get("Host") === "rbx2016.tk") {
+        if (req.method == "GET") {
+            if (req.get("X-Forwarded-Proto") === "https") {
+                res.redirect(301, "https://www.rbx2016.tk" + req.url);
+            } else {
+                res.redirect(301, "http://www.rbx2016.tk" + req.url);
+            }
+            return;
+        }
         if (req.get("X-Forwarded-Proto") === "https") {
-            res.redirect("https://www.rbx2016.tk" + req.url);
+            res.redirect(307, "https://www.rbx2016.tk" + req.url);
         } else {
-            res.redirect("http://www.rbx2016.tk" + req.url);
+            res.redirect(307, "http://www.rbx2016.tk" + req.url);
         }
         return;
     }
@@ -117,12 +160,21 @@ template.app.use("/", express.static(__dirname + "/public/img"));
 template.app.use("/", express.static(__dirname + "/public/js"));
 template.app.use("/", express.static(__dirname + "/public/setup"));
 
-const whitelistedUrls = ["/moderation/filtertext/", "//moderation/filtertext/"]
 template.app.use((req, res, next) => {
-    if (req.path.substr(-1) === '/' && req.path.length > 1 && !whitelistedUrls.includes(req.path)) {
+    for (let i = 0; i < exludedRedirects.length; i++) {
+        if (req.path.startsWith(exludedRedirects[i])) {
+            next();
+            return;
+        }
+    }
+    if (req.path.substr(-1) === '/' && req.path.length > 1) {
         const query = req.url.slice(req.path.length)
         const safepath = req.path.slice(0, -1).replace(/\/+/g, '/')
-        res.redirect(301, safepath + query)
+        if (req.method == "GET") {
+            res.redirect(301, safepath + query)
+        } else {
+            res.redirect(307, safepath + query)
+        }
     } else {
         next()
     }

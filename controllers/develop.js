@@ -437,7 +437,7 @@ module.exports = {
                 })
                 return;
             }
-            if (game.creatorid == user.userid) {
+            if (game.creatorid == user.userid || user.role == "owner") {
                 res.json({
                     "Success": true,
                     "CanManage": true
