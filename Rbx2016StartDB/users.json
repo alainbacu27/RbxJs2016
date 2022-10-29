@@ -41,7 +41,15 @@
   "messagesThisDay": 0,
   "startMessagesThisDay": 0,
   "theme": "",
-  "lastIp": "127.0.0.1"
+  "lastIp": "127.0.0.1",
+  "avatarColors": [
+    "1030",
+    "1030",
+    "1003",
+    "1030",
+    "1003",
+    "1004"
+  ]
 },{
   "_id": {
     "$oid": "635d6d97ef1f314c32c30a48"
