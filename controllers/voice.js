@@ -40,20 +40,5 @@ module.exports = {
                 "isUniverseEnabledForVoice": false
             })
         });
-
-        app.get("//v1/settings/verify/show-age-verification-overlay/:userid", (req, res) => {
-            const userid = parseInt(req.params.userid);
-            const placeId = parseInt(req.query.placeId);
-            res.json({
-                "showAgeVerificationOverlay": false,
-                "showVoiceOptInOverlay": false,
-                "universePlaceVoiceEnabledSettings": {
-                    "isUniverseEnabledForVoice": false,
-                    "isPlaceEnabledForVoice": false,
-                    "reasons": ["Could not fetch Spatial Voice settings, please try again later", "Could not fetch Spatial Voice settings, please try again later"]
-                },
-                "voiceSettings": null
-            });
-        });
     }
 }

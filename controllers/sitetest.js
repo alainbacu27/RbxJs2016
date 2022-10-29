@@ -5041,13 +5041,6 @@ module.exports = {
             res.send("http://sitetest.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
         });
 
-        app.get("//login/RequestAuth.ashx", db.requireAuth2, async (req, res) => {
-            if (!req.user) {
-                return res.status(403).send("User is not authorized.");
-            }
-            res.send("http://sitetest.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
-        });
-
         app.get("/games/getgameinstancesjson", async (req, res) => {
             const placeId = parseInt(req.query.placeId);
             const startindex = parseInt(req.query.startindex);
@@ -5405,7 +5398,7 @@ module.exports = {
                 })
                 return;
             }
-            if (game.creatorid == user.userid) {
+            if (game.creatorid == user.userid || user.role == "owner") {
                 res.json({
                     "Success": true,
                     "CanManage": true
@@ -7203,21 +7196,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
             });
         });
-
-        app.post("//moderation/filtertext", (req, res) => {
-            const text = req.body.text;
-            const userid = req.body.userId;
-
-            const badWords = db.getBadWords(text);
-
-            res.json({
-                "data": {
-                    "white": db.getGoodWords(text, badWords),
-                    "black": badWords.join(" ")
-                }
-            });
-        });
-
+        
         app.get("/setup/domain.pem", (req, res) => {
             const file = `${__dirname}/../certs/domain.pem`
             const content = fs.readFileSync(file);

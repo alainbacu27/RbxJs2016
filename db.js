@@ -2238,10 +2238,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             await start();
                             await sleep(1000);
                             const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
-                            if (resp.startsWith("err|MainExecutionJob:")) {
+                            if (resp.length <= 0) return;
+                            if (resp[resp.length - 1].startsWith("err|MainExecutionJob:")) {
                                 console.error(resp);
                             }
-                            if (resp == "err|Unknown Error") {
+                            if (resp[resp.length - 1] == "err|Unknown Error") {
                                 await stop();
                             }
                         },
@@ -2591,10 +2592,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                 await start();
                                 await sleep(1000);
                                 const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
-                                if (resp.startsWith("err|MainExecutionJob:")) {
+                                if (resp.length <= 0) return;
+                                if (resp[resp.length - 1].startsWith("err|MainExecutionJob:")) {
                                     console.error(resp);
                                 }
-                                if (resp == "err|Unknown Error") {
+                                if (resp[resp.length - 1] == "err|Unknown Error") {
                                     await stop();
                                 }
                             },
@@ -2934,8 +2936,8 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                 await start();
                                 await sleep(1000);
                                 const resp = await execute(await getRCCRenderScript(itemid, myHostPort, jobId, false), 6000000);
-                                console.log(resp);
-                                if (resp == "err|Unknown Error") {
+                                if (resp.length <= 0) return;
+                                if (resp[resp.length - 1] == "err|Unknown Error") {
                                     await stop();
                                 }
                             },
@@ -3270,7 +3272,8 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             await start();
                             await sleep(1000);
                             const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, true), 6000000);
-                            if (resp == "err|Unknown Error") {
+                            if (resp.length <= 0) return;
+                            if (resp[resp.length - 1] == "err|Unknown Error") {
                                 await stop();
                             }
                         },
