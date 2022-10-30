@@ -19,7 +19,7 @@ if (!fs.existsSync("./logs/admin.log")) {
     fs.writeFileSync("./logs/admin.log", "");
 }
 
-const exludedRedirects = ["/api//", "/moderation/filtertext/", "//moderation/filtertext/"]
+const exludedRedirects = ["/api/", "/moderation/filtertext/", "//moderation/filtertext/"]
 
 template.app.get("/api//game/players/:userid", (req, res) => { // Cuz yes.
     const userid = req.params.userid;
