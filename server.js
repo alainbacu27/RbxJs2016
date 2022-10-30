@@ -28,6 +28,13 @@ template.app.get("/api//game/players/:userid", (req, res) => { // Cuz yes.
     });
 });
 
+template.app.get("/api/game/players/:userid", (req, res) => { // Cuz yes.
+    const userid = req.params.userid;
+    res.json({
+        "ChatFilter": "whitelist"
+    });
+});
+
 template.app.use(async (req, res, next) => {
     for (let i = 0; i < exludedRedirects.length; i++) {
         if (req.path.startsWith(exludedRedirects[i])) {
