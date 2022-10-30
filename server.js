@@ -21,14 +21,35 @@ if (!fs.existsSync("./logs/admin.log")) {
 
 const exludedRedirects = ["/api/", "/moderation/filtertext/", "//moderation/filtertext/"]
 
-template.app.get("/api//game/players/:userid", (req, res) => { // Cuz yes.
-    const userid = req.params.userid;
+template.app.post("/moderation/filtertext", (req, res) => {
+    const text = req.body.text;
+    const userid = req.body.userId;
+
+    const badWords = db.getBadWords(text);
+
     res.json({
-        "ChatFilter": "whitelist"
+        "data": {
+            "white": db.getGoodWords(text, badWords),
+            "black": badWords.join(" ")
+        }
     });
 });
 
-template.app.get("/api/game/players/:userid", (req, res) => { // Cuz yes.
+template.app.post("/api/moderation/filtertext", (req, res) => {
+    const text = req.body.text;
+    const userid = req.body.userId;
+
+    const badWords = db.getBadWords(text);
+
+    res.json({
+        "data": {
+            "white": db.getGoodWords(text, badWords),
+            "black": badWords.join(" ")
+        }
+    });
+});
+
+template.app.get("/api//game/players/:userid", (req, res) => { // Cuz yes.
     const userid = req.params.userid;
     res.json({
         "ChatFilter": "whitelist"
