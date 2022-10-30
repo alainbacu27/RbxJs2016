@@ -22,7 +22,7 @@ const pm2 = require('pm2');
 const utf8 = require('utf8');
 const kill = require('tree-kill');
 const Profanity = require('profanity-js');
-const NodeGit = require("nodegit");
+// const NodeGit = require("nodegit");
 
 function maskIp(ip) {
     const isIpv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
@@ -35,6 +35,7 @@ function maskIp(ip) {
 
 async function gitClone(cloneURL, localPath) {
     return new Promise(async returnPromise => {
+        /*
         const userpass = siteConfig.PRIVATE.gitUrl.split("@")[0].split(":");
 
         const cloneOptions = {
@@ -72,6 +73,8 @@ async function gitClone(cloneURL, localPath) {
                     returnPromise(true);
                 });
             });
+        */
+       returnPromise(false);
     });
 }
 
@@ -1540,6 +1543,154 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
         plrs = #game.Players:GetPlayers()
         print("Player " .. plr.userId .. " added")
         loadfile(url .. "/Game/api/v1/UserJoined?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
+
+        local antiGodmode = false
+        local antiSpeed = false
+        local antiJumppower = false
+        local aeOptions = game.ServerStorage:FindFirstChild("AntiExploit")
+        if aeOptions then
+            if aeOptions:FindFirstChild("AntiGodmode") then antiGodmode = true end
+            if aeOptions:FindFirstChild("AntiSpeed") then antiSpeed = true end
+            if aeOptions:FindFirstChild("AntiJumppower") then antiJumppower = true end
+        end
+
+        local char = plr.Character or plr.CharacterAdded:wait()
+        local hum = char:WaitForChild("Humanoid")
+        local root = char:WaitForChild("HumanoidRootPart")
+        local userid = plr.UserId
+        
+        local lastChecked = tick()
+        local lastChecked2 = tick()
+        local lastPosition = root.Position
+        local lastPosition2 = root.Position
+        root.Changed:Connect(function(index)
+            if index == "CFrame" then
+                lastPosition = root.Position
+                lastPosition2 = root.Position
+            end
+        end)
+        
+        if antiGodmode then
+            spawn(function()
+                while game.Players:GetPlayerByUserId(userid) do
+                    if not hum or hum.Health <= 0 then
+                        if game.Players.CharacterAutoLoads then
+                            wait(5.5)
+                            if not char or char ~= plr.Character then
+                                plr:LoadCharacter()
+                            end
+                        end
+                        char = plr.Character or plr.CharacterAdded:wait()
+                        hum = char:WaitForChild("Humanoid")
+                        root = char:WaitForChild("HumanoidRootPart")
+                        lastPosition = root.Position
+                        lastPosition2 = root.Position
+                        root.Changed:Connect(function(index)
+                            if index == "CFrame" then
+                                lastPosition = root.Position
+                                lastPosition2 = root.Position
+                            end
+                        end)
+                    end
+                    wait()
+                end
+            end)
+        end
+
+        if antiSpeed then
+            spawn(function()
+                while game.Players:GetPlayerByUserId(userid) do
+                    local SpeedCheck = {
+                        MaximumSpeed = hum.WalkSpeed,
+                        RotTolerance = 100,
+                    }
+        
+                    local pingModifier = 1.15
+                    local speedTolerance = SpeedCheck.MaximumSpeed * pingModifier
+                    local rotTolerance = SpeedCheck.RotTolerance * pingModifier
+                    
+                    local distance = math.floor(((root.Position - lastPosition)* Vector3.new(1,0,1)).Magnitude)
+                    local diffTime = (tick()-lastChecked)
+                    local horizontalSpeed = distance/diffTime
+                    local rotSpeed = root.RotVelocity.Magnitude
+                    
+                    local continue = true
+                    
+                    if hum then
+                        if hum.Health <= 0 then
+                            continue = false
+                        end
+                    end
+                    
+                    if continue then
+                        if rotSpeed >= rotTolerance or horizontalSpeed >= speedTolerance then
+                            root.RotVelocity = Vector3.new(0,0,0)
+                            root.Velocity = Vector3.new(0,0,0)
+                            root.Anchored = true
+                            spawn(function()
+                                char:SetPrimaryPartCFrame(CFrame.new(lastPosition2))
+                                wait(5)
+                                root.Anchored = false
+                            end)
+                        else
+                            lastPosition = root.Position
+                        end
+                    end
+                    
+                    lastChecked = tick()
+                    wait()
+                end
+            end)
+        end
+
+        if antiJumppower then
+            spawn(function()
+                while game.Players:GetPlayerByUserId(userid) do
+                    local JumpSpeedCheck = {
+                        MaximumSpeed = hum.JumpPower * 1.25,
+                    }
+                        
+                    local speedTolerance = JumpSpeedCheck.MaximumSpeed
+                    
+                    local distance = math.floor(((root.Position - lastPosition2) * Vector3.new(0,1,0)).Magnitude)
+                    local diffTime = (tick()-lastChecked2)
+                    local verticalSpeed = distance/diffTime
+                    
+                    local continue = true
+
+                    if hum then
+                        if hum.Health <= 0 then
+                            continue = false
+                        end
+                    end
+                    
+                    if continue then
+                        pcall(function()
+                            if root.Position.Y > lastPosition2.Y then
+                                if verticalSpeed >= speedTolerance then
+                                    print(verticalSpeed)
+                                    root.RotVelocity = Vector3.new(0,0,0)
+                                    root.Velocity = Vector3.new(0,0,0)
+                                    root.Anchored = true
+                                    spawn(function()
+                                        char:SetPrimaryPartCFrame(CFrame.new(lastPosition2))
+                                        wait(5)
+                                        root.Anchored = false
+                                    end)
+                                else
+                                    lastPosition2 = root.Position
+                                end
+                            else
+                                lastPosition2 = root.Position
+                            end
+                        end)
+                    end
+
+                    lastChecked2 = tick()
+                    wait()
+                end
+            end)
+        end
     end)
 
     game:GetService("Players").PlayerRemoving:connect(function(plr)
