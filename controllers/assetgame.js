@@ -66,7 +66,8 @@ module.exports = {
             res.send();
         });
 
-        app.get("/asset", db.requireAuth2, async (req, res) => {
+        app.get("/asset", db.requireAuth2, async (req, res) => {            
+            const ip = get_ip(req).clientIp;
             if (db.getSiteConfig().backend.assetdeliveryEnabled == false) {
                 res.status(400).send();
                 return;
@@ -109,7 +110,7 @@ module.exports = {
             const game = await db.getGame(id);
             if (game) {
                 const creator = await db.getUser(game.creatorid);
-                if (db.getPRIVATE_PLACE_KEYS().includes(apiKey) || (creator && !creator.banned && !game.deleted && ((user && user.userid == game.creatorid && user.inviteKey != "" && !user.banned)) || game.copiable)) {
+                if ((ip == "127.0.0.1" || ip == "::1") || db.getPRIVATE_PLACE_KEYS().includes(apiKey) || (creator && !creator.banned && !game.deleted && ((user && user.userid == game.creatorid && user.inviteKey != "" && !user.banned)) || game.copiable)) {
                     if (db.getPRIVATE_PLACE_KEYS().includes(apiKey)) {
                         db.removePrivatePlaceKey(apiKey);
                     }
@@ -124,6 +125,7 @@ module.exports = {
                         return;
                     }
                 }
+                return res.status(401).send("Unauthorized");
             }
 
             const asset = await db.getAsset(id);

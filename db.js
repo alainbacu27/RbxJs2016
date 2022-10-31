@@ -1482,7 +1482,7 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
         script = `local placeId = ${gameid}
     local port = ${port}
     local url = "http://www.rbx2016.tk"
-    
+
     function waitForChild(parent, childName)
         while true do
             local child = parent:findFirstChild(childName)
@@ -1492,46 +1492,46 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
             parent.ChildAdded:wait()
         end
     end
-    
+
     pcall(function() settings().Network.UseInstancePacketCache = true end)
     pcall(function() settings().Network.UsePhysicsPacketCache = true end)
     pcall(function() settings()["Task Scheduler"].PriorityMethod = Enum.PriorityMethod.AccumulatedError end)
-    
+
     settings().Network.PhysicsSend = Enum.PhysicsSendMethod.TopNErrors
     settings().Network.ExperimentalPhysicsEnabled = true
     settings().Network.WaitingForCharacterLogRate = 100
     pcall(function() settings().Diagnostics:LegacyScriptMode() end)
-    
+
     local scriptContext = game:GetService('ScriptContext')
     pcall(function() scriptContext:AddStarterScript(37801172) end)
     scriptContext.ScriptsDisabled = true
-    
+
     game:SetPlaceID(placeId, false)
     game:GetService("ChangeHistoryService"):SetEnabled(false)
-    
+
     local ns = game:GetService("NetworkServer")
-    
+
     if url~=nil then
         pcall(function() game:GetService("Players"):SetAbuseReportUrl(url .. "/AbuseReport/InGameChatHandler.ashx") end)
         pcall(function() game:GetService("ScriptInformationProvider"):SetAssetUrl(url .. "/Asset/") end)
         pcall(function() game:GetService("ContentProvider"):SetBaseUrl(url .. "/") end)
         pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/Game/ChatFilter.ashx") end)
-    
+
         game:GetService("BadgeService"):SetPlaceId(placeId)
-    
+
         game:GetService("BadgeService"):SetIsBadgeLegalUrl("")
         game:GetService("InsertService"):SetBaseSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
         game:GetService("InsertService"):SetUserSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
         game:GetService("InsertService"):SetCollectionUrl(url .. "/Game/Tools/InsertAsset.ashx?sid=%d")
         game:GetService("InsertService"):SetAssetUrl(url .. "/Asset/?id=%d")
         game:GetService("InsertService"):SetAssetVersionUrl(url .. "/Asset/?assetversionid=%d")
-        
+
         pcall(function() loadfile(url .. "/Game/LoadPlaceInfo.ashx?PlaceId=" .. placeId)() end)
-        
+
     end
-    
+
     settings().Diagnostics.LuaRamLimit = 0
-    
+
     local plrs = 1
     local started = false
     local starting = false
@@ -1543,154 +1543,6 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
         plrs = #game.Players:GetPlayers()
         print("Player " .. plr.userId .. " added")
         loadfile(url .. "/Game/api/v1/UserJoined?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
-
-        local antiGodmode = false
-        local antiSpeed = false
-        local antiJumppower = false
-        local aeOptions = game.ServerStorage:FindFirstChild("AntiExploit")
-        if aeOptions then
-            if aeOptions:FindFirstChild("AntiGodmode") then antiGodmode = true end
-            if aeOptions:FindFirstChild("AntiSpeed") then antiSpeed = true end
-            if aeOptions:FindFirstChild("AntiJumppower") then antiJumppower = true end
-        end
-
-        local char = plr.Character or plr.CharacterAdded:wait()
-        local hum = char:WaitForChild("Humanoid")
-        local root = char:WaitForChild("HumanoidRootPart")
-        local userid = plr.UserId
-        
-        local lastChecked = tick()
-        local lastChecked2 = tick()
-        local lastPosition = root.Position
-        local lastPosition2 = root.Position
-        root.Changed:Connect(function(index)
-            if index == "CFrame" then
-                lastPosition = root.Position
-                lastPosition2 = root.Position
-            end
-        end)
-        
-        if antiGodmode then
-            spawn(function()
-                while game.Players:GetPlayerByUserId(userid) do
-                    if not hum or hum.Health <= 0 then
-                        if game.Players.CharacterAutoLoads then
-                            wait(5.5)
-                            if not char or char ~= plr.Character then
-                                plr:LoadCharacter()
-                            end
-                        end
-                        char = plr.Character or plr.CharacterAdded:wait()
-                        hum = char:WaitForChild("Humanoid")
-                        root = char:WaitForChild("HumanoidRootPart")
-                        lastPosition = root.Position
-                        lastPosition2 = root.Position
-                        root.Changed:Connect(function(index)
-                            if index == "CFrame" then
-                                lastPosition = root.Position
-                                lastPosition2 = root.Position
-                            end
-                        end)
-                    end
-                    wait()
-                end
-            end)
-        end
-
-        if antiSpeed then
-            spawn(function()
-                while game.Players:GetPlayerByUserId(userid) do
-                    local SpeedCheck = {
-                        MaximumSpeed = hum.WalkSpeed,
-                        RotTolerance = 100,
-                    }
-        
-                    local pingModifier = 1.15
-                    local speedTolerance = SpeedCheck.MaximumSpeed * pingModifier
-                    local rotTolerance = SpeedCheck.RotTolerance * pingModifier
-                    
-                    local distance = math.floor(((root.Position - lastPosition)* Vector3.new(1,0,1)).Magnitude)
-                    local diffTime = (tick()-lastChecked)
-                    local horizontalSpeed = distance/diffTime
-                    local rotSpeed = root.RotVelocity.Magnitude
-                    
-                    local continue = true
-                    
-                    if hum then
-                        if hum.Health <= 0 then
-                            continue = false
-                        end
-                    end
-                    
-                    if continue then
-                        if rotSpeed >= rotTolerance or horizontalSpeed >= speedTolerance then
-                            root.RotVelocity = Vector3.new(0,0,0)
-                            root.Velocity = Vector3.new(0,0,0)
-                            root.Anchored = true
-                            spawn(function()
-                                char:SetPrimaryPartCFrame(CFrame.new(lastPosition2))
-                                wait(5)
-                                root.Anchored = false
-                            end)
-                        else
-                            lastPosition = root.Position
-                        end
-                    end
-                    
-                    lastChecked = tick()
-                    wait()
-                end
-            end)
-        end
-
-        if antiJumppower then
-            spawn(function()
-                while game.Players:GetPlayerByUserId(userid) do
-                    local JumpSpeedCheck = {
-                        MaximumSpeed = hum.JumpPower * 1.25,
-                    }
-                        
-                    local speedTolerance = JumpSpeedCheck.MaximumSpeed
-                    
-                    local distance = math.floor(((root.Position - lastPosition2) * Vector3.new(0,1,0)).Magnitude)
-                    local diffTime = (tick()-lastChecked2)
-                    local verticalSpeed = distance/diffTime
-                    
-                    local continue = true
-
-                    if hum then
-                        if hum.Health <= 0 then
-                            continue = false
-                        end
-                    end
-                    
-                    if continue then
-                        pcall(function()
-                            if root.Position.Y > lastPosition2.Y then
-                                if verticalSpeed >= speedTolerance then
-                                    print(verticalSpeed)
-                                    root.RotVelocity = Vector3.new(0,0,0)
-                                    root.Velocity = Vector3.new(0,0,0)
-                                    root.Anchored = true
-                                    spawn(function()
-                                        char:SetPrimaryPartCFrame(CFrame.new(lastPosition2))
-                                        wait(5)
-                                        root.Anchored = false
-                                    end)
-                                else
-                                    lastPosition2 = root.Position
-                                end
-                            else
-                                lastPosition2 = root.Position
-                            end
-                        end)
-                    end
-
-                    lastChecked2 = tick()
-                    wait()
-                end
-            end)
-        end
     end)
 
     game:GetService("Players").PlayerRemoving:connect(function(plr)
@@ -1698,19 +1550,18 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
         print("Player " .. plr.userId .. " leaving")
         loadfile(url .. "/Game/api/v1/UserLeft?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
     end)
-    
+
     if placeId~=nil and url~=nil then
         wait()
-        
+
         game:Load("http://www.rbx2016.tk/asset/?id=${gameid}|${key}")
     end
-    
+
     ns:Start(port)
-    
-    
+
     scriptContext:SetTimeout(10)
     scriptContext.ScriptsDisabled = false
-    
+
     loadfile(url .. "/Game/api/v1/GetPublicIp?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}")()
 
     spawn(function()
@@ -1718,16 +1569,16 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
         while true do
             coroutine.wrap(function()
                 pcall(function()
-                    loadfile(url .. 
+                    loadfile(url ..
                     "/Game/api/v2.0/Refresh?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" ..
                     game.JobId ..
                     "|${gameid}" ..
                     "|" ..
                     tostring(game:GetService("Players").MaxPlayers) ..
                     "|" ..
-                    publicIp .. 
-                    "|${port}|" .. 
-                    tostring(#game:GetService("Players"):GetPlayers()) .. 
+                    publicIp ..
+                    "|${port}|" ..
+                    tostring(#game:GetService("Players"):GetPlayers()) ..
                     "|false|Unknown|" ..
                     plrs
                     )
@@ -1744,7 +1595,7 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                         started = true
                         starting = false
                     end)
-                end 
+                end
             end
         end
     end)
@@ -1758,14 +1609,14 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
             end
         end
     end)
-    
-    
+
+
     game:GetService("RunService"):Run()`;
     } else {
         script = `local placeId = ${gameid}
         local port = ${port}
         local url = "http://www.rbx2016.tk"
-        
+
         function waitForChild(parent, childName)
             while true do
                 local child = parent:findFirstChild(childName)
@@ -1775,48 +1626,48 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                 parent.ChildAdded:wait()
             end
         end
-        
+
         pcall(function() settings().Network.UseInstancePacketCache = true end)
         pcall(function() settings().Network.UsePhysicsPacketCache = true end)
         pcall(function() settings()["Task Scheduler"].PriorityMethod = Enum.PriorityMethod.AccumulatedError end)
-        
+
         settings().Network.PhysicsSend = Enum.PhysicsSendMethod.TopNErrors
         settings().Network.ExperimentalPhysicsEnabled = true
         settings().Network.WaitingForCharacterLogRate = 100
         pcall(function() settings().Diagnostics:LegacyScriptMode() end)
-        
+
         local scriptContext = game:GetService('ScriptContext')
         pcall(function() scriptContext:AddStarterScript(37801172) end)
         scriptContext.ScriptsDisabled = true
-        
+
         game:SetPlaceID(placeId, false)
         game:GetService("ChangeHistoryService"):SetEnabled(false)
-        
+
         local ns = game:GetService("NetworkServer")
 
         ns:ConfigureAsCloudEditServer()
-        
+
         if url~=nil then
             pcall(function() game:GetService("Players"):SetAbuseReportUrl(url .. "/AbuseReport/InGameChatHandler.ashx") end)
             pcall(function() game:GetService("ScriptInformationProvider"):SetAssetUrl(url .. "/Asset/") end)
             pcall(function() game:GetService("ContentProvider"):SetBaseUrl(url .. "/") end)
             pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/Game/ChatFilter.ashx") end)
-        
+
             game:GetService("BadgeService"):SetPlaceId(placeId)
-        
+
             game:GetService("BadgeService"):SetIsBadgeLegalUrl("")
             game:GetService("InsertService"):SetBaseSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
             game:GetService("InsertService"):SetUserSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
             game:GetService("InsertService"):SetCollectionUrl(url .. "/Game/Tools/InsertAsset.ashx?sid=%d")
             game:GetService("InsertService"):SetAssetUrl(url .. "/Asset/?id=%d")
             game:GetService("InsertService"):SetAssetVersionUrl(url .. "/Asset/?assetversionid=%d")
-            
+
             pcall(function() loadfile(url .. "/Game/LoadPlaceInfo.ashx?PlaceId=" .. placeId)() end)
-            
+
         end
-        
+
         settings().Diagnostics.LuaRamLimit = 0
-        
+
         local plrs = 1
         local started = false
         local starting = false
@@ -1835,38 +1686,38 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
             print("Player " .. plr.userId .. " leaving")
             loadfile(url .. "/Game/api/v1/UserLeftTeamCreate?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
         end)
-        
+
         if placeId~=nil and url~=nil then
             wait()
-            
-            game:Load("http://www.rbx2016.tk/asset/?id=${gameid}|${siteConfig.PRIVATE.PRIVATE_API_KEY}")
+
+            game:Load("http://www.rbx2016.tk/asset/?id=${gameid}|${key}")
         end
-        
+
         ns:Start(port)
-        
-        
+
+
         scriptContext:SetTimeout(10)
         scriptContext.ScriptsDisabled = false
-        
-        
-        
+
+
+
         loadfile(url .. "/Game/api/v1/GetPublicIp?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}")()
-    
+
         spawn(function()
             wait(1)
             while true do
                 coroutine.wrap(function()
                     pcall(function()
-                        loadfile(url .. 
+                        loadfile(url ..
                         "/Game/api/v2.0/Refresh?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" ..
                         game.JobId ..
                         "|${gameid}" ..
                         "|" ..
                         tostring(game:GetService("Players").MaxPlayers) ..
                         "|" ..
-                        publicIp .. 
-                        "|${port}|" .. 
-                        tostring(#game:GetService("Players"):GetPlayers()) .. 
+                        publicIp ..
+                        "|${port}|" ..
+                        tostring(#game:GetService("Players"):GetPlayers()) ..
                         "|false|Unknown|" ..
                         plrs
                         )
@@ -1883,11 +1734,11 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                             started = true
                             starting = false
                         end)
-                    end 
+                    end
                 end
             end
         end)
-    
+
         spawn(function()
             while true do
                 wait(25)
@@ -1897,8 +1748,8 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                 end
             end
         end)
-        
-        
+
+
         `;
     }
 
@@ -1916,7 +1767,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
         script = `local placeId = ${itemid}
         local port = ${port}
         local url = "http://www.rbx2016.tk"
-        
+
         function waitForChild(parent, childName)
             while true do
                 local child = parent:findFirstChild(childName)
@@ -1926,49 +1777,49 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
                 parent.ChildAdded:wait()
             end
         end
-        
+
         pcall(function() settings().Network.UseInstancePacketCache = true end)
         pcall(function() settings().Network.UsePhysicsPacketCache = true end)
         pcall(function() settings()["Task Scheduler"].PriorityMethod = Enum.PriorityMethod.AccumulatedError end)
-        
+
         settings().Network.PhysicsSend = Enum.PhysicsSendMethod.TopNErrors
         settings().Network.ExperimentalPhysicsEnabled = true
         settings().Network.WaitingForCharacterLogRate = 100
         pcall(function() settings().Diagnostics:LegacyScriptMode() end)
-        
+
         local scriptContext = game:GetService('ScriptContext')
         pcall(function() scriptContext:AddStarterScript(37801172) end)
         scriptContext.ScriptsDisabled = true
-        
+
         game:SetPlaceID(placeId, false)
         game:GetService("ChangeHistoryService"):SetEnabled(false)
-        
+
         local ns = game:GetService("NetworkServer")
-        
+
         if url~=nil then
             pcall(function() game:GetService("Players"):SetAbuseReportUrl(url .. "/AbuseReport/InGameChatHandler.ashx") end)
             pcall(function() game:GetService("ScriptInformationProvider"):SetAssetUrl(url .. "/Asset/") end)
             pcall(function() game:GetService("ContentProvider"):SetBaseUrl(url .. "/") end)
             pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/Game/ChatFilter.ashx") end)
-        
+
             game:GetService("BadgeService"):SetPlaceId(placeId)
-        
+
             game:GetService("BadgeService"):SetIsBadgeLegalUrl("")
             game:GetService("InsertService"):SetBaseSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
             game:GetService("InsertService"):SetUserSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
             game:GetService("InsertService"):SetCollectionUrl(url .. "/Game/Tools/InsertAsset.ashx?sid=%d")
             game:GetService("InsertService"):SetAssetUrl(url .. "/Asset/?id=%d")
             game:GetService("InsertService"):SetAssetVersionUrl(url .. "/Asset/?assetversionid=%d")
-            
+
             pcall(function() loadfile(url .. "/Game/LoadPlaceInfo.ashx?PlaceId=" .. placeId)() end)
-            
+
         end
-        
+
         settings().Diagnostics.LuaRamLimit = 0
-        
+
         if placeId~=nil and url~=nil then
             wait()
-            
+
             game:Load("http://www.rbx2016.tk/asset/?id=${itemid}|${key}")
         end
 
@@ -1979,11 +1830,11 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
                 game:FinishShutdown(false)
             end
         end)
-        
+
         local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
         local https = game:GetService("HttpService")
         local url = "https://www.rbx2016.tk/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
-        
+
         local data = ""
         for k, v in pairs(result) do
             data = data .. ("&%s=%s"):format(
@@ -1992,7 +1843,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
             )
         end
         data = data:sub(2)
-        
+
         local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)`;
     } else {
         const item = getCatalogItem(itemid);
@@ -2020,7 +1871,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
         local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
         local https = game:GetService("HttpService")
         local url = "https://www.rbx2016.tk/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
-        
+
         local data = ""
         for k, v in pairs(result) do
             data = data .. ("&%s=%s"):format(
@@ -2029,7 +1880,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
             )
         end
         data = data:sub(2)
-        
+
         local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)
         `;
         } else {
@@ -2054,9 +1905,9 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
                v:Destroy()
            end
         end
-        
+
         ${loadCode}
-        
+
         for i,v in pairs(plr.Character:GetChildren()) do
            if v:IsA("Tool") then
                plr.Character.Torso["Right Shoulder"].CurrentAngle = math.pi / 2
@@ -2070,7 +1921,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
                 game:FinishShutdown(false)
             end
         end)
-        
+
         local result = game:GetService("ThumbnailGenerator"):Click("PNG", 5, 5, true)
         error(result)
 
@@ -2086,7 +1937,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
             )
         end
         data = data:sub(2)
-        
+
         local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)
         `;
         }
@@ -2686,11 +2537,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
 
                                     /*
                                     sudo apt install xvfb lightdm
-    
+
                                     export DISPLAY=:1
                                     Xvfb :1 -screen 0 1024x768x16 &
                                     sleep 1
-    
+
                                     #exec gnome-session & # use gnome-session instead of lightdm
                                     exec lightdm-session &
                                     */
@@ -3030,11 +2881,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
 
                                     /*
                                     sudo apt install xvfb lightdm
-    
+
                                     export DISPLAY=:1
                                     Xvfb :1 -screen 0 1024x768x16 &
                                     sleep 1
-    
+
                                     #exec gnome-session & # use gnome-session instead of lightdm
                                     exec lightdm-session &
                                     */
