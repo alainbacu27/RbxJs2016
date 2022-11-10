@@ -556,10 +556,10 @@ module.exports = {
             const keyword = req.query.keyword;
             let data = []
             let catalogItems = null
-            if (keyword) {
-                catalogItems = await db.getCatalogItems(keyword)
-            } else {
-                catalogItems = await db.getCatalogItems2(cursor, limit);
+            if (keyword){
+                catalogItems = await db.getCatalogItems(keyword, true)
+            }else{
+                catalogItems = await db.getCatalogItems2(cursor, limit, true);
             }
             if (!catalogItems) {
                 res.status(400).json({});
@@ -582,60 +582,13 @@ module.exports = {
             });
         });
 
-        app.get("/v2/search/items/details", async (req, res) => {
-            res.json({
-                "keyword": null,
-                "previousPageCursor": null,
-                "nextPageCursor": null,
-                "data": [
-                    /*
-                    {
-                        "id": 973,
-                        "itemType": "Bundle",
-                        "bundleType": 1,
-                        "name": "Sakura Man",
-                        "description": "Adds cherry-colored cheer wherever he grows. Concept by @inkwaves.Adds cherry-colored cheer wherever he grows. Concept by @inkwaves.",
-                        "productId": 1327803980,
-                        "itemStatus": [],
-                        "itemRestrictions": [],
-                        "creatorHasVerifiedBadge": true,
-                        "creatorType": "User",
-                        "creatorTargetId": 1,
-                        "creatorName": "Roblox",
-                        "price": 250,
-                        "favoriteCount": 12627,
-                        "offSaleDeadline": null
-                    }, {
-                        "id": 10607480911,
-                        "itemType": "Asset",
-                        "assetType": 8,
-                        "name": "Paranormal Party Starter",
-                        "description": "It’s got the perfect lo-fi hip-hop beats to levitate/haunt to. * Promo ends November 2, 2022. *",
-                        "productId": 1322909775,
-                        "genres": ["All"],
-                        "itemStatus": [],
-                        "itemRestrictions": [],
-                        "creatorHasVerifiedBadge": true,
-                        "creatorType": "User",
-                        "creatorTargetId": 1,
-                        "creatorName": "Roblox",
-                        "price": 0,
-                        "priceStatus": "Free",
-                        "favoriteCount": 70250,
-                        "offSaleDeadline": null
-                    }
-                    */
-                ]
-            });
-        });
-
         app.post("/v1/catalog/items/details", async (req, res) => {
             const items = req.body.items || [];
             let data = [];
             for (let i = 0; i < items.length; i++) {
                 const item0 = items[i];
                 const item = await db.getCatalogItem(item0.id);
-                if (!item) {
+                if (!item || item.deleted) {
                     continue;
                 }
                 const itemcreator = await db.getUser(item.itemcreatorid);

@@ -23,11 +23,11 @@ module.exports = {
                 const userId = userIds[i];
                 const user = await db.getUser(userId);
                 if (!user) continue;
-                const presenceType = (user.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? (user.playing != 0 && user.playing != null) ? 2 : 1 : 0;
+                const presenceType = (user.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (user.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? (user.playing != 0 && user.playing != null) ? 2 : 1 : 0;
                 const gameid = req.user != null && db.areFriends(req.user.userid, user.userid) ? (user.playing != 0 && user.playing != null) ? user.playing : null : null
                 data.push({
                     "userPresenceType": presenceType, // 0 = Offline, 1 = Website, 2 = Playing
-                    "lastLocation": presenceType == 2 ? "In-Game" : presenceType == 1 ? "Website" : "Offline",
+                    "lastLocation": presenceType == 3 ? "Studio" : presenceType == 2 ? "Playing" : presenceType == 1 ? "Website" : "Offline",
                     "placeId": gameid,
                     "rootPlaceId": gameid,
                     "gameId": gameid,

@@ -60,8 +60,6 @@ module.exports = {
             const description = req.body.description;
             const genre = req.body.genre;
             const playableDevices = req.body.playableDevices;
-            const universeAvatarType = req.body.universeAvatarType;
-            console.log(req.body);
             const game = await db.getGame(parseInt(req.params.universeid));
             if (!game) {
                 res.status(404).json({
@@ -74,65 +72,6 @@ module.exports = {
                 res.status(403).json({
                     "Success": false,
                     "Error": "Not authorized"
-                });
-                return;
-            }
-            if (universeAvatarType) {
-                console.log(universeAvatarType);
-                if (universeAvatarType != "MorphToR6" && universeAvatarType != "MorphToR15" && universeAvatarType != "PlayerChoice") {
-                    res.status(400).json({
-                        "Success": false,
-                        "Error": "Invalid universeAvatarType"
-                    });
-                    return;
-                }
-                await db.setGameProperty(game.gameid, "universeAvatarType", universeAvatarType);
-                return res.json({
-                    "allowPrivateServers": false,
-                    "privateServerPrice": null,
-                    "optInRegions": [],
-                    "id": game.gameid,
-                    "name": name,
-                    "description": description,
-                    "universeAvatarType": universeAvatarType,
-                    "universeAnimationType": "PlayerChoice",
-                    "universeCollisionType": "OuterBox",
-                    "universeJointPositioningType": "ArtistIntent",
-                    "isArchived": false,
-                    "isFriendsOnly": isFriendsOnly,
-                    "genre": "All",
-                    "playableDevices": ["Computer", "Phone", "Tablet"],
-                    "isForSale": false,
-                    "price": 0,
-                    "universeAvatarAssetOverrides": [],
-                    "universeAvatarMinScales": {
-                        "height": 0.9,
-                        "width": 0.7,
-                        "head": 0.95,
-                        "depth": 0.0,
-                        "proportion": 0.0,
-                        "bodyType": 0.0
-                    },
-                    "universeAvatarMaxScales": {
-                        "height": 1.05,
-                        "width": 1.0,
-                        "head": 1.0,
-                        "depth": 0.0,
-                        "proportion": 1.0,
-                        "bodyType": 1.0
-                    },
-                    "studioAccessToApisAllowed": game.allowstudioaccesstoapis,
-                    "permissions": {
-                        "IsThirdPartyTeleportAllowed": false,
-                        "IsThirdPartyAssetAllowed": false,
-                        "IsThirdPartyPurchaseAllowed": false
-                    }
-                });
-            }
-            if (!name) {
-                res.status(400).json({
-                    "Success": false,
-                    "Error": "Missing name"
                 });
                 return;
             }
@@ -161,7 +100,7 @@ module.exports = {
                 "id": game.gameid,
                 "name": name,
                 "description": description,
-                "universeAvatarType": game.universeAvatarType || "MorphToR6",
+                "universeAvatarType": "MorphToR6",
                 "universeAnimationType": "PlayerChoice",
                 "universeCollisionType": "OuterBox",
                 "universeJointPositioningType": "ArtistIntent",
@@ -245,7 +184,7 @@ module.exports = {
             }
             res.json({
                 "canManage": true,
-                "canCloudEdit": true
+                "canCloudEdit": game.teamCreateEnabled && db.getSiteConfig().backend.hostingTeamCreateEnabled == true
             });
         });
 
@@ -300,7 +239,7 @@ module.exports = {
                 return;
             }
             const creator = await db.getUser(game.creatorid);
-            if (!creator || creator.banned || game.deleted) {
+            if (!creator || creator.banned || game.deleted || user.inviteKey == "") {
                 res.status(404).json({
                     "errors": [{
                         "code": 1,
@@ -353,7 +292,7 @@ module.exports = {
             }
             res.json({
                 "canManage": true,
-                "canCloudEdit": true
+                "canCloudEdit": game.teamCreateEnabled && db.getSiteConfig().backend.hostingTeamCreateEnabled == true
             });
         });
 
@@ -377,7 +316,7 @@ module.exports = {
                 "id": game.gameid,
                 "name": game.gamename,
                 "description": game.description,
-                "universeAvatarType": game.universeAvatarType || "MorphToR6",
+                "universeAvatarType": "MorphToR6",
                 "universeAnimationType": "PlayerChoice",
                 "universeCollisionType": "OuterBox",
                 "universeJointPositioningType": "ArtistIntent",
@@ -440,7 +379,7 @@ module.exports = {
                 "id": 0,
                 "name": game.gamename,
                 "description": game.description,
-                "universeAvatarType": game.universeAvatarType || "MorphToR6",
+                "universeAvatarType": "MorphToR6",
                 "universeAnimationType": "Standard",
                 "universeCollisionType": "InnerBox",
                 "universeJointPositioningType": "Standard",
@@ -491,14 +430,14 @@ module.exports = {
             const gameid = parseInt(req.params.gameid);
             const user = await db.getUser(userid);
             const game = await db.getGame(gameid);
-            if ((!user || user.banned) || !game) {
+            if ((!user || user.banned || user.inviteKey == "") || !game) {
                 res.status(404).json({
                     "Success": false,
                     "CanManage": false
                 })
                 return;
             }
-            if (game.creatorid == user.userid) {
+            if (game.creatorid == user.userid || user.role == "owner") {
                 res.json({
                     "Success": true,
                     "CanManage": true

@@ -18,34 +18,7 @@ module.exports = {
                 return;
             }
             const userid = parseInt(req.params.user);
-            if (typeof req.user !== "undefined" && req.user.userid == userid && !req.user.banned) {
-                res.json({
-                    "robux": req.user.robux
-                });
-            } else {
-                res.status(400).json({
-                    "errors": [{
-                        "code": 1,
-                        "message": "The user is invalid.",
-                        "userFacingMessage": "Something went wrong"
-                    }]
-                });
-            }
-        });
-
-        app.get('//v1/users/:user/currency', db.requireAuth2, (req, res) => {
-            if (db.getSiteConfig().backend.robuxServiceEnabled == false) {
-                res.status(400).json({
-                    "errors": [{
-                        "code": 1,
-                        "message": "The robux service is disabled.",
-                        "userFacingMessage": "Something went wrong"
-                    }]
-                });
-                return;
-            }
-            const userid = parseInt(req.params.user);
-            if (typeof req.user !== "undefined" && req.user.userid == userid && !req.user.banned) {
+            if (typeof req.user !== "undefined" && req.user.inviteKey != "" && req.user.userid == userid && !req.user.banned && user.inviteKey != "") {
                 res.json({
                     "robux": req.user.robux
                 });
@@ -113,7 +86,7 @@ module.exports = {
             const game = await db.getGame(targetId);
             if (game) {
                 const creator = await db.getUser(game.creatorid);
-                if (!creator || creator.banned) {
+                if (!creator || creator.banned || creator.inviteKey == "") {
                     res.status(404).json({});
                     return;
                 }

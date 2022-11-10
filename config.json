@@ -198,41 +198,8 @@
         }
     },
     "client": {
-        "windows": {
-            "x86": {
-                "version": "1",
-                "versionFull": "0, 1, 0, 0",
-                "bootstrapperVersion": "1, 6, 0, 5280404"
-            }
-        },
-        "mac": {
-            "x64": {
-                "version": "1",
-                "versionFull": "0, 1, 0, 0",
-                "bootstrapperVersion": "5280404"
-            }
-        }
-    },
-    "studio": {
-        "windows": {
-            "x86": {
-                "version": "1s",
-                "versionFull": "0, 1, 0, 0",
-                "bootstrapperVersion": "1, 6, 0, 5280404"
-            },
-            "x64": {
-                "version": "1s",
-                "versionFull": "0, 1, 0, 0",
-                "bootstrapperVersion": "1, 6, 0, 5280404"
-            }
-        },
-        "mac": {
-            "x64": {
-                "version": "1s",
-                "versionFull": "0, 1, 0, 0",
-                "bootstrapperVersion": "5280404"
-            }
-        }
+        "version": 1,
+        "versionFull": "0, 1, 0, 0"
     },
     "frontend": {
         "transactionTypes": {

@@ -25,7 +25,7 @@ module.exports = {
                 "canProceedToCashout": false,
                 "hasCurrencyOperationError": false,
                 "currencyOperationErrorMessage": null,
-                "robloxDevExHelpFullUrl": "https://en.help.roblox.com/hc/en-us/articles/203314100"
+                "robloxDevExHelpFullUrl": "https://en.help.rbx2016.tk/hc/en-us/articles/203314100"
             });
         });
 

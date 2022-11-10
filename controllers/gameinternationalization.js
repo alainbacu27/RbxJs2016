@@ -15,7 +15,7 @@ module.exports = {
             });
         });
 
-        app.post("/v1/autolocalization/games/:gameid/autolocalizationtable", (req, res) => {
+        app.post("/v1/autolocalization/games/1/autolocalizationtable", (req, res) => {
             res.json({})
         });
 
@@ -31,7 +31,7 @@ module.exports = {
             res.json({})
         });
 
-        app.get("/games/:gameid/automatic-translation-status", (req, res) => {
+        app.get("/games/1/automatic-translation-status", (req, res) => {
             res.json({});
         });
     }

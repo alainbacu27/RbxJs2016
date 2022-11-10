@@ -131,7 +131,7 @@ module.exports = {
             });
         });
 
-        app.get("/v1/avatar-fetch/", (req, res) => {
+        app.get("/v1/avatar-fetch", (req, res) => {
             const userid = parseInt(req.query.userId);
             const placeid = parseInt(req.query.placeId);
             res.json({
@@ -175,7 +175,6 @@ module.exports = {
             const height = parseFloat(req.body.height);
             const proportion = parseFloat(req.body.proportion);
             const width = parseFloat(req.body.width);
-            console.log(bodyType);
             res.status(501).json({});
         });
 

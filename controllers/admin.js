@@ -17,13 +17,19 @@ module.exports = {
             const item = req.body.item;
             const todo = req.body.todo;
             const user = await db.getUser(userid);
-            if (req.user.isMod) {
-                if (user && (user.isMod || user.isAdmin)) {
+            if (req.user.role = "mod") {
+                if (user && (user.role == "mod" || user.role == "admin" || user.role == "owner")) {
                     res.status(401).send("You cannot ban that person. Lacking sufficient permissions.");
                     return;
                 }
             }
-            if (user && user.isAdmin) {
+            if (req.user.role == "admin") {
+                if (user && (user.role == "admin" || user.role == "owner")) {
+                    res.status(401).send("You cannot ban that person. Lacking sufficient permissions.");
+                    return;
+                }
+            }
+            if (user && user.role == "owner") {
                 res.status(401).send("You cannot ban that person. Lacking sufficient permissions.");
                 return;
             }
@@ -36,7 +42,7 @@ module.exports = {
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });
 
-        app.post("/v1/admin/approve", db.requireAuth, db.requireMod, async (req, res) => {
+        app.post("/v1/admin/approve", db.requireAuth, db.requireApprover, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -47,7 +53,7 @@ module.exports = {
             res.send("Asset Approved!");
         });
 
-        app.post("/v1/admin/settix", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/settix", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -59,7 +65,7 @@ module.exports = {
             res.send("OK");
         });
 
-        app.post("/v1/admin/addtix", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/addtix", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -77,7 +83,7 @@ module.exports = {
             res.send("OK");
         });
 
-        app.post("/v1/admin/gettix", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/gettix", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -122,7 +128,7 @@ module.exports = {
             res.send(`Sucessfully gave "${user.username}" (userid: ${user.userid}), ${amount} tix!`);
         });
 
-        app.get("/v1/admin/unapprovedAssets", async (req, res) => {
+        app.get("/v1/admin/unapprovedAssets", db.requireApprover, async (req, res) => {
             let limit = parseInt(req.query.limit) || 100;
             if (limit < 0) {
                 limit = 1;
@@ -131,7 +137,7 @@ module.exports = {
             }
             const assets = await db.getFirstXUnapprovedAssets(limit);
             let html = `
-            <link rel="stylesheet" href="https://static.roblox.com/css/main.css">
+            <link rel="stylesheet" href="https://static.rbx2016.tk/css/main.css">
 <script type='text/javascript' src='/shut/realtime.js'></script>
 <script type='text/javascript' src='/js/jquery-1.11.1.min.js'></script>
             <script type='text/javascript'>
@@ -145,7 +151,7 @@ module.exports = {
             <script>
                 function approveAsset(id){
                     $.ajax({
-                        url: 'https://www.roblox.com/v1/admin/approve',
+                        url: 'https://www.rbx2016.tk/v1/admin/approve',
                         type: 'POST',
                         data: {
                             'assetid': id
@@ -158,7 +164,7 @@ module.exports = {
                 
                 function deleteAsset(id){
                     $.ajax({
-                        url: 'https://www.roblox.com/v1/admin/delete',
+                        url: 'https://www.rbx2016.tk/v1/admin/delete',
                         type: 'POST',
                         data: {
                             'assetid': id
@@ -186,8 +192,8 @@ module.exports = {
                 const asset = assets[i];
                 const creator = await db.getUser(asset.creatorid);
                 html += `<tr>
-                 <td><a href="https://www.roblox.com/users/${creator.userid}/profile">${creator.username}</a></td>
-                 <td><a href="https://www.roblox.com/library/${asset.id}">${asset.name}</a></td>
+                 <td><a href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a></td>
+                 <td><a href="https://www.rbx2016.tk/library/${asset.id}">${asset.name}</a></td>
                  <td id="asset-${asset.id}"><button onclick="approveAsset(${asset.id})">Approve</button> <button onclick="deleteAsset(${asset.id})">Delete</button></td>
                </tr>`;
             }
@@ -197,7 +203,7 @@ module.exports = {
             res.send(html);
         });
 
-        app.post("/v1/admin/delete", db.requireAuth, db.requireMod, async (req, res) => {
+        app.post("/v1/admin/delete", db.requireAuth, db.requireApprover, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -219,7 +225,7 @@ module.exports = {
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });
 
-        app.post("/v1/admin/setrobux", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/setrobux", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -230,7 +236,7 @@ module.exports = {
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });
 
-        app.post("/v1/admin/maintenance", db.requireAuth, db.requireMod, async (req, res) => {
+        app.post("/v1/admin/maintenance", db.requireAuth, db.requireAdmin, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -251,7 +257,7 @@ module.exports = {
             }
         });
 
-        app.post("/v1/admin/msg", db.requireAuth, db.requireMod, async (req, res) => {
+        app.post("/v1/admin/msg", db.requireAuth, db.requireAdmin, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -266,7 +272,7 @@ module.exports = {
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });
 
-        app.post("/v1/admin/restartarbiter", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/restartarbiter", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -280,12 +286,12 @@ module.exports = {
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/restartarbiter")
         });
 
-        app.post("/v1/admin/cinvitekey", db.requireAuth, db.requireMod, async (req, res) => {
+        app.post("/v1/admin/cinvitekey", db.requireAuth, db.requireAdmin, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
             }
-            if (req.user.isMod) {
+            if (req.user.role == "mod") {
                 if (req.user.lastInvite && db.getUnixTimestamp() - req.user.lastInvite < db.getSiteConfig().shared.ADMIN_InviteCooldown) {
                     res.status(401).send(`You cannot invite another user until ${db.timeToString(req.user.lastInvite + db.getSiteConfig().shared.ADMIN_InviteCooldown)}.`);
                     return;
@@ -297,14 +303,14 @@ module.exports = {
             res.send(key);
         });
 
-        app.post("/v1/admin/dinvitekey", db.requireAuth, db.requireMod, async (req, res) => {
+        app.post("/v1/admin/dinvitekey", db.requireAuth, db.requireAdmin, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
             }
             const key = req.body.key;
             const ik = await db.getInviteKey(key);
-            if (!req.user.isAdmin && ik && ik.createdby != req.user.userid) {
+            if (!req.user.role == "owner" && ik && ik.createdby != req.user.userid) {
                 res.status(401).send("You cannot delete this invite key.");
                 return;
             }
@@ -332,7 +338,13 @@ module.exports = {
             if (!user) {
                 return res.status(404).send("User not found");
             }
-            if (user.isMod && !req.user.isAdmin && !user.isAdmin && req.user.userid != user.userid) {
+            if (user.role == "mod" && !(req.user.role == "admin" || req.user.role == "owner") && req.user.userid != user.userid) {
+                return res.status(401).send("You cannot rename this user.");
+            }
+            if (user.role == "admin" && req.user.role != "owner" && req.user.userid != user.userid) {
+                return res.status(401).send("You cannot rename this user.");
+            }
+            if (user.role == "owner" && req.user.role != "owner" && req.user.userid != user.userid) {
                 return res.status(401).send("You cannot rename this user.");
             }
 
@@ -345,7 +357,7 @@ module.exports = {
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/usermoderation")
         });
 
-        app.post("/v1/admin/gmembership", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/gmembership", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -364,7 +376,7 @@ module.exports = {
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/usermoderation")
         });
 
-        app.post("/v1/admin/grole", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/grole", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -378,22 +390,23 @@ module.exports = {
             if (role < 0 || role > 2) {
                 return res.status(400).send("Invalid role");
             }
-            if (user.isAdmin && req.user.userid != 1) {
+            if (user.role == "owner" && req.user.userid != 1) {
                 return res.status(401).send("You cannot change this user's role.");
             }
             db.log(`User ${req.user.userid} changing user ${userid}'s role to ${role}.`);
             switch (role) {
                 case 0:
-                    await db.setUserProperty(userid, "isMod", false);
-                    await db.setUserProperty(userid, "isAdmin", false);
+                    await db.setUserProperty(userid, "role", "none");
                     break;
                 case 1:
-                    await db.setUserProperty(userid, "isMod", true);
-                    await db.setUserProperty(userid, "isAdmin", false);
+                    await db.setUserProperty(userid, "role", "approver");
                     break;
                 case 2:
-                    await db.setUserProperty(userid, "isMod", false);
-                    await db.setUserProperty(userid, "isAdmin", true);
+                    await db.setUserProperty(userid, "role", "mod");
+                    break;
+                case 3:
+                    await db.setUserProperty(userid, "role", "admin");
+                    break;
             }
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/usermoderation");
         });
@@ -430,7 +443,7 @@ module.exports = {
 --------------------------------------------<p></p>
 UserId: ${user.userid}<p></p>
 Username: ${user.username}<p></p>
-Admin: ${db.toString(user.isAdmin)}<p></p>
+Role: ${user.role}<p></p>
 Banned: ${db.toString(user.banned)}<p></p>
 ㅤㅤ- Ban Date: ${user.bannedDate}<p></p>
 ㅤㅤㅤㅤ- Ban Mod Note: ${user.bannedModNote}<p></p>
@@ -449,9 +462,10 @@ User Info:<p></p>
 ㅤㅤ- Robux: ${db.formatNumber(user.robux)}<p></p>
 ㅤㅤ- Tix: ${db.formatNumber(user.tix)}<p></p>
 ㅤㅤ[Signup/Dates]<p></p>
-ㅤㅤ- Signup IP: ${req.user.isAdmin ? user.ip : db.maskIp(user.ip)}<p></p>
+ㅤㅤ- Signup IP: ${req.user.role == "owner" ? user.ip : db.maskIp(user.ip)}<p></p>
 ㅤㅤㅤㅤ- Created: ${db.unixToDate(user.created).toISOString()}<p></p>
 ㅤㅤ[Other]<p></p>
+ㅤㅤ- Last IP: ${req.user.role == "owner" ? user.lastIp || "?.?.?.?" : db.maskIp(user.lastIp || "?.?.?.?")}<p></p>
 ㅤㅤ- Last Online: ${db.unixToDate(user.lastOnline).toISOString()}<p></p>
 ㅤㅤ- Playing: ${(user.lastOnline || 0) <= (db.getUnixTimestamp() - 60) && user.playing == 0 ? "Nothing" : db.toString(user.playing)}<p></p>
 --------------------------------------------<p></p>
@@ -466,14 +480,43 @@ ${assets}
             `);
         });
 
+        async function formatMessages(userid, location) {
+            let messages = await db.getMessages(userid, location);
+            if (!messages) return ``;
+            messages = messages.reverse();
+            let formatted = ``;
+            for (let i = 0; i < messages.length; i++) {
+                if (i > 1000) break;
+                const message = messages[i];
+                const sender = await db.getUser(message.from);
+                if (!sender) continue;
+                formatted += `<h1>User ${userid} messages</h1>
+                <h2>Id: ${message.id}</h2>
+                <h2>To: ${message.to}</h2>
+                <h2>Timestamp: ${message.timestamp}</h2>
+                <h3>Subject: ${message.subject}</h3>
+                <h4>Body: ${message.body}</h4>
+                <p>&nbsp;</p>
+                <br/>`;
+            }
+            return formatted;
+        }
 
-        app.post("/v1/admin/linvitekeys", db.requireAuth, db.requireMod, async (req, res) => {
+        app.post("/v1/admin/messages", db.requireAuth, db.requireOwner, async (req, res) => {
+            const userid = parseInt(req.body.userid);
+            const user = await db.getUser(userid);
+            if (!user) return res.status(404).send("User not found.");
+            res.send(await formatMessages(user.userid, "sent"));
+        });
+
+
+        app.post("/v1/admin/linvitekeys", db.requireAuth, db.requireAdmin, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
             }
             let out = "";
-            if (req.user.isMod) {
+            if (req.user.role == "mod") {
                 const keys = await db.listInviteKeys(req.user.userid);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
@@ -497,7 +540,7 @@ ${assets}
             res.send(out);
         });
 
-        app.post("/v1/admin/setfflag", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/setfflag", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -542,7 +585,7 @@ ${assets}
             }
         });
 
-        app.post("/v1/admin/setconfig", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/setconfig", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -575,7 +618,7 @@ ${assets}
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/config");
         });
 
-        app.post("/v1/admin/rccrunscript", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/rccrunscript", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -653,7 +696,7 @@ ${assets}
             }
         });
 
-        app.post("/v1/admin/getfflag", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/getfflag", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;
@@ -674,7 +717,7 @@ ${assets}
             res.send(data[fflag]);
         });
 
-        app.post("/v1/admin/getconfig", db.requireAuth, db.requireAdmin, async (req, res) => {
+        app.post("/v1/admin/getconfig", db.requireAuth, db.requireOwner, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
                 return;

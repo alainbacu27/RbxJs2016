@@ -40,7 +40,7 @@ module.exports = {
                 });
                 return;
             }
-            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);;
+            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
             if (isBadUsername) {
                 res.json({
                     "code": 2,
@@ -72,7 +72,7 @@ module.exports = {
                 "IsUserAgreementsSignupIntegrationEnabled": true,
                 "IsKoreaIdVerificationEnabled": false,
 
-                // chat.roblox.com
+                // chat.rbx2016.tk
                 "isChatEnabledByPrivacySetting": 1,
                 "languageForPrivacySettingUnavailable": "Chat is currently unavailable",
                 "maxConversationTitleLength": 150,
@@ -123,6 +123,7 @@ module.exports = {
         });
 
         app.post('/v2/signup', async (req, res) => {
+            const isEligibleForHideAdsAbTest = req.body.isEligibleForHideAdsAbTest;
             if (db.getSiteConfig().shared.allowSignup == false) {
                 res.status(401).render("401", await db.getBlankTemplateData());
                 return;
@@ -135,22 +136,17 @@ module.exports = {
                 return;
             }
             const birthday = new Date(Date.parse(data.birthday));
-            const context = data.context;
+            const context = req.body.context; // RollerCoasterSignupForm
             const gender = db.getSiteConfig().shared.users.gendersEnabled ? parseInt(data.gender) : 1; // 1 = none, 2 = Boy, 3 = Girl
             if (gender < 1 || gender > 3) {
                 res.status(400).send("Invalid gender");
-                return;
-            }
-            const isTosAgreementBoxChecked = data.isTosAgreementBoxChecked;
-            if (!isTosAgreementBoxChecked) {
-                res.status(401).send("TOS Not accepted.");
                 return;
             }
             const password = data.password;
             const referralData = data.referralData;
             const username = data.username;
 
-            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);;
+            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
             if (isBadUsername) {
                 res.status(400).send("Bad username.");
                 return;
@@ -170,19 +166,25 @@ module.exports = {
                 res.status(401).send("Too many accounts.");
                 return;
             }
-            const ROBLOSECURITY_COOKIES = await db.createUser(username, password, birthday, gender, ip);
+            if (typeof username != "string") {
+                return res.status(400).send();
+            }
+            if (username.length > 25) {
+                return res.status(400).send();
+            }
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: ".roblox.com",
+                domain: "rbx2016.tk",
                 httpOnly: true
             });
-            res.cookie('.ROBLOSECURITY', ROBLOSECURITY_COOKIES, {
+            res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: ".roblox.com",
+                domain: "rbx2016.tk",
                 httpOnly: true
             });
+
             res.send();
         });
 
@@ -194,7 +196,29 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: ".roblox.com",
+                domain: "rbx2016.tk",
+                httpOnly: true
+            });
+            if (typeof req.headers["x-csrf-token"] !== "undefined") {
+                if (req.headers["x-csrf-token"].length == 128) {
+                    const user = await db.getUserByCsrfToken(req.headers["x-csrf-token"]);
+                    if (user) {
+                        await db.setUserProperty(user.userid, "cookie", "");
+                    }
+                }
+            }
+            res.redirect("/");
+        });
+        
+        app.post("/sign-out/v1", async (req, res) => {
+            if ((await db.getConfig()).maintenance && db.backend.disableLogoutOnMaintenance) {
+                res.status(503).send("Maintenance");
+                return;
+            }
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.tk",
                 httpOnly: true
             });
             if (typeof req.headers["x-csrf-token"] !== "undefined") {
@@ -212,11 +236,10 @@ module.exports = {
             if (typeof req.headers["x-csrf-token"] === "undefined") {
                 return res.status(400).send("No CSRF token");
             }
-            const xcsrftoken = decodeURIComponent(req.headers["x-csrf-token"]);
-            if (xcsrftoken.length != 128) {
+            if (req.headers["x-csrf-token"].length != 128) {
                 return res.status(400).send("Invalid CSRF token");
             }
-            res.setHeader("rbx-authentication-ticket", await db.generateUserToken(xcsrftoken));
+            res.setHeader("rbx-authentication-ticket", await db.generateUserToken(req.headers["x-csrf-token"]));
             res.json({});
         });
 
@@ -224,21 +247,20 @@ module.exports = {
             if (typeof req.body["authenticationTicket"] === "undefined") {
                 return res.status(400).send("No authentication ticket");
             }
-            console.log(req.body["authenticationTicket"]);
             const user = await db.findUserByToken(req.body["authenticationTicket"]);
-            if (!user || user.banned) {
+            if (!user || user.banned || user.inviteKey == "") {
                 return res.status(401).send("Invalid authentication ticket");
             }
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: ".roblox.com",
+                domain: "rbx2016.tk",
                 httpOnly: true
             });
             res.cookie('.ROBLOSECURITY', user.cookie, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: ".roblox.com",
+                domain: "rbx2016.tk",
                 httpOnly: true
             });
             res.json({});
@@ -271,6 +293,10 @@ module.exports = {
             const password = req.body.password;
             const isClient = req.get('User-Agent').toLowerCase().includes("roblox");
             if (ctype == "Username") {
+                if (typeof cvalue == "undefined") {
+                    res.status(400).send();
+                    return;
+                }
                 const user = await db.loginUser(cvalue, password, isClient);
                 if (user == false) {
                     res.status(403).json({
@@ -285,13 +311,13 @@ module.exports = {
                 res.cookie('.ROBLOSECURITY', "delete", {
                     maxAge: -1,
                     path: "/",
-                    domain: ".roblox.com",
+                    domain: "rbx2016.tk",
                     httpOnly: true
                 });
                 res.cookie('.ROBLOSECURITY', user.cookie, {
                     maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                     path: "/",
-                    domain: ".roblox.com",
+                    domain: "rbx2016.tk",
                     httpOnly: true
                 });
                 res.json({
@@ -300,11 +326,15 @@ module.exports = {
                         "name": user.username,
                         "displayName": user.username
                     },
-                    "isBanned": false
+                    "isBanned": user.banned
                 });
             } else if (ctype == "AuthToken") {
                 const cvalue = req.body.cvalue;
                 const password = req.body.password;
+                if (typeof cvalue == "undefined") {
+                    res.status(400).send();
+                    return;
+                }
                 const user = await db.loginUserByLoginCode(cvalue, password, isClient);
                 if (user == false) {
                     res.status(403).json({
@@ -319,13 +349,13 @@ module.exports = {
                 res.cookie('.ROBLOSECURITY', "delete", {
                     maxAge: -1,
                     path: "/",
-                    domain: ".roblox.com",
+                    domain: "rbx2016.tk",
                     httpOnly: true
                 });
                 res.cookie('.ROBLOSECURITY', user.cookie, {
                     maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                     path: "/",
-                    domain: ".roblox.com",
+                    domain: "rbx2016.tk",
                     httpOnly: true
                 });
                 res.json({
@@ -334,11 +364,64 @@ module.exports = {
                         "name": user.username,
                         "displayName": user.username
                     },
-                    "isBanned": false
+                    "isBanned": user.banned
                 });
             } else {
                 res.status(501).json({});
             }
+        });
+
+        app.post('/login/v1', async (req, res) => {
+            if (db.getSiteConfig().shared.allowLogin == false) {
+                res.status(401).render("401", await db.getBlankTemplateData());
+                return;
+            }
+            console.log(req);
+            const cvalue = req.body.username;
+            const password = req.body.password;
+            const isClient = req.get('User-Agent').toLowerCase().includes("roblox");
+            if (typeof cvalue == "undefined") {
+                res.status(400).send();
+                return;
+            }
+            const user = await db.loginUser(cvalue, password, isClient);
+            if (user == false) {
+                res.status(403).json({
+                    "errors": [{
+                        "code": 1,
+                        "message": "Incorrect username or password. Please try again.",
+                        "userFacingMessage": "Something went wrong"
+                    }]
+                });
+                return;
+            }
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.tk",
+                httpOnly: true
+            });
+            res.cookie('.ROBLOSECURITY', user.cookie, {
+                maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
+                path: "/",
+                domain: "rbx2016.tk",
+                httpOnly: true
+            });
+            res.json({
+                "user": {
+                    "id": user.userid,
+                    "name": user.username,
+                    "displayName": user.username
+                },
+                "isBanned": user.banned
+            });
+        });
+
+        template.app.post('/Login/FulfillConstraint.aspx', async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            const key = req.body["ctl00$cphRoblox$Textbox1"];
+            await db.attemptMaintenanceModeWhitelistedIp(ip, key);
+            res.redirect("/");
         });
     }
 }
