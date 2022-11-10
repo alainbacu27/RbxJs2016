@@ -26,11 +26,11 @@ module.exports = {
                 "Response": "started"
             });
         });
-
+        
         app.get('/notifications/connect', (req, res) => {
             res.json({});
         });
-
+        
         app.get('/notifications/abort', (req, res) => {
             res.json({
                 "Response": "aborted"
@@ -42,9 +42,9 @@ module.exports = {
                 "Response": "aborted"
             });
         });
-
-        app.get('/client-status', db.requireAuth, async (req, res) => {
-            res.send(await db.getUserLaunchStatus2(req.user.userid));
+        
+        app.get('/client-status', (req, res) => {
+            res.json();
         });
     }
 }

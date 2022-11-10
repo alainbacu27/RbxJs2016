@@ -29,7 +29,7 @@ module.exports = {
             data.forEach(asset => {
                 newReturn.push({
                     requestId: asset.requestId || asset.targetId,
-                    location: `https://thumbnails.rbx2016.tk/v1/thumbnail/?id=${asset.assetId}`,
+                    location: `https://thumbnails.roblox.com/v1/thumbnail/?id=${asset.assetId}`,
                     IsHashDynamic: true,
                     IsCopyrightProtected: false,
                     isArchived: false,
@@ -51,7 +51,7 @@ module.exports = {
             let data = []
 
             for (let i = 0; i < universeIds.length; i++) {
-                const universeId = universeIds[i];
+                const universeId = typeof universeIds[i] == "string" ? parseInt(universeIds[i]) : universeIds[i];
                 const game = await db.getGame(universeId);
                 if (!game) {
                     continue;
@@ -68,7 +68,7 @@ module.exports = {
             });
         });
 
-        app.get("/v1/thumbnail", async (req, res) => {
+        app.get("/v1/thumbnail/", async (req, res) => {
             if (db.getSiteConfig().backend.thumbnailServiceEnabled == false) {
                 res.status(403).send("Forbidden");
                 return;
@@ -97,7 +97,7 @@ module.exports = {
             res.json({
                 "targetId": assetid,
                 "state": "Completed",
-                "imageUrl": "https://thumbnails.rbx2016.tk/v1/assets-thumbnail-3d2?assetid=" + assetid,
+                "imageUrl": "https://thumbnails.roblox.com/v1/assets-thumbnail-3d2?assetid=" + assetid,
             });
         });
 

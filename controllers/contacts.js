@@ -16,5 +16,9 @@ module.exports = {
         app.get('/v1/user/get-tags', (req, res) => {
             res.json([]);
         });
+        
+        app.post('/v1/user/get-tags', (req, res) => {
+            res.json([]);
+        });
     }
 }

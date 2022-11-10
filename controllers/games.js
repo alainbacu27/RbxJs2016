@@ -7,22 +7,22 @@ const querystring = require('querystring');
 module.exports = {
     init: (app, db) => {
         app.get('/v1/games', async (req, res) => {
-            const universeIds = req.query.universeIds.split(",");
+            const universeIds = req.query.universeIds ? req.query.universeIds.split(",") : [];
             let out = {
                 "data": []
             }
             if (universeIds.length > 100) return res.status(400).json(out);
             let hasIds = []
             for (let i = 0; i < universeIds.length; i++) {
-                const universeId = universeIds[i];
+                const universeId = typeof universeIds[i] == "string" ? parseInt(universeIds[i]) : universeIds[i];
                 if (hasIds.includes(universeId)) return;
                 hasIds.push(universeId);
-                const game = await db.getGame(universeIds);
-                if (!game) return;
+                const game = await db.getGame(universeId);
+                if (!game) continue;
                 const creator = await db.getUser(game.creatorid);
-                if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
+                if (!creator || creator.banned || game.deleted) {
                     res.status(404).json({});
-                    return;
+                    continue;
                 }
                 const creatorname = (await db.getUser(game.creatorid)).username;
                 out.data.push({
@@ -44,17 +44,17 @@ module.exports = {
                     "isGenreEnforced": true,
                     "copyingAllowed": false,
                     "playing": 0,
-                    "visits": game.visits,
+                    "visits": 0,
                     "maxPlayers": 8,
                     "created": db.unixToDate(game.created).toISOString(),
                     "updated": db.unixToDate(game.updated).toISOString(),
                     "studioAccessToApisAllowed": false,
                     "createVipServersAllowed": false,
-                    "universeAvatarType": "MorphToR6",
-                    "genre": game.genre,
-                    "isAllGenre": game.genre == "All",
+                    "universeAvatarType": game.universeAvatarType || "MorphToR6",
+                    "genre": "Fighting",
+                    "isAllGenre": false,
                     "isFavoritedByUser": false,
-                    "favoritedCount": game.favorites.length
+                    "favoritedCount": 0
                 });
             }
 
@@ -62,7 +62,7 @@ module.exports = {
         });
 
         app.get("/v1/games/multiget-playability-status", async (req, res) => {
-            const universeIds = req.query.universeIds.split(",");
+            const universeIds = req.query.universeIds ? req.query.universeIds.split(",") : [];
             let out = []
             for (let i = 0; i < universeIds.length; i++) {
                 const universeId = parseInt(universeIds[i]);
@@ -71,12 +71,12 @@ module.exports = {
                     continue;
                 }
                 const creator = await db.getUser(game.creatorid);
-                if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
+                if (!creator /* || creator.banned */ || game.deleted) {
                     res.status(404).json({});
                     return;
                 }
                 out.push({
-                    "playabilityStatus": game.isPublic ? "Playable" : "Unplayable",
+                    "playabilityStatus": creator.banned ? "UniverseRootPlaceIsPrivate" : game.isPublic ? "Playable" : "UniverseRootPlaceIsPrivate",
                     "isPlayable": game.isPublic,
                     "universeId": universeId
                 });
@@ -155,10 +155,24 @@ module.exports = {
             const gameSortsContext = req.query.gameSortsContext; // GamesDefaultSorts
             res.json({
                 "sorts": [{
-                        "token": "T637894298113747805_Curated,N,H_2226",
-                        "name": "Curated_96",
+                        "token": "T637894298113747805_Official,N,H_2226",
+                        "name": "official",
                         "displayName": "Official Games",
                         "gameSetTypeId": 23,
+                        "gameSetTargetId": 96,
+                        "timeOptionsAvailable": false,
+                        "genreOptionsAvailable": true,
+                        "numberOfRows": 1,
+                        "numberOfGames": 0,
+                        "isDefaultSort": false,
+                        "contextUniverseId": null,
+                        "contextCountryRegionId": 214,
+                        "tokenExpiryInSeconds": 3600.0
+                    }, {
+                        "token": "T637894298113747805_Popular,N,H_2229",
+                        "name": "popular",
+                        "displayName": "Popular",
+                        "gameSetTypeId": 22,
                         "gameSetTargetId": 96,
                         "timeOptionsAvailable": false,
                         "genreOptionsAvailable": true,
@@ -546,7 +560,7 @@ module.exports = {
                     continue;
                 }
                 const creator = await db.getUser(game.creatorid);
-                if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
+                if (!creator || creator.banned || game.deleted) {
                     res.status(404).json({});
                     return;
                 }
@@ -556,7 +570,7 @@ module.exports = {
                     "description": game.description,
                     "sourceName": game.gamename,
                     "sourceDescription": game.description,
-                    "url": "https://www.rbx2016.tk/games/" + game.gameid.toString() + "/" + db.filterText2(game.gamename).replace(" ", "-"),
+                    "url": "https://www.roblox.com/games/" + game.gameid.toString() + "/" + db.filterText2(game.gamename).replace(" ", "-"),
                     "builder": creator.username,
                     "builderId": creator.userid,
                     "isPlayable": game.isPublic,
@@ -571,17 +585,19 @@ module.exports = {
         });
 
         app.get("/v1/games/list", async (req, res) => {
-            let games = []
+            let games = [];
             if (req.query.keyword) {
                 games = await db.findGames(req.query.keyword);
-            } else {
-                games = await db.getPublicGames();
+            } else if (req.query.sortToken == "T637894298113747805_Official,N,H_2226") {
+                games = await db.getGamesByCreatorId(1);
+            }else {
+                games = await db.getPublicGames(true, true);
             }
-            let games_json = []
+            let games_json = [];
             for (let i = 0; i < games.length; i++) {
                 const game = games[i];
                 const creator = await db.getUser(game.creatorid);
-                if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
+                if (!creator || creator.banned || game.deleted) {
                     res.status(404).json({});
                     return;
                 }
@@ -603,7 +619,7 @@ module.exports = {
                     "analyticsIdentifier": null,
                     "gameDescription": game.description,
                     "genre": "All"
-                })
+                });
             }
             res.json({
                 "games": games_json,
@@ -656,24 +672,8 @@ module.exports = {
             const cpuUsage = parseInt(req.query.cpuUsage);
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
-            const players = parseInt(req.query.players);
-            if (players > 0){
-                if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-                } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-                }
-            }else{
-                const game = await db.getGame(placeId);
-                if (game == null) {
-                    res.status(400).send()
-                    return;
-                }
-                const games = await db.getJobsByGameId(placeId);
-                for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
-                }
+            if (!isCloudEdit) {
+                await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
             }
             res.json({
                 "status": 1,
@@ -683,7 +683,7 @@ module.exports = {
         });
 
         app.post("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
-            const apiKky = req.query.apiKey || (id0.length > 0 ? id0[0] : "");
+            const apikey = req.query.apiKey;
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -692,16 +692,11 @@ module.exports = {
                 }
                 return;
             }
-            const gameId = req.query.gameId || (id0.length > 1 ? id0[1] : "");
-            const placeId = parseInt(req.query.placeId) || (id0.length > 2 ? parseInt(id0[2]) : null);
-            const gameCapacity = parseInt(req.query.gameCapacity) || (id0.length > 3 ? parseInt(id0[3]) : null);
-            const ipAddress = req.query.ipAddress || (id0.length > 4 ? id0[4] : "");
-            const port = parseInt(req.query.port) || (id0.length > 5 ? parseInt(id0[5]) : null);
-            const clientCount = parseInt(req.query.clientCount) || (id0.length > 6 ? parseInt(id0[6]) : null);
-            const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
-            const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
-            const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
-            /*
+            const gameId = req.query.gameId;
+            const placeId = parseInt(req.query.placeId);
+            const gameCapacity = parseInt(req.query.gameCapacity);
+            const ipAddress = req.query.ipAddress;
+            const port = parseInt(req.query.port);
             const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
             const ping = parseInt(req.query.ping);
@@ -710,269 +705,23 @@ module.exports = {
             const gameTime = parseInt(req.query.gameTime);
             const universeId = parseInt(req.query.universeId);
             const MatchmakingContextId = req.query.MatchmakingContextId;
+            const clientCount = parseInt(req.query.clientCount);
+            const preferredPlayerCapacity = parseInt(req.query.preferredPlayerCapacity);
+            const isCloudEdit = req.query.isCloudEdit == "true";
+            const rccVersion = req.query.rccVersion;
             const eventSource = req.query.eventSource;
             const streamingEnabled = req.query.streamingEnabled == "true";
-            const preferredPlayerCapacity = parseInt(req.query.preferredPlayerCapacity);
             const cpuUsage = parseInt(req.query.cpuUsage);
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
-            */
-            if (players > 0){
-                if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-                } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-                }
-            }else{
-                const game = await db.getGame(placeId);
-                if (game == null) {
-                    res.status(400).send()
-                    return;
-                }
-                const games = await db.getJobsByGameId(placeId);
-                for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
-                }
+            if (!isCloudEdit) {
+                await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
             }
-            
-            const script = `
-`
-            const signature = db.sign(script);
-            res.send(`--rbxsig%${signature}%` + script);
-        });
-
-        app.get("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
-            const id0 = req.query.apiKey.split("|");
-            const apikey = (id0.length > 0 ? id0[0] : "");
-            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const gameId = req.query.gameId || (id0.length > 1 ? id0[1] : "");
-            const placeId = parseInt(req.query.placeId) || (id0.length > 2 ? parseInt(id0[2]) : null);
-            const gameCapacity = parseInt(req.query.gameCapacity) || (id0.length > 3 ? parseInt(id0[3]) : null);
-            const ipAddress = req.query.ipAddress || (id0.length > 4 ? id0[4] : "");
-            const port = parseInt(req.query.port) || (id0.length > 5 ? parseInt(id0[5]) : null);
-            const clientCount = parseInt(req.query.clientCount) || (id0.length > 6 ? parseInt(id0[6]) : null);
-            const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
-            const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
-            const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
-            /*
-            const fps = parseInt(req.query.fps);
-            const heartbeatRate = parseInt(req.query.heartbeatRate);
-            const ping = parseInt(req.query.ping);
-            const physicsLoadAverage = parseInt(req.query.physicsLoadAverage);
-            const physicsEnvironmentSpeed = parseInt(req.query.physicsEnvironmentSpeed);
-            const gameTime = parseInt(req.query.gameTime);
-            const universeId = parseInt(req.query.universeId);
-            const MatchmakingContextId = req.query.MatchmakingContextId;
-            const eventSource = req.query.eventSource;
-            const streamingEnabled = req.query.streamingEnabled == "true";
-            const preferredPlayerCapacity = parseInt(req.query.preferredPlayerCapacity);
-            const cpuUsage = parseInt(req.query.cpuUsage);
-            const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
-            const seqNum = parseInt(req.query.seqNum);
-            */
-            if (players > 0){
-                if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-                } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-                }
-            }else{
-                const game = await db.getGame(placeId);
-                if (game == null) {
-                    res.status(400).send()
-                    return;
-                }
-                const games = await db.getJobsByGameId(placeId);
-                for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
-                }
-            }
-            const script = `
-`
-            const signature = db.sign(script);
-            res.send(`--rbxsig%${signature}%` + script);
-        });
-
-        app.get("/Game/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
-            const id0 = req.query.apiKey.split("|");
-            const apikey = (id0.length > 0 ? id0[0] : "");
-            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const gameId = req.query.gameId || (id0.length > 1 ? id0[1] : "");
-            const placeId = parseInt(req.query.placeId) || (id0.length > 2 ? parseInt(id0[2]) : null);
-            const gameCapacity = parseInt(req.query.gameCapacity) || (id0.length > 3 ? parseInt(id0[3]) : null);
-            const ipAddress = req.query.ipAddress || (id0.length > 4 ? id0[4] : "");
-            const port = parseInt(req.query.port) || (id0.length > 5 ? parseInt(id0[5]) : null);
-            const clientCount = parseInt(req.query.clientCount) || (id0.length > 6 ? parseInt(id0[6]) : null);
-            const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
-            const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
-            const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
-            /*
-            const fps = parseInt(req.query.fps);
-            const heartbeatRate = parseInt(req.query.heartbeatRate);
-            const ping = parseInt(req.query.ping);
-            const physicsLoadAverage = parseInt(req.query.physicsLoadAverage);
-            const physicsEnvironmentSpeed = parseInt(req.query.physicsEnvironmentSpeed);
-            const gameTime = parseInt(req.query.gameTime);
-            const universeId = parseInt(req.query.universeId);
-            const MatchmakingContextId = req.query.MatchmakingContextId;
-            const eventSource = req.query.eventSource;
-            const streamingEnabled = req.query.streamingEnabled == "true";
-            const preferredPlayerCapacity = parseInt(req.query.preferredPlayerCapacity);
-            const cpuUsage = parseInt(req.query.cpuUsage);
-            const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
-            const seqNum = parseInt(req.query.seqNum);
-            */
-            if (players > 0){
-                if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-                } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
-                }
-            }else{
-                const game = await db.getGame(placeId);
-                if (game == null) {
-                    res.status(400).send()
-                    return;
-                }
-                const games = await db.getJobsByGameId(placeId);
-                for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
-                }
-            }
-            const script = `
-`
-            const signature = db.sign(script);
-            res.send(`--rbxsig%${signature}%` + script);
-        });
-
-        app.get("/Game/api/v1/UserJoined", db.requireAuth2, async (req, res) => {
-            const id0 = req.query.apiKey.split("|");
-            const apikey = (id0.length > 0 ? id0[0] : "");
-            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const gameId = (id0.length > 1 ? parseInt(id0[1]) : null);
-            const userId = (id0.length > 2 ? parseInt(id0[2]) : null);
-            await db.userJoinedGame(userId, gameId);
-            const user = await db.getUser(userId);
-            let interval;
-            interval = setInterval(async () => {
-                if (user && user.playing != 0) {
-                    await db.setUserProperty(user.userid, "lastOnline", db.getUnixTimestamp());
-                } else {
-                    clearInterval(interval);
-                }
-            }, 25000);
-            const script = `
-`
-            const signature = db.sign(script);
-            res.send(`--rbxsig%${signature}%` + script);
-        });
-
-        app.get("/Game/ChatFilter.ashx", (req, res) => {
-            res.send("False");
-        });
-
-        app.get("/Game/api/v1/GetPublicIp", async (req, res) => {
-            const apiKey = req.query.apiKey;
-            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            let ip = get_ip(req).clientIp;
-            if (ip == "127.0.0.1" || ip == "::1" || ip == "") {
-                ip = db.getHostPublicIp();
-            }
-            const script = `
-publicIp = "${ip}"`
-            const signature = db.sign(script);
-            res.send(`--rbxsig%${signature}%` + script);
-        });
-
-        app.get("/Game/api/v1/UserLeft", db.requireAuth2, async (req, res) => {
-            const id0 = req.query.apiKey.split("|");
-            const apikey = (id0.length > 0 ? id0[0] : "");
-            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const gameId = (id0.length > 1 ? id0[1] : null);
-            const userId = (id0.length > 2 ? id0[2] : null);
-            await db.userLeftGame(userId, gameId);
-            const script = `
-`
-            const signature = db.sign(script);
-            res.send(`--rbxsig%${signature}%` + script);
-        });
-
-        app.get("/Game/api/v1/UserJoinedTeamCreate", db.requireAuth2, async (req, res) => {
-            const id0 = req.query.apiKey.split("|");
-            const apikey = (id0.length > 0 ? id0[0] : "");
-            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const gameId = (id0.length > 1 ? parseInt(id0[1]) : null);
-            const userId = (id0.length > 2 ? parseInt(id0[2]) : null);
-            await db.userJoinedTeamCreate(userId, gameId);
-            const script = `
-`
-            const signature = db.sign(script);
-            res.send(`--rbxsig%${signature}%` + script);
-        });
-
-        app.get("/Game/api/v1/UserLeftTeamCreate", db.requireAuth2, async (req, res) => {
-            const id0 = req.query.apiKey.split("|");
-            const apikey = (id0.length > 0 ? id0[0] : "");
-            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const gameId = (id0.length > 1 ? id0[1] : null);
-            const userId = (id0.length > 2 ? id0[2] : null);
-            await db.userLeftTeamCreate(userId, gameId);
-            const script = `
-`
-            const signature = db.sign(script);
-            res.send(`--rbxsig%${signature}%` + script);
+            res.json({
+                "status": 1,
+                "error": null,
+                "message": "Success"
+            });
         });
 
         app.get("/v1/games/:gameid/social-links/list", (req, res) => {
@@ -983,7 +732,7 @@ publicIp = "${ip}"`
         });
 
         app.get("/Game/ClientPresence.ashx", db.requireAuth2, async (req, res) => {
-            if (db.getSiteConfig().backend.presenceEnabled == false) {
+            if (db.getSiteConfig().backend.presenceEnabled == false){
                 res.status(404).render("404", await db.getBlankRenderObject());
                 return;
             }
@@ -1032,67 +781,6 @@ publicIp = "${ip}"`
                 await db.setGameProperty(placeId, "port", port);
             }
             res.send();
-        });
-
-        app.get("/api/v1/Close", db.requireAuth2, async (req, res) => {
-            const id0 = req.query.apiKey.split("|");
-            const apikey = (id0.length > 0 ? id0[0] : "");
-            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const placeId = parseInt(req.query.placeId) || (id0.length > 1 ? parseInt(id0[1]) : "");
-            const gameID = req.query.gameID || (id0.length > 2 ? id0[2] : "");
-
-            const game = await db.getGame(placeId);
-            if (game == null) {
-                res.status(400).send()
-                return;
-            }
-            const games = await db.getJobsByGameId(placeId);
-            for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
-            }
-            const script = `
-`
-            const signature = db.sign(script);
-            res.send(`--rbxsig%${signature}%` + script);
-        });
-
-        app.get("/Game/api/v1/Close", db.requireAuth2, async (req, res) => {
-            let id0 = req.query.apiKey.split("|");
-            const apiKey = (id0.length > 0 ? id0[0] : "");
-            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const gameID = req.query.gameID || (id0.length > 1 ? id0[1] : "");
-            const placeId = parseInt(req.query.placeId) || (id0.length > 2 ? parseInt(id0[2]) : null);
-
-            const game = await db.getGame(placeId);
-            if (game == null) {
-                res.status(400).send()
-                return;
-            }
-            const games = await db.getJobsByGameId(placeId);
-            for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
-            }
-            // await db.setGameProperty(placeId, "port", 0);
-            const script = `
-`
-            const signature = db.sign(script);
-            res.send(`--rbxsig%${signature}%` + script);
         });
 
         app.get("/v1/games/:gameid/media", (req, res) => {

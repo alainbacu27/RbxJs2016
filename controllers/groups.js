@@ -20,6 +20,13 @@ module.exports = {
             });
         });
 
+        app.get("/v2/users/:userid/groups/roles", (req, res) => {
+            const userid = parseInt(req.params.userid);
+            res.json({
+                "data": []
+            });
+        });
+
         app.get("/v1/groups/configuration/metadata", (req, res) => {
             res.json({
                 "groupConfiguration": {

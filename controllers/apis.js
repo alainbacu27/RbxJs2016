@@ -55,7 +55,6 @@ module.exports = {
             res.json({
                 "AvatarHomepageRecommendationsRowNum": null,
                 "IsDiscoveryApiEnabled": null,
-                "IsGamesyApiEnabled": null,
                 "SponsoredAdsHomepageRowNum": null
             });
         });
@@ -66,13 +65,13 @@ module.exports = {
 
         app.get("/user-agreements/v1/agreements-resolution/web", (req, res) => {
             res.json([{
-                "displayUrl": "https://en.help.rbx2016.tk/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
+                "displayUrl": "https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
                 "id": "848d8d8f-0e33-4176-bcd9-aa4e22ae7905",
                 "agreementType": "TermsOfService",
                 "clientType": "Web",
                 "regulationType": "Global"
             }, {
-                "displayUrl": "https://en.help.rbx2016.tk/hc/en-us/articles/115004630823-Roblox-Privacy-and-Cookie-Policy-",
+                "displayUrl": "https://en.help.roblox.com/hc/en-us/articles/115004630823-Roblox-Privacy-and-Cookie-Policy-",
                 "id": "54d8a8f0-d9c8-4cf3-bd26-0cbf8af0bba3",
                 "agreementType": "PrivacyPolicy",
                 "clientType": "Web",
@@ -129,12 +128,86 @@ module.exports = {
             });
         });
 
+        app.post("/auth-token-service/v1/login/cancel", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.allowQuickLogin == false) {
+                return res.send("Quick login is not enabled.");
+            }
+            const code = req.body.code;
+            const session = await db.getPendingLoginSession(code);
+            if (!session) {
+                res.status(400).send("CodeInvalid");
+            }
+            const locationData = geoIP.allData(session.ip);
+            await db.cancelLoginCode(req.user, code);
+            res.json({});
+        });
+
+        app.post("/auth-token-service/v1/login/enterCode", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.allowQuickLogin == false) {
+                return res.send("Quick login is not enabled.");
+            }
+            const code = req.body.code;
+            const session = await db.getPendingLoginSession(code);
+            if (!session) {
+                res.status(400).send("CodeInvalid");
+            }
+            const locationData = geoIP.allData(session.ip);
+            await db.setUserSeenLoginCode(req.user.userid, code);
+            res.json({
+                "deviceInfo": session.device,
+                "location": `${locationData.city}, ${locationData.country}`
+            });
+        });
+
+        app.post("/auth-token-service/v1/login/validateCode", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.allowQuickLogin == false) {
+                return res.send("Quick login is not enabled.");
+            }
+            const code = req.body.code;
+            const session = await db.getPendingLoginSession(code);
+            if (!session) {
+                res.status(404).json({})
+            }
+            await db.setUserLoginCode(req.user.userid, code);
+            res.json({});
+        });
+
         app.get("/product-experimentation-platform/v1/projects/1/layers/CrossDeviceLogin.ConfirmCode/values", (req, res) => {
             res.json({
                 "ShouldNotClearCodeOnInvalidSubmission": null
             });
         });
-        
+
+        app.post("/auth-token-service/v1/login/create", async (req, res) => {
+            if (db.getSiteConfig().shared.allowQuickLogin == false) {
+                return res.send("Quick login is not enabled.");
+            }
+            const code = await db.createLoginCodeSession(req);
+            if (!code) {
+                res.status(500).send("InternalServerError");
+            }
+            res.json({
+                "code": code,
+                "status": "Created",
+                "privateKey": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "expirationTime": (db.unixToDate(db.getUnixTimestamp() + 300)).toISOString()
+            })
+        });
+
+        app.post("/auth-token-service/v1/login/status", async (req, res) => {
+            if (db.getSiteConfig().shared.allowQuickLogin == false) {
+                return res.send("Quick login is not enabled.");
+            }
+            const code = req.body.code;
+            const privateKey = req.body.privateKey;
+            const result = await db.updateLoginCodeSession(req, code, privateKey);
+            if (!result) {
+                res.send();
+            } else {
+                res.json(result);
+            }
+        });
+
         app.get("/universal-app-configuration/v1/behaviors/configure-group-ui/content", (req, res) => {
             res.json(db.getSiteConfig().frontend.groupUiConfig);
         });
@@ -153,14 +226,71 @@ module.exports = {
             });
         });
 
-        app.post("/games-api/omni-recommendation", async (req, res) => {
-            const games = await db.getPublicGames();
+        app.get("/search-api/omni-search", db.requireAuth, async (req, res) => {
+            const SessionId = req.query.SessionId;
+            const PageType = req.query.PageType;
+            const SearchQuery = req.query.SearchQuery;
+            if ( /*PageType == "All" || PageType == "Games"*/ true) {
+                let foundGames = [];
+
+                const games = await db.findGames(SearchQuery);
+                for (let i = 0; i < games.length; i++) {
+                    const game = games[i];
+                    const creator = await db.getUser(game.creatorid);
+                    if (!game || !creator) continue;
+                    if (creator.banned || game.deleted) {
+                        continue;
+                    }
+                    foundGames.push({
+                        "universeId": game.gameid,
+                        "name": game.gamename,
+                        "description": "",
+                        "playerCount": game.playing,
+                        "totalUpVotes": game.likes,
+                        "totalDownVotes": game.dislikes,
+                        "emphasis": false,
+                        "isSponsored": false,
+                        "nativeAdData": "",
+                        "creatorName": creator.username,
+                        "creatorHasVerifiedBadge": false,
+                        "creatorId": creator.userid,
+                        "rootPlaceId": game.gameid,
+                        "contentType": "Game",
+                        "contentId": game.gameid
+                    });
+                }
+
+                let results = {
+                    "searchResults": [{
+                        "contentGroupType": "Game",
+                        "contents": foundGames
+                    }],
+                    "nextPageToken": "",
+                    "filteredSearchQuery": null
+                }
+                res.json(results);
+            } else {
+                res.send({
+                    "searchResults": [],
+                    "nextPageToken": "",
+                    "filteredSearchQuery": null
+                });
+            }
+        });
+
+        app.post("/discovery-api/omni-recommendation", async (req, res) => {
+            const sessionId = req.body.sessionId ? req.body.sessionId : ""
+            const pageType = req.body.pageType ? req.body.pageType : "Home"
+            const games = await db.getGamesByCreatorId(1)
+            const games2 = await db.getPublicGames(true, true);
             let games_json1 = []
+            let games_json1_2 = []
             let games_json2 = {}
             for (let i = 0; i < games.length; i++) {
                 const game = games[i];
                 const creator = await db.getUser(game.creatorid);
-                if (creator.banned || creator.inviteKey == "" || game.deleted) {
+                if (!game || !creator) continue;
+                if (creator.banned || game.deleted) {
                     continue;
                 }
                 games_json1.push({
@@ -168,146 +298,50 @@ module.exports = {
                     "contentId": game.gameid
                 })
                 games_json2[game.gameid.toString()] = {
-                    "totalUpVotes": 0,
-                    "totalDownVotes": 0,
-                    "universeId": 1,
+                    "totalUpVotes": game.likes.length,
+                    "totalDownVotes": game.dislikes.length,
+                    "universeId": game.gameid,
                     "name": game.gamename,
-                    "rootPlaceId": 1,
-                    "description": null,
-                    "playerCount": 0
+                    "rootPlaceId": game.gameid,
+                    "description": game.description,
+                    "playerCount": game.playing
                 }
             }
-            res.json({
-                "pageType": "Home",
-                "requestId": "13be2ebf-e974-4a98-b69d-6da4348dd30d",
-                "sorts": [{
-                        "topic": "Official Games",
-                        "topicId": 100000000,
-                        "treatmentType": "Carousel",
-                        "officialList": games_json1
-                    }
-                    /*
-                                    {
-                                        "topic": "Continue",
-                                        "topicId": 100000003,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": []
-                                    }, {
-                                        "topic": "Friend Activity",
-                                        "topicId": 100000004,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": []
-                                    }, {
-                                        "topic": "Social Hangout",
-                                        "topicId": 1110,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": []
-                                    },
-                                {
-                        "topic": "Recommended For You",
-                        "topicId": 100000000,
-                        "treatmentType": "Carousel",
-                        "recommendationList": [{
-                            "contentType": "Game",
-                            "contentId": 1
-                        }]
-                    }
-                                , {
-                                        "topic": "Fighting & Battle",
-                                        "topicId": 1201,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": [{
-                                            "contentType": "Game",
-                                            "contentId": 1
-                                        }]
-                                    }, {
-                                        "topic": "Simulation",
-                                        "topicId": 1104,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": []
-                                    }, {
-                                        "topic": "Action",
-                                        "topicId": 1101,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": [{
-                                            "contentType": "Game",
-                                            "contentId": 1
-                                        }]
-                                    }, {
-                                        "topic": "Free Admin",
-                                        "topicId": 1233,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": []
-                                    }, {
-                                        "topic": "Clicker Simulator",
-                                        "topicId": 1237,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": []
-                                    }, {
-                                        "topic": "Idle",
-                                        "topicId": 1107,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": []
-                                    }, {
-                                        "topic": "Real World Roleplay",
-                                        "topicId": 1216,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": []
-                                    }, {
-                                        "topic": "Platformer Obby",
-                                        "topicId": 1235,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": []
-                                    }, {
-                                        "topic": "Favorites",
-                                        "topicId": 100000001,
-                                        "treatmentType": "Carousel",
-                                        "recommendationList": []
-                                    }
-                                */
-                ],
-                "sortsRefreshInterval": 43200,
-                "contentMetadata": {
-                    "Game": games_json2,
-                    "CatalogAsset": {},
-                    "CatalogBundle": {},
-                    "RecommendedFriend": {}
-                }
-            })
-        });
-
-        app.post("/discovery-api/omni-recommendation", async (req, res) => {
-            const games = await db.getPublicGames();
-            let games_json1 = [];
-            let games_json2 = {};
-            for (let i = 0; i < games.length; i++) {
-                const game = games[i];
+            for (let i = 0; i < games2.length; i++) {
+                const game = games2[i];
                 const creator = await db.getUser(game.creatorid);
-                if (creator.banned || creator.inviteKey == "" || game.deleted) {
+                if (!game || !creator) continue;
+                if (creator.banned || game.deleted) {
                     continue;
                 }
-                games_json1.push({
+                games_json1_2.push({
                     "contentType": "Game",
                     "contentId": game.gameid
                 })
                 games_json2[game.gameid.toString()] = {
-                    "totalUpVotes": 0,
-                    "totalDownVotes": 0,
-                    "universeId": 1,
+                    "totalUpVotes": game.likes.length,
+                    "totalDownVotes": game.dislikes.length,
+                    "universeId": game.gameid,
                     "name": game.gamename,
-                    "rootPlaceId": 1,
-                    "description": null,
-                    "playerCount": 0
+                    "rootPlaceId": game.gameid,
+                    "description": game.description,
+                    "playerCount": game.playing
                 }
             }
             res.json({
-                "pageType": "Home",
-                "requestId": "13be2ebf-e974-4a98-b69d-6da4348dd30d",
+                "pageType": pageType,
+                "requestId": sessionId,
                 "sorts": [{
                         "topic": "Official Games",
                         "topicId": 100000000,
                         "treatmentType": "Carousel",
-                        "officialList": games_json1
+                        "recommendationList": games_json1
+                    },
+                    {
+                        "topic": "Popular",
+                        "topicId": 100000002,
+                        "treatmentType": "Carousel",
+                        "recommendationList": games_json1_2
                     }
                     /*
                                     {
@@ -428,7 +462,7 @@ module.exports = {
             const prefix = req.query.prefix;
 
             let data = [];
-            const items = await db.getCatalogItems(prefix, true);
+            const items = await db.getCatalogItems(prefix);
             for (let i = 0; i < items.length; i++) {
                 const item = items[i];
                 data.push({
@@ -605,7 +639,7 @@ module.exports = {
         });
 
         app.get("/studio-open-place/v1/openplace", async (req, res) => {
-            if (db.getSiteConfig().shared.games.canEditGames == false){
+            if (db.getSiteConfig().shared.games.canEditGames == false) {
                 res.status(403).json({});
                 return;
             }
@@ -879,6 +913,103 @@ module.exports = {
                 "alt_primary_button_text": "Action.FinishSetup",
                 "alt_secondary_button_text": "Action.LogoutWithRisk"
             });
+        });
+
+        app.get("/studio-login/v1/login", db.requireAuth, (req, res) => {
+            res.json({
+                "user": {
+                    "UserId": req.user.userid,
+                    "Username": req.user.username,
+                    "AgeBracket": 0,
+                    "Roles": [],
+                    "Email": {
+                        "value": db.censorEmail(req.user.email),
+                        "isVerified": req.user.emailverified
+                    },
+                    "IsBanned": false
+                },
+                "userAgreements": []
+            });
+        });
+
+        app.post('/v2/login', async (req, res) => {
+            if (db.getSiteConfig().shared.allowLogin == false) {
+                res.status(401).render("401", await db.getBlankTemplateData());
+                return;
+            }
+            const ctype = req.body.ctype;
+            const cvalue = req.body.cvalue;
+            const password = req.body.password;
+            const isClient = req.get('User-Agent').toLowerCase().includes("roblox");
+            if (ctype == "Username") {
+                const user = await db.loginUser(cvalue, password, isClient);
+                if (user == false) {
+                    res.status(403).json({
+                        "errors": [{
+                            "code": 1,
+                            "message": "Incorrect username or password. Please try again.",
+                            "userFacingMessage": "Something went wrong"
+                        }]
+                    });
+                    return;
+                }
+                res.cookie('.ROBLOSECURITY', "delete", {
+                    maxAge: -1,
+                    path: "/",
+                    domain: ".roblox.com",
+                    httpOnly: true
+                });
+                res.cookie('.ROBLOSECURITY', user.cookie, {
+                    maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
+                    path: "/",
+                    domain: ".roblox.com",
+                    httpOnly: true
+                });
+                res.json({
+                    "user": {
+                        "id": user.userid,
+                        "name": user.username,
+                        "displayName": user.username
+                    },
+                    "isBanned": false
+                });
+            } else if (ctype == "AuthToken") {
+                const cvalue = req.body.cvalue;
+                const password = req.body.password;
+                const user = await db.loginUserByLoginCode(cvalue, password, isClient);
+                if (user == false) {
+                    res.status(403).json({
+                        "errors": [{
+                            "code": 1,
+                            "message": "Incorrect username or password. Please try again.",
+                            "userFacingMessage": "Something went wrong"
+                        }]
+                    });
+                    return;
+                }
+                res.cookie('.ROBLOSECURITY', "delete", {
+                    maxAge: -1,
+                    path: "/",
+                    domain: ".roblox.com",
+                    httpOnly: true
+                });
+                res.cookie('.ROBLOSECURITY', user.cookie, {
+                    maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
+                    path: "/",
+                    domain: ".roblox.com",
+                    httpOnly: true
+                });
+                res.json({
+                    "user": {
+                        "id": user.userid,
+                        "name": user.username,
+                        "displayName": user.username
+                    },
+                    "isBanned": false
+                });
+            } else {
+                res.status(501).json({});
+            }
         });
     }
 }

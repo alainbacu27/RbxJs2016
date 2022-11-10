@@ -15,9 +15,45 @@ module.exports = {
             });
         });
 
+        app.get("/v1/themes/user/:userid", async (req, res) => {
+            const user = await db.getUser(parseInt(req.params.userid));
+            if (!user) {
+                return res.json({
+                    "themeType": "light"
+                });
+            }
+            res.json({
+                "themeType": user.theme
+            });
+        });
+
         app.get("/v1/themes/user", db.requireAuth, async (req, res) => {
             res.json({
                 "themeType": req.user.theme
+            });
+        });
+
+        app.get("/v1/inventory-privacy", db.requireAuth, async (req, res) => {
+            res.json({
+                "inventoryPrivacy": "AllUsers"
+            });
+        });
+
+        app.get("/v1/trade-privacy", db.requireAuth, async (req, res) => {
+            res.json({
+                "tradePrivacy": "All"
+            });
+        });
+
+        app.get("/v1/trade-value", db.requireAuth, async (req, res) => {
+            res.json({
+                "tradeValue": "None"
+            });
+        });
+
+        app.get("/v1/content-restriction", db.requireAuth, async (req, res) => {
+            res.json({
+                "IsEnabled": false
             });
         });
 
@@ -66,7 +102,7 @@ module.exports = {
         app.get("/v1/birthdate", db.requireAuth, (req, res) => {
             const date = new Date(req.user.birthday * 1000);
             res.json({
-                "birthMonth": date.getMonth(),
+                "birthMonth": date.getMonth() + 1,
                 "birthDay": date.getDate(),
                 "birthYear": date.getFullYear()
             });
