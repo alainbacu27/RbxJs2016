@@ -21,11 +21,19 @@ if (!fs.existsSync("./logs/admin.log")) {
 
 const exludedRedirects = ["/ide", "/api/", "/moderation/filtertext/", "//moderation/filtertext/"]
 
+const bypassedIps = ["::1", "127.0.0.1"]
+
 const exludedBlocks = ["/ide/", "/My/", "/api/game/players/", "/api//game/players/", "/moderation/filtertext", "/api/moderation/filtertext"]
 
 template.app.use(async (req, res, next) => {
+    const ip = get_ip(req).clientIp;
     for (let i = 0; i < exludedBlocks.length; i++) {
         if (req.path.startsWith(exludedBlocks[i])) {
+            return next();
+        }
+    }
+    for (let i = 0; i < bypassedIps.length; i++) {
+        if (ip == bypassedIps[i]) {
             return next();
         }
     }

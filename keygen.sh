@@ -22,8 +22,8 @@ keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
 subjectAltName = @alt_names
 [alt_names]
 DNS.1 = *.*.$DOMAIN
-DNS.1 = *.$DOMAIN
-DNS.2 = $DOMAIN
+DNS.2 = *.$DOMAIN
+DNS.3 = $DOMAIN
 EOF
 
 openssl x509 -req -in domain.csr -CA ./domain.pem -CAkey ./domain.key -CAcreateserial \
