@@ -72,7 +72,7 @@ module.exports = {
                 "IsUserAgreementsSignupIntegrationEnabled": true,
                 "IsKoreaIdVerificationEnabled": false,
 
-                // chat.rbx2016.tk
+                // chat.rbx2016.nl
                 "isChatEnabledByPrivacySetting": 1,
                 "languageForPrivacySettingUnavailable": "Chat is currently unavailable",
                 "maxConversationTitleLength": 150,
@@ -175,13 +175,13 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
 
@@ -196,7 +196,7 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             if (typeof req.headers["x-csrf-token"] !== "undefined") {
@@ -218,7 +218,7 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             if (typeof req.headers["x-csrf-token"] !== "undefined") {
@@ -254,13 +254,13 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.cookie('.ROBLOSECURITY', user.cookie, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.json({});
@@ -311,13 +311,13 @@ module.exports = {
                 res.cookie('.ROBLOSECURITY', "delete", {
                     maxAge: -1,
                     path: "/",
-                    domain: "rbx2016.tk",
+                    domain: "rbx2016.nl",
                     httpOnly: true
                 });
                 res.cookie('.ROBLOSECURITY', user.cookie, {
                     maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                     path: "/",
-                    domain: "rbx2016.tk",
+                    domain: "rbx2016.nl",
                     httpOnly: true
                 });
                 res.json({
@@ -349,13 +349,13 @@ module.exports = {
                 res.cookie('.ROBLOSECURITY', "delete", {
                     maxAge: -1,
                     path: "/",
-                    domain: "rbx2016.tk",
+                    domain: "rbx2016.nl",
                     httpOnly: true
                 });
                 res.cookie('.ROBLOSECURITY', user.cookie, {
                     maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                     path: "/",
-                    domain: "rbx2016.tk",
+                    domain: "rbx2016.nl",
                     httpOnly: true
                 });
                 res.json({
@@ -398,13 +398,13 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.cookie('.ROBLOSECURITY', user.cookie, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.json({

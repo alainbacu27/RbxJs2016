@@ -120,7 +120,7 @@ module.exports = {
             data.forEach(asset => {
                 newReturn.push({
                     requestId: asset.requestId,
-                    location: `https://assetdelivery.rbx2016.tk/v1/asset/?id=${asset.assetId}`,
+                    location: `https://assetdelivery.rbx2016.nl/v1/asset/?id=${asset.assetId}`,
                     IsHashDynamic: true,
                     IsCopyrightProtected: false,
                     isArchived: false,
@@ -166,7 +166,7 @@ module.exports = {
                 if (fs.existsSync(fp)) {
                     res.download(fp, "Download");
                 }else{
-                    res.redirect("https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
+                    res.redirect("https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
                 }
                 return;
             }

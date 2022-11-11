@@ -1443,7 +1443,7 @@ function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
     if (!hasExecutedOnce) {
         console.log("Starting RCC script " + id + " with timeout " + timeout + " seconds");
         return `<?xml version = "1.0" encoding = "UTF-8"?>
-    <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://rbx2016.tk/RCCServiceSoap" xmlns:ns1="http://rbx2016.tk/" xmlns:ns3="http://rbx2016.tk/RCCServiceSoap12">
+    <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://rbx2016.nl/RCCServiceSoap" xmlns:ns1="http://rbx2016.nl/" xmlns:ns3="http://rbx2016.nl/RCCServiceSoap12">
         <SOAP-ENV:Body>
                <ns1:OpenJobEx>
                     <ns1:job>
@@ -1460,7 +1460,7 @@ function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
     } else {
         console.log("Executing script again");
         return `<?xml version = "1.0" encoding = "UTF-8"?>
-        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://rbx2016.tk/RCCServiceSoap" xmlns:ns1="http://rbx2016.tk/" xmlns:ns3="http://rbx2016.tk/RCCServiceSoap12">
+        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://rbx2016.nl/RCCServiceSoap" xmlns:ns1="http://rbx2016.nl/" xmlns:ns3="http://rbx2016.nl/RCCServiceSoap12">
             <SOAP-ENV:Body>
                    <ns1:ExecuteEx>
                         <ns1:jobID>${id}</ns1:jobID>
@@ -1481,7 +1481,7 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     if (!isCloudEdit) {
         script = `local placeId = ${gameid}
     local port = ${port}
-    local url = "http://www.rbx2016.tk"
+    local url = "http://www.rbx2016.nl"
 
     function waitForChild(parent, childName)
         while true do
@@ -1554,7 +1554,7 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     if placeId~=nil and url~=nil then
         wait()
 
-        game:Load("http://www.rbx2016.tk/asset/?id=${gameid}|${key}")
+        game:Load("http://www.rbx2016.nl/asset/?id=${gameid}|${key}")
     end
 
     ns:Start(port)
@@ -1615,7 +1615,7 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     } else {
         script = `local placeId = ${gameid}
         local port = ${port}
-        local url = "http://www.rbx2016.tk"
+        local url = "http://www.rbx2016.nl"
 
         function waitForChild(parent, childName)
             while true do
@@ -1690,7 +1690,7 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
         if placeId~=nil and url~=nil then
             wait()
 
-            game:Load("http://www.rbx2016.tk/asset/?id=${gameid}|${key}")
+            game:Load("http://www.rbx2016.nl/asset/?id=${gameid}|${key}")
         end
 
         ns:Start(port)
@@ -1766,7 +1766,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
         PRIVATE_PLACE_KEYS.push(key);
         script = `local placeId = ${itemid}
         local port = ${port}
-        local url = "http://www.rbx2016.tk"
+        local url = "http://www.rbx2016.nl"
 
         function waitForChild(parent, childName)
             while true do
@@ -1820,7 +1820,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
         if placeId~=nil and url~=nil then
             wait()
 
-            game:Load("http://www.rbx2016.tk/asset/?id=${itemid}|${key}")
+            game:Load("http://www.rbx2016.nl/asset/?id=${itemid}|${key}")
         end
 
         spawn(function()
@@ -1833,7 +1833,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
 
         local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
         local https = game:GetService("HttpService")
-        local url = "https://www.rbx2016.tk/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+        local url = "https://www.rbx2016.nl/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
 
         local data = ""
         for k, v in pairs(result) do
@@ -1848,10 +1848,10 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
     } else {
         const item = getCatalogItem(itemid);
         if (!item) {
-            script = `local url = "http://www.rbx2016.tk"
+            script = `local url = "http://www.rbx2016.nl"
         game:GetService("ScriptContext").ScriptsDisabled = true
         local plr = game.Players:CreateLocalPlayer(0)
-        plr.CharacterAppearance = "https://api.rbx2016.tk/v1.1/avatar-fetch/?userId=15491471"
+        plr.CharacterAppearance = "https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=15491471"
         plr:LoadCharacter(false)
         for i,v in pairs(plr.Character:GetChildren()) do
            print(v)
@@ -1870,7 +1870,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
 
         local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
         local https = game:GetService("HttpService")
-        local url = "https://www.rbx2016.tk/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+        local url = "https://www.rbx2016.nl/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
 
         local data = ""
         for k, v in pairs(result) do
@@ -1894,10 +1894,10 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
                 pants.PantsTemplate = "rbxassetid://${item.itemdecalid}"
                 pants.Parent = plr.Character`;
             }
-            script = `local url = "http://www.rbx2016.tk"
+            script = `local url = "http://www.rbx2016.nl"
         game:GetService("ScriptContext").ScriptsDisabled = true
         local plr = game.Players:CreateLocalPlayer(0)
-        plr.CharacterAppearance = "https://api.rbx2016.tk/v1.1/avatar-fetch/?userId=0"
+        plr.CharacterAppearance = "https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=0"
         plr:LoadCharacter(false)
 
         for i,v in pairs(plr.Character:GetChildren()) do
@@ -2046,7 +2046,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             const headers2 = {
                                 'user-agent': 'RCC-Arbiter',
                                 'Content-Type': 'text/xml;charset=UTF-8',
-                                'soapAction': `https://www.rbx2016.tk/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
+                                'soapAction': `https://www.rbx2016.nl/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
                             };
                             const xml = utf8.encode(getRCCScriptXml(script, jobId, timeout, hasExecutedOnce));
                             if (!hasExecutedOnce) {
@@ -2400,7 +2400,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                 const headers2 = {
                                     'user-agent': 'RCC-Arbiter',
                                     'Content-Type': 'text/xml;charset=UTF-8',
-                                    'soapAction': `https://www.rbx2016.tk/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
+                                    'soapAction': `https://www.rbx2016.nl/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
                                 };
                                 const xml = utf8.encode(getRCCScriptXml(script, jobId, timeout, hasExecutedOnce));
                                 if (!hasExecutedOnce) {
@@ -2745,7 +2745,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                 const headers2 = {
                                     'user-agent': 'RCC-Arbiter',
                                     'Content-Type': 'text/xml;charset=UTF-8',
-                                    'soapAction': `https://www.rbx2016.tk/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
+                                    'soapAction': `https://www.rbx2016.nl/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
                                 };
                                 const xml = utf8.encode(getRCCScriptXml(script, jobId, timeout, hasExecutedOnce));
                                 if (!hasExecutedOnce) {
@@ -3084,7 +3084,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             const headers2 = {
                                 'user-agent': 'RCC-Arbiter',
                                 'Content-Type': 'text/xml;charset=UTF-8',
-                                'soapAction': `https://www.rbx2016.tk/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
+                                'soapAction': `https://www.rbx2016.nl/internal/${siteConfig.PRIVATE.PRIVATE_API_KEY}/RCCService.wsdl#OpenJob`,
                             };
                             const xml = utf8.encode(getRCCScriptXml(script, jobId, timeout, hasExecutedOnce));
                             if (!hasExecutedOnce) {
@@ -5032,7 +5032,7 @@ module.exports = {
         });
     },
 
-    createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, decalId = 0, meshId = 0, amount = -1, itemimage = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc8.png") {
+    createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, decalId = 0, meshId = 0, amount = -1, itemimage = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc8.png") {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -6333,7 +6333,7 @@ module.exports = {
         });
     },
 
-    createGamepass: async function (creatorid, gameid, name, desc, price, thumbnailurl = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
+    createGamepass: async function (creatorid, gameid, name, desc, price, thumbnailurl = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {
             name = censorText(filterText(name));
             MongoClient.connect(mongourl, function (err, db) {
@@ -6419,7 +6419,7 @@ module.exports = {
 
     log: log,
 
-    createDevProduct(creatorid, gameid, name, desc, price, thumbnailurl = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
+    createDevProduct(creatorid, gameid, name, desc, price, thumbnailurl = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {
             name = censorText(filterText(name));
             MongoClient.connect(mongourl, function (err, db) {
@@ -6474,7 +6474,7 @@ module.exports = {
         });
     },
 
-    editDevProduct: async function (id, creatorid, gameid, name, desc, price, onSale = true, thumbnailurl = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
+    editDevProduct: async function (id, creatorid, gameid, name, desc, price, onSale = true, thumbnailurl = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {
             name = censorText(filterText(name));
             MongoClient.connect(mongourl, function (err, db) {
@@ -7334,7 +7334,7 @@ module.exports = {
         });
     },
 
-    createGame: async function (gamename, gamedescription, creatorid, iconthumbnail = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", thumbnail = "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
+    createGame: async function (gamename, gamedescription, creatorid, iconthumbnail = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", thumbnail = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
         return new Promise(async returnPromise => {
             gamename = censorText(filterText5(gamename));
             gamedescription = censorText(filterText4(gamedescription));
@@ -8648,7 +8648,7 @@ module.exports = {
                 if (req.get("User-Agent") && req.get("User-Agent").toLowerCase().includes("roblox")) {
                     res.redirect("/My/Places.aspx&showlogin=True");
                 } else {
-                    res.redirect("https://www.rbx2016.tk/newlogin");
+                    res.redirect("https://www.rbx2016.nl/newlogin");
                 }
                 return;
             }
@@ -8659,20 +8659,20 @@ module.exports = {
             findUserByCookie(req.cookies[".ROBLOSECURITY"]).then(async user => {
                 if (user) {
                     req.user = user;
-                    let domain = "www.rbx2016.tk";
+                    let domain = "www.rbx2016.nl";
                     const under13 = await isUserUnder13(user.userid);
                     if (under13) {
-                        domain = "web.rbx2016.tk";
+                        domain = "web.rbx2016.nl";
                     }
                     if (user.banned && req.url != "/not-approved") {
                         res.redirect("https://" + domain + "/not-approved");
                     } else if (req.user.inviteKey == "") {
                         res.redirect("/authentication/invitekey");
                     } else {
-                        if (under13 && req.get("HOST") == "www.rbx2016.tk") {
+                        if (under13 && req.get("HOST") == "www.rbx2016.nl") {
                             res.redirect("https://" + domain + req.url);
                             return;
-                        } else if (!under13 && req.get("HOST") == "web.rbx2016.tk") {
+                        } else if (!under13 && req.get("HOST") == "web.rbx2016.nl") {
                             res.redirect("https://" + domain + req.url);
                             return;
                         }
@@ -8686,7 +8686,7 @@ module.exports = {
                     if (req.get("User-Agent") && req.get("User-Agent").toLowerCase().includes("roblox")) {
                         res.redirect("/My/Places.aspx&showlogin=True");
                     } else {
-                        res.redirect("https://www.rbx2016.tk/newlogin");
+                        res.redirect("https://www.rbx2016.nl/newlogin");
                     }
                 }
             });
@@ -8781,7 +8781,7 @@ module.exports = {
         findUserByCookie(req.cookies[".ROBLOSECURITY"]).then(user => {
             if (user) {
                 req.user = user;
-                res.redirect("https://www.rbx2016.tk/home");
+                res.redirect("https://www.rbx2016.nl/home");
             } else {
                 if (!req.get("User-Agent") || !req.get("User-Agent").toLowerCase().includes("roblox")) {
                     if (!req.secure) {

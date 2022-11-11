@@ -10,9 +10,9 @@ const get_ip = require('ipware')().get_ip;
 const crypto = require('crypto');
 const AdmZip = require('adm-zip');
 
-// db.createGame("Testing Place", "A testing game.", 1, "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
-// db.createCatalogItem("Test Item", "DEBUG TESTING ITEM", 0, "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", 41, 1);
-// db.createGamepass(1, 3, "Test Gamepass", "A testing gamepass.", 0, "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
+// db.createGame("Testing Place", "A testing game.", 1, "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
+// db.createCatalogItem("Test Item", "DEBUG TESTING ITEM", 0, "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", 41, 1);
+// db.createGamepass(1, 3, "Test Gamepass", "A testing gamepass.", 0, "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
 // db.sendMessage(1, 2, "Welcome", "Welcome to Rbx2016! Enjoy your stay and have fun! :)");
 
 if (!fs.existsSync("./logs/admin.log")) {
@@ -20,6 +20,27 @@ if (!fs.existsSync("./logs/admin.log")) {
 }
 
 const exludedRedirects = ["/api/", "/moderation/filtertext/", "//moderation/filtertext/"]
+
+template.app.use(async (req, res, next) => {
+    if (req.headers["user-agent"] && req.headers["user-agent"].toLowerCase().startsWith("roblox") || (req.headers.referer && req.headers.referer.toLowerCase().includes("rbx2016.nl"))) {
+        return next();
+    }
+    if (req.path == "/bypassinfoscreen") {
+        res.cookie(".INFOBYPASS", "yes", {
+            maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
+            httpOnly: true
+        });
+        return res.redirect("/");
+    }
+    if (typeof req.cookies[".INFOBYPASS"] != "string" || req.cookies[".INFOBYPASS"] != "yes") {
+        if (req.path == "/") {
+            return res.status(200).render("startindex", {});
+        } else {
+            return res.sendStatus(404);
+        }
+    }
+    next();
+});
 
 template.app.post("/moderation/filtertext", (req, res) => {
     const text = req.body.text;
@@ -83,19 +104,19 @@ template.app.use(async (req, res, next) => {
             return;
         }
     }
-    if (req.get("Host") === "rbx2016.tk") {
+    if (req.get("Host") === "rbx2016.nl") {
         if (req.method == "GET") {
             if (req.get("X-Forwarded-Proto") === "https") {
-                res.redirect(301, "https://www.rbx2016.tk" + req.url);
+                res.redirect(301, "https://www.rbx2016.nl" + req.url);
             } else {
-                res.redirect(301, "http://www.rbx2016.tk" + req.url);
+                res.redirect(301, "http://www.rbx2016.nl" + req.url);
             }
             return;
         }
         if (req.get("X-Forwarded-Proto") === "https") {
-            res.redirect(307, "https://www.rbx2016.tk" + req.url);
+            res.redirect(307, "https://www.rbx2016.nl" + req.url);
         } else {
-            res.redirect(307, "http://www.rbx2016.tk" + req.url);
+            res.redirect(307, "http://www.rbx2016.nl" + req.url);
         }
         return;
     }
@@ -244,6 +265,9 @@ template.app.use(db.requireAuth2, async (req, res, next) => {
 });
 
 const subdomain = require('express-subdomain');
+const {
+    type
+} = require("os");
 
 const merged = ["assetgame", "admin"];
 

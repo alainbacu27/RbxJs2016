@@ -12,7 +12,7 @@ module.exports = {
                     /*{
                                         "name": "GucciTown",
                                         "title": "Gucci Town",
-                                        "logoImageUrl": "https://images.rbx2016.tk/00b3fce6fa5831184f9ff79aeb6d6953",
+                                        "logoImageUrl": "https://images.rbx2016.nl/00b3fce6fa5831184f9ff79aeb6d6953",
                                         "pageType": "Sponsored",
                                         "pagePath": "/sponsored/GucciTown"
                                     }*/

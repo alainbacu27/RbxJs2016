@@ -73,13 +73,13 @@ module.exports = {
                 "GameId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                 "MachineAddress": "0.0.0.0",
                 "UniverseId": 1,
-                "PlaceFetchUrl": "https://assetdelivery.rbx2016.tk/v1/asset?id=1",
+                "PlaceFetchUrl": "https://assetdelivery.rbx2016.nl/v1/asset?id=1",
                 "MatchmakingContextId": 1,
                 "CreatorId": 1,
                 "CreatorType": "User",
                 "PreferredPlayerCapacity": "Fill",
                 "PlaceVersion": 1,
-                "BaseUrl": "rbx2016.tk",
+                "BaseUrl": "rbx2016.nl",
                 "JobId": "Test",
                 "PrefferedPort": "53640",
                 "Port": "53640"
@@ -605,13 +605,13 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
 
@@ -735,7 +735,7 @@ module.exports = {
                 });
                 return;
             }
-            const gameid = await db.createGame(`${req.user.username}Place Number: ${userGames.length + 1}`, "This is my ROBLOX game, come check it out! :D", req.user.userid, "https://images.rbx2016.tk/baseplate", "https://images.rbx2016.tk/baseplate");
+            const gameid = await db.createGame(`${req.user.username}Place Number: ${userGames.length + 1}`, "This is my ROBLOX game, come check it out! :D", req.user.userid, "https://images.rbx2016.nl/baseplate", "https://images.rbx2016.nl/baseplate");
             res.json({
                 "UniverseId": gameid,
                 "RootPlaceId": gameid

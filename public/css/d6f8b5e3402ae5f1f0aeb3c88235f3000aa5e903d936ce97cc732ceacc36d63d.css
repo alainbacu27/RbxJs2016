@@ -1461,7 +1461,7 @@
 }
 
 .checkbox input[type=checkbox]:checked+label:before {
-    background-image: url(https://images.rbx2016.tk/8f9d73863e52851ec5910be4ffa5ed78-generic_01312019.svg);
+    background-image: url(https://images.rbx2016.nl/8f9d73863e52851ec5910be4ffa5ed78-generic_01312019.svg);
     background-repeat: no-repeat;
     background-size: 28px auto;
     width: 14px;
@@ -1477,7 +1477,7 @@
 
 @media (max-width:991px) {
     .checkbox input[type=checkbox]:checked+label:before {
-        background-image: url(https://images.rbx2016.tk/8f9d73863e52851ec5910be4ffa5ed78-generic_01312019.svg);
+        background-image: url(https://images.rbx2016.nl/8f9d73863e52851ec5910be4ffa5ed78-generic_01312019.svg);
         background-repeat: no-repeat;
         background-size: 44px auto;
         width: 22px;
@@ -1517,7 +1517,7 @@
 }
 
 .checkbox input[type=checkbox]:checked:disabled+label:before {
-    background-image: url(https://images.rbx2016.tk/8f9d73863e52851ec5910be4ffa5ed78-generic_01312019.svg);
+    background-image: url(https://images.rbx2016.nl/8f9d73863e52851ec5910be4ffa5ed78-generic_01312019.svg);
     background-repeat: no-repeat;
     background-size: 28px auto;
     width: 14px;
@@ -1533,7 +1533,7 @@
 
 @media (max-width:991px) {
     .checkbox input[type=checkbox]:checked:disabled+label:before {
-        background-image: url(https://images.rbx2016.tk/8f9d73863e52851ec5910be4ffa5ed78-generic_01312019.svg);
+        background-image: url(https://images.rbx2016.nl/8f9d73863e52851ec5910be4ffa5ed78-generic_01312019.svg);
         background-repeat: no-repeat;
         background-size: 44px auto;
         width: 22px;

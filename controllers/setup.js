@@ -27,7 +27,7 @@ module.exports = {
         });
 
         app.get("/cdn.txt", (req, res) => {
-            res.send("setup.rbx2016.tk")
+            res.send("setup.rbx2016.nl")
         });
 
         app.get("/version", (req, res) => {

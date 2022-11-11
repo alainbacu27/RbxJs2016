@@ -169,7 +169,7 @@ module.exports = {
                 const message = messages[i];
                 const sender = await db.getUser(message.from);
                 if (!sender) continue;
-                const pfp = sender.userid == 1 ? "https://images.rbx2016.tk/e870a0b9bcd987fbe7f730c8002f8faa.png" : "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png";
+                const pfp = sender.userid == 1 ? "https://images.rbx2016.nl/e870a0b9bcd987fbe7f730c8002f8faa.png" : "https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png";
                 formatted += `<div class="pt-2 messageRow-0-2-110" id="${message.id}" data-timestamp="${message.timestamp}">
                 <div class="userCheckAndImage-0-2-114">
                     <div class="markReadWrapper-0-2-113"><input
@@ -471,10 +471,10 @@ module.exports = {
                     /*
                                     {
                                         "Id": 1,
-                                        "AssetSeoUrl": "https://sitetest.rbx2016.tk/catalog/1/",
+                                        "AssetSeoUrl": "https://sitetest.rbx2016.nl/catalog/1/",
                                         "Thumbnail": {
                                             "Final": true,
-                                            "Url": "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
+                                            "Url": "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
                                             "RetryUrl": null,
                                             "UserId": 0,
                                             "EndpointType": "Avatar"
@@ -618,12 +618,12 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                    <a href="https://sitetest.rbx2016.tk/games/${game.gameid}"
+                    <a href="https://sitetest.rbx2016.nl/games/${game.gameid}"
                         class="game-card-link">
                         <div class="game-card-thumb-container">
                             <img class="game-card-thumb"
-                                src="https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png"
-                                thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png&quot;,&quot;RetryUrl&quot;:null}"
+                                src="https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png"
+                                thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png&quot;,&quot;RetryUrl&quot;:null}"
                                 image-retry />
                         </div>
                         <div class="text-overflow game-card-name"
@@ -663,7 +663,7 @@ module.exports = {
                     <span class="game-card-footer">
                         <span class="text-label xsmall">By </span>
                         <a class="text-link xsmall text-overflow"
-                            href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                            href="https://sitetest.rbx2016.nl/users/${creator.userid}/profile">${creator.username}</a>
                     </span>
                 </div>
             </li>`;
@@ -686,12 +686,12 @@ module.exports = {
                 ng-class="{'active': switcher.games.currPage == ${i}}" data-index="0">
                 <div class="col-sm-6 slide-item-container-left">
                     <div class="slide-item-emblem-container">
-                        <a href="https://sitetest.rbx2016.tk/games/${game.gameid}">
+                        <a href="https://sitetest.rbx2016.nl/games/${game.gameid}">
                             <img class="slide-item-image"
-                                src="https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png"
-                                data-src="https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png"
+                                src="https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png"
+                                data-src="https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png"
                                 data-emblem-id="${game.gameid}"
-                                thumbnail='{"Final":true,"Url":"https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png","RetryUrl":null}'
+                                thumbnail='{"Final":true,"Url":"https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png","RetryUrl":null}'
                                 image-retry />
 
                         </a>
@@ -1078,8 +1078,8 @@ module.exports = {
             }
             res.render("sitetest/userads/userad1", {
                 ...(await db.getBlankRenderObject()),
-                adimg: "https://images.rbx2016.tk/ab60e8d4d6a69816eec62a561416850f.jpg",
-                adurl: "https://sitetest.rbx2016.tk/premium/membership",
+                adimg: "https://images.rbx2016.nl/ab60e8d4d6a69816eec62a561416850f.jpg",
+                adurl: "https://sitetest.rbx2016.nl/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1091,8 +1091,8 @@ module.exports = {
             }
             res.render("sitetest/userads/userad2", {
                 ...(await db.getBlankRenderObject()),
-                adimg: "https://images.rbx2016.tk/f6873fd4b192df10f0cb0f41f6a344e7.jpg",
-                adurl: "https://sitetest.rbx2016.tk/premium/membership",
+                adimg: "https://images.rbx2016.nl/f6873fd4b192df10f0cb0f41f6a344e7.jpg",
+                adurl: "https://sitetest.rbx2016.nl/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1103,8 +1103,8 @@ module.exports = {
             }
             res.render("sitetest/userads/userad3", {
                 ...(await db.getBlankRenderObject()),
-                adimg: "https://images.rbx2016.tk/3361ecd3b9294a517ddf1f304819baac.jpg",
-                adurl: "https://sitetest.rbx2016.tk/premium/membership",
+                adimg: "https://images.rbx2016.nl/3361ecd3b9294a517ddf1f304819baac.jpg",
+                adurl: "https://sitetest.rbx2016.nl/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1121,8 +1121,8 @@ module.exports = {
             }
             res.render("sitetest/userads/userad1", {
                 ...(await db.getBlankRenderObject()),
-                adimg: "https://images.rbx2016.tk/ab60e8d4d6a69816eec62a561416850f.jpg",
-                adurl: "https://sitetest.rbx2016.tk/premium/membership",
+                adimg: "https://images.rbx2016.nl/ab60e8d4d6a69816eec62a561416850f.jpg",
+                adurl: "https://sitetest.rbx2016.nl/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1134,8 +1134,8 @@ module.exports = {
             }
             res.render("sitetest/userads/userad2", {
                 ...(await db.getBlankRenderObject()),
-                adimg: "https://images.rbx2016.tk/f6873fd4b192df10f0cb0f41f6a344e7.jpg",
-                adurl: "https://sitetest.rbx2016.tk/premium/membership",
+                adimg: "https://images.rbx2016.nl/f6873fd4b192df10f0cb0f41f6a344e7.jpg",
+                adurl: "https://sitetest.rbx2016.nl/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1146,8 +1146,8 @@ module.exports = {
             }
             res.render("sitetest/userads/userad3", {
                 ...(await db.getBlankRenderObject()),
-                adimg: "https://images.rbx2016.tk/3361ecd3b9294a517ddf1f304819baac.jpg",
-                adurl: "https://sitetest.rbx2016.tk/premium/membership",
+                adimg: "https://images.rbx2016.nl/3361ecd3b9294a517ddf1f304819baac.jpg",
+                adurl: "https://sitetest.rbx2016.nl/premium/membership",
                 adtitle: "Get Builders Club and Be Rich on ROBLOX"
             });
         });
@@ -1182,13 +1182,13 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.cookie('.ROBLOSECURITY', user.cookie, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.send();
@@ -1205,13 +1205,13 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.cookie('.ROBLOSECURITY', user.cookie, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.send();
@@ -1244,9 +1244,9 @@ module.exports = {
                 "UniverseId": game.gameid,
                 // "vipOwnerId": 1,
                 "DatacenterId": 1,
-                "PlaceFetchUrl": "http://sitetest.rbx2016.tk/v1/asset?id=1",
-                "assetdelivery": "http://sitetest.rbx2016.tk/",
-                "BaseUrl": "http://sitetest.rbx2016.tk/",
+                "PlaceFetchUrl": "http://sitetest.rbx2016.nl/v1/asset?id=1",
+                "assetdelivery": "http://sitetest.rbx2016.nl/",
+                "BaseUrl": "http://sitetest.rbx2016.nl/",
                 "MatchmakingContextId": 1,
                 "MachineAddress": "127.0.0.1",
                 "CreatorId": game.creatorid,
@@ -1353,7 +1353,7 @@ module.exports = {
                 res.cookie('.ROBLOSECURITY', "delete", {
                     maxAge: -1,
                     path: "/",
-                    domain: "rbx2016.tk",
+                    domain: "rbx2016.nl",
                     httpOnly: true
                 });
                 if (typeof req.headers["x-csrf-token"] !== "undefined") {
@@ -1480,13 +1480,13 @@ module.exports = {
                 res.cookie('.ROBLOSECURITY', "delete", {
                     maxAge: -1,
                     path: "/",
-                    domain: "rbx2016.tk",
+                    domain: "rbx2016.nl",
                     httpOnly: true
                 });
                 res.cookie('.ROBLOSECURITY', ROBLOSECURITY_COOKIES, {
                     maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                     path: "/",
-                    domain: "rbx2016.tk",
+                    domain: "rbx2016.nl",
                     httpOnly: true
                 });
 
@@ -1502,7 +1502,7 @@ module.exports = {
                 res.cookie('.ROBLOSECURITY', "delete", {
                     maxAge: -1,
                     path: "/",
-                    domain: "rbx2016.tk",
+                    domain: "rbx2016.nl",
                     httpOnly: true
                 });
                 return res.json({
@@ -1565,13 +1565,13 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
 
@@ -1592,12 +1592,12 @@ module.exports = {
             const script = `-- Loaded by StartGameSharedScript --
             pcall(function() game:SetCreatorID(${game.creatorid}, Enum.CreatorType.User) end)
             
-            pcall(function() game:GetService("SocialService"):SetFriendUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://sitetest.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://sitetest.rbx2016.tk/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
+            pcall(function() game:GetService("SocialService"):SetFriendUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://sitetest.rbx2016.nl/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
             `;
             const rbxsig = db.sign(script);
             res.send(`%${rbxsig}%${script}`);
@@ -1677,13 +1677,13 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.cookie('.ROBLOSECURITY', user.cookie, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
 
@@ -1765,7 +1765,7 @@ module.exports = {
 
             <div id="DevProducts" class="developerProductsContainer">
                 <div id="DeveloperProductsLoading">
-                    <img class="developerProductsLoadingImage" src='https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif' />
+                    <img class="developerProductsLoadingImage" src='https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif' />
                 </div>
                 <div id="DeveloperProductsError" >
                     An error occurred while fetching the developer products.  Please try again later.
@@ -1890,7 +1890,7 @@ module.exports = {
 
             <div id="DevProducts" class="developerProductsContainer">
                 <div id="DeveloperProductsLoading">
-                    <img class="developerProductsLoadingImage" src='https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif' />
+                    <img class="developerProductsLoadingImage" src='https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif' />
                 </div>
                 <div id="DeveloperProductsError" >
                     An error occurred while fetching the developer products.  Please try again later.
@@ -2401,13 +2401,13 @@ module.exports = {
                         <tbody>
                             <tr>
                                 <td class="image-col">
-                                    <a href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}"
+                                    <a href="https://sitetest.rbx2016.nl/game-pass/${gamepass.id}"
                                         class="item-image"><img class=""
                                             src="${gamepass.thumbnailurl}"></a>
                                 </td>
                                 <td class="name-col">
                                     <a class="title"
-                                        href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}">${gamepass.name}</a>
+                                        href="https://sitetest.rbx2016.nl/game-pass/${gamepass.id}">${gamepass.name}</a>
                                     <table class="details-table">
                                         <tbody>
                                             <tr>
@@ -2495,13 +2495,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}"
+                                <a href="https://sitetest.rbx2016.nl/game-pass/${gamepass.id}"
                                     class="item-image"><img class=""
                                         src="${gamepass.thumbnailurl}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}">${gamepass.name}</a>
+                                    href="https://sitetest.rbx2016.nl/game-pass/${gamepass.id}">${gamepass.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2545,13 +2545,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://sitetest.rbx2016.tk/library/${asset.id}"
+                                <a href="https://sitetest.rbx2016.nl/library/${asset.id}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.id}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.id}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://sitetest.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                    href="https://sitetest.rbx2016.nl/library/${asset.id}">${asset.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2595,13 +2595,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://sitetest.rbx2016.tk/library/${asset.id}"
+                                <a href="https://sitetest.rbx2016.nl/library/${asset.id}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png"}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png"}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://sitetest.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                    href="https://sitetest.rbx2016.nl/library/${asset.id}">${asset.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2645,13 +2645,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://sitetest.rbx2016.tk/library/${asset.id}"
+                                <a href="https://sitetest.rbx2016.nl/library/${asset.id}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg"}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg"}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://sitetest.rbx2016.tk/library/${asset.id}">${asset.name}</a>
+                                    href="https://sitetest.rbx2016.nl/library/${asset.id}">${asset.name}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2695,13 +2695,13 @@ module.exports = {
                     <tbody>
                         <tr>
                             <td class="image-col">
-                                <a href="https://sitetest.rbx2016.tk/library/${asset.itemid}"
+                                <a href="https://sitetest.rbx2016.nl/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.itemid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
-                                    href="https://sitetest.rbx2016.tk/catalog/${asset.itemid}">${asset.itemname}</a>
+                                    href="https://sitetest.rbx2016.nl/catalog/${asset.itemid}">${asset.itemname}</a>
                                 <table class="details-table">
                                     <tbody>
                                         <tr>
@@ -2989,7 +2989,7 @@ module.exports = {
                 <a id="upload-button" class="btn-medium btn-primary "
                     tabindex="4">Preview<span class=></span></a>
                 <span id="loading-container"><img
-                        src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                        src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
                 <div id="upload-fee-item-result-error" class="status-error ${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}
                 </div>
                 <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
@@ -3010,7 +3010,7 @@ module.exports = {
                 </div>
                     <div class="form-row submit-buttons">
                                 <a id="upload-button" class="btn-medium btn-primary " data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
-                                        <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                                        <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
                 <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
                 <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                     <div><a id="upload-fee-confirmation-link" target="_top">Audio</a> successfully created!</div>
@@ -3029,7 +3029,7 @@ module.exports = {
             </div>
                 <div class="form-row submit-buttons">
                             <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
-                                    <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                                    <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
             <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
             <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                 <div><a id="upload-fee-confirmation-link" target="_top">Mesh</a> successfully created!</div>
@@ -3048,14 +3048,14 @@ module.exports = {
             </div>
                 <div class="form-row submit-buttons">
                             <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
-                                    <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                                    <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
             <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
             <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                 <div><a id="upload-fee-confirmation-link" target="_top">Decal</a> successfully created!</div>
             </div>
             </div>`
             } else if (assetTypeId == 11) {
-                formData = `<div class="form-row">Did you use the template? If not, <a target="_blank" href="https://static.rbx2016.tk/images/shirttemplate.png">download it here</a>.</div>
+                formData = `<div class="form-row">Did you use the template? If not, <a target="_blank" href="https://static.rbx2016.nl/images/shirttemplate.png">download it here</a>.</div>
                 <div class="form-row">
                     <label for="file">Find your image:</label>
                     <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
@@ -3068,7 +3068,7 @@ module.exports = {
                 </div>
                     <div class="form-row submit-buttons">
                                 <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload for ${db.getSiteConfig().shared.ShirtUploadCost} Robux<span class=""></span></a>
-                                        <span id="loading-container"><img src="https://images.rbx2016.tk/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                                        <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
                 <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
                 <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                     <div><a id="upload-fee-confirmation-link" target="_top">Shirt</a> successfully created!</div>
@@ -3203,9 +3203,9 @@ module.exports = {
                     const presenceType = (friend.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) && friend.playing != 0 ? 2 : 1 : 0;
                     data.push({
                         "UserId": friend.userid,
-                        "AbsoluteURL": "https://sitetest.rbx2016.tk/users/" + friend.userid.toString() + "/profile",
+                        "AbsoluteURL": "https://sitetest.rbx2016.nl/users/" + friend.userid.toString() + "/profile",
                         "Username": friend.username,
-                        "AvatarUri": "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png",
+                        "AvatarUri": "https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png",
                         "AvatarFinal": true,
                         "OnlineStatus": {
                             "LocationOrLastSeen": presenceType == 3 ? "Studio" : presenceType == 2 ? "Playing" : presenceType == 1 ? "Website" : "Offline",
@@ -3250,9 +3250,9 @@ module.exports = {
                     const presenceType = (friend.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? (friend.lastOnline || 0) > (db.getUnixTimestamp() - 60) && friend.playing != 0 ? 2 : 1 : 0;
                     data.push({
                         "UserId": friend.userid,
-                        "AbsoluteURL": "https://sitetest.rbx2016.tk/users/" + friend.userid.toString() + "/profile",
+                        "AbsoluteURL": "https://sitetest.rbx2016.nl/users/" + friend.userid.toString() + "/profile",
                         "Username": friend.username,
-                        "AvatarUri": "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png",
+                        "AvatarUri": "https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png",
                         "AvatarFinal": true,
                         "OnlineStatus": {
                             "LocationOrLastSeen": presenceType == 3 ? "Studio" : presenceType == 2 ? "Playing" : presenceType == 1 ? "Website" : "Offline",
@@ -3371,7 +3371,7 @@ module.exports = {
                                     "AssetId": 1,
                                     "UniverseId": null,
                                     "Name": "Test",
-                                    "AbsoluteUrl": "https://sitetest.rbx2016.tk/catalog/1/Test",
+                                    "AbsoluteUrl": "https://sitetest.rbx2016.nl/catalog/1/Test",
                                     "AssetType": 8,
                                     "AssetTypeDisplayName": null,
                                     "AssetTypeFriendlyLabel": null,
@@ -3389,7 +3389,7 @@ module.exports = {
                                     "Id": 1,
                                     "Name": "Roblox",
                                     "Type": 1,
-                                    "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/1/profile/"
+                                    "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/1/profile/"
                                 },
                                 "Product": {
                                     "Id": 0,
@@ -3417,7 +3417,7 @@ module.exports = {
                                 "PrivateServer": null,
                                 "Thumbnail": {
                                     "Final": true,
-                                    "Url": "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
+                                    "Url": "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
                                     "RetryUrl": "",
                                     "IsApproved": false
                                 },
@@ -3447,7 +3447,7 @@ module.exports = {
                             "AssetId": game.gameid,
                             "UniverseId": game.gameid,
                             "Name": game.gamename,
-                            "AbsoluteUrl": `https://sitetest.rbx2016.tk/games/${game.gameid}/${db.filterText2(game.gamename).replace(" ", "-")}`,
+                            "AbsoluteUrl": `https://sitetest.rbx2016.nl/games/${game.gameid}/${db.filterText2(game.gamename).replace(" ", "-")}`,
                             "AssetType": 9,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3465,7 +3465,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": `https://sitetest.rbx2016.tk/users/${creator.userid}/profile/`
+                            "CreatorProfileLink": `https://sitetest.rbx2016.nl/users/${creator.userid}/profile/`
                         },
                         "Product": null,
                         "PrivateServer": null,
@@ -3546,7 +3546,7 @@ module.exports = {
                                     "AssetId": 1,
                                     "UniverseId": null,
                                     "Name": "Test",
-                                    "AbsoluteUrl": "https://sitetest.rbx2016.tk/catalog/1/Test",
+                                    "AbsoluteUrl": "https://sitetest.rbx2016.nl/catalog/1/Test",
                                     "AssetType": 8,
                                     "AssetTypeDisplayName": null,
                                     "AssetTypeFriendlyLabel": null,
@@ -3564,7 +3564,7 @@ module.exports = {
                                     "Id": 1,
                                     "Name": "Roblox",
                                     "Type": 1,
-                                    "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/1/profile/"
+                                    "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/1/profile/"
                                 },
                                 "Product": {
                                     "Id": 0,
@@ -3592,7 +3592,7 @@ module.exports = {
                                 "PrivateServer": null,
                                 "Thumbnail": {
                                     "Final": true,
-                                    "Url": "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
+                                    "Url": "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
                                     "RetryUrl": "",
                                     "IsApproved": false
                                 },
@@ -3639,7 +3639,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3651,13 +3651,13 @@ module.exports = {
                             "IsApproved": true,
                             "LastUpdated": "\/Date(-62135575200000)\/",
                             "LastUpdatedBy": null,
-                            "AudioUrl": "https://assetdelivery.rbx2016.tk/asset?id=" + asset.id.toString()
+                            "AudioUrl": "https://assetdelivery.rbx2016.nl/asset?id=" + asset.id.toString()
                         },
                         "Creator": {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3685,7 +3685,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png",
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png",
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3715,7 +3715,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3733,7 +3733,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3761,7 +3761,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.id}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.id}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3791,7 +3791,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/library/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3809,7 +3809,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3837,7 +3837,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg",
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg",
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3867,7 +3867,7 @@ module.exports = {
                             "AssetId": asset.itemid,
                             "UniverseId": asset.itemid,
                             "Name": asset.itemname,
-                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3885,7 +3885,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3913,7 +3913,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.tk/asset?id=${asset.itemid}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.itemid}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -3943,7 +3943,7 @@ module.exports = {
                             "AssetId": asset.id,
                             "UniverseId": asset.id,
                             "Name": asset.name,
-                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/game-pass/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/game-pass/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -3961,7 +3961,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -3989,7 +3989,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -4019,7 +4019,7 @@ module.exports = {
                             "AssetId": asset.gameid,
                             "UniverseId": asset.gameid,
                             "Name": asset.gamename,
-                            "AbsoluteUrl": "https://sitetest.rbx2016.tk/games/" + asset.gameid.toString() + "/" + db.filterText2(asset.gamename).replaceAll(" ", "-"),
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/games/" + asset.gameid.toString() + "/" + db.filterText2(asset.gamename).replaceAll(" ", "-"),
                             "AssetType": assetTypeId,
                             "AssetTypeDisplayName": null,
                             "AssetTypeFriendlyLabel": null,
@@ -4037,7 +4037,7 @@ module.exports = {
                             "Id": creator.userid,
                             "Name": creator.username,
                             "Type": 1,
-                            "CreatorProfileLink": "https://sitetest.rbx2016.tk/users/" + creator.userid.toString() + "/profile/"
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
                         },
                         "Product": {
                             "Id": 0,
@@ -4065,7 +4065,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
+                            "Url": "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -4110,7 +4110,7 @@ module.exports = {
                 res.send(jsoncallback + "(" + JSON.stringify([{
                     "id": item.id,
                     "name": db.filterText2(item.name).replaceAll(" ", "-"),
-                    "url": "https://sitetest.rbx2016.tk/catalog/" + item.id.toString() + "/" + db.filterText2(item.name).replaceAll(" ", "-"),
+                    "url": "https://sitetest.rbx2016.nl/catalog/" + item.id.toString() + "/" + db.filterText2(item.name).replaceAll(" ", "-"),
                     "thumbnailFinal": true,
                     "thumbnailUrl": item.thumbnailurl,
                     "bcOverlayUrl": null,
@@ -4128,7 +4128,7 @@ module.exports = {
             res.send(jsoncallback + "(" + JSON.stringify([{
                 "id": item.itemid,
                 "name": db.filterText2(item.itemname).replaceAll(" ", "-"),
-                "url": "https://sitetest.rbx2016.tk/catalog/" + item.itemid.toString() + "/" + db.filterText2(item.itemname).replaceAll(" ", "-"),
+                "url": "https://sitetest.rbx2016.nl/catalog/" + item.itemid.toString() + "/" + db.filterText2(item.itemname).replaceAll(" ", "-"),
                 "thumbnailFinal": true,
                 "thumbnailUrl": item.itemimage,
                 "bcOverlayUrl": null,
@@ -4180,7 +4180,7 @@ module.exports = {
             let out = `<div id="recently-visited-places" class="col-xs-12 container-list home-games">
             <div class="container-header">
                 <h3>Recently Played</h3>
-<a href="https://sitetest.rbx2016.tk/games/?sortFilter=6" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
+<a href="https://sitetest.rbx2016.nl/games/?sortFilter=6" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
             
 <ul class="hlist game-cards ">`;
             let games = await db.getUserRecentlyPlayedGames(userid) || [];
@@ -4193,7 +4193,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                <a href="https://sitetest.rbx2016.tk/games/${game.gameid}" class="game-card-link">
+                <a href="https://sitetest.rbx2016.nl/games/${game.gameid}" class="game-card-link">
                     <div class="game-card-thumb-container">
                         <img class="game-card-thumb" src="${game.iconthumbnail}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${game.iconthumbnail}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
                     </div>
@@ -4230,7 +4230,7 @@ module.exports = {
                 </a>
                 <span class="game-card-footer">
                     <span class="text-label xsmall">By </span>
-                    <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                    <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.nl/users/${creator.userid}/profile">${creator.username}</a>
                 </span>
                 </div>
             </li>`;
@@ -4248,7 +4248,7 @@ module.exports = {
             let out = `<div id="my-favorties-games" class="col-xs-12 container-list home-games">
             <div class="container-header">
                 <h3>My Favorites</h3>
-        <a href="https://sitetest.rbx2016.tk/users/${userid}/favorites#!/places" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
+        <a href="https://sitetest.rbx2016.nl/users/${userid}/favorites#!/places" class="btn-secondary-xs btn-more btn-fixed-width">See All</a>            </div>
         
         
         <ul class="hlist game-cards ">`;
@@ -4261,7 +4261,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                <a href="https://sitetest.rbx2016.tk/games/${game.gameid}" class="game-card-link">
+                <a href="https://sitetest.rbx2016.nl/games/${game.gameid}" class="game-card-link">
                     <div class="game-card-thumb-container">
                         <img class="game-card-thumb" src="${game.iconthumbnail}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${game.iconthumbnail}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
                     </div>
@@ -4298,7 +4298,7 @@ module.exports = {
                 </a>
                 <span class="game-card-footer">
                     <span class="text-label xsmall">By </span>
-                    <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                    <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.nl/users/${creator.userid}/profile">${creator.username}</a>
                 </span>
                 </div>
             </li>`;
@@ -4350,9 +4350,9 @@ module.exports = {
                     let limitedHtml = ``;
                     if (item.unitsAvailableForConsumption > -1) {
                         if (item.unquie) {
-                            limitedHtml = `<img src="https://static.rbx2016.tk/d649b9c54a08dcfa76131d123e7d8acc.png" alt="Limited Unique" class="limited-overlay">`;
+                            limitedHtml = `<img src="https://static.rbx2016.nl/d649b9c54a08dcfa76131d123e7d8acc.png" alt="Limited Unique" class="limited-overlay">`;
                         } else {
-                            limitedHtml = `<img src="https://static.rbx2016.tk/793dc1fd7562307165231ca2b960b19a.png" alt="Limited Unique" class="limited-overlay">`;
+                            limitedHtml = `<img src="https://static.rbx2016.nl/793dc1fd7562307165231ca2b960b19a.png" alt="Limited Unique" class="limited-overlay">`;
                         }
                     }
                     const creator = await db.getUser(item.itemcreatorid);
@@ -4363,21 +4363,21 @@ module.exports = {
                     <div class="CatalogItemInner SmallInner">    
                             <div class="roblox-item-image image-small" data-item-id="${item.id}" data-image-size="small">
                                 <div class="item-image-wrapper">
-                                    <a href="https://sitetest.rbx2016.tk/catalog/${item.itemid}">
+                                    <a href="https://sitetest.rbx2016.nl/catalog/${item.itemid}">
                                         <img title="${item.itemname}" alt="${item.itemname}" class="original-image " src="${item.itemimage}">
                                                                 ${limitedHtml}
-                                                                                    ${db.getUnixTimestamp() - item.created > 86400 ? `<img src="https://static.rbx2016.tk/b84cdb8c0e7c6cbe58e91397f91b8be8.png" alt="New">` : ``}
+                                                                                    ${db.getUnixTimestamp() - item.created > 86400 ? `<img src="https://static.rbx2016.nl/b84cdb8c0e7c6cbe58e91397f91b8be8.png" alt="New">` : ``}
                                     </a>
                                 </div>
                             </div>
                             
                         <div id="textDisplay">
-                        <div class="CatalogItemName notranslate"><a class="name notranslate" href="https://sitetest.rbx2016.tk/catalog/?id=${item.itemid}" title="${item.itemname}">${item.itemname}</a></div>
+                        <div class="CatalogItemName notranslate"><a class="name notranslate" href="https://sitetest.rbx2016.nl/catalog/?id=${item.itemid}" title="${item.itemname}">${item.itemname}</a></div>
                         ${item.amount > 0 ? `<div class="robux-price"><span class="SalesText">was </span><span class="robux notranslate">${item.itemprice == 0 ? "FREE" : db.formatNumberS(item.itemprice)}</span></div>
                         <div id="PrivateSales"><span class="SalesText">now </span><span class="robux notranslate">???</span></div>
                 </div>` : `<div class="robux-price"><span class="robux notranslate">${item.itemprice == 0 ? "FREE" : db.formatNumberS(item.itemprice)}</span></div>    `}        
                             <div class="CatalogHoverContent">
-                                <div><span class="CatalogItemInfoLabel">Creator:</span> <span class="HoverInfo notranslate"><a href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a></span></div>
+                                <div><span class="CatalogItemInfoLabel">Creator:</span> <span class="HoverInfo notranslate"><a href="https://sitetest.rbx2016.nl/users/${creator.userid}/profile">${creator.username}</a></span></div>
                                 <div><span class="CatalogItemInfoLabel">Updated:</span> <span class="HoverInfo">${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}</span></div>
                                 <div><span class="CatalogItemInfoLabel">Sales:</span> <span class="HoverInfo notranslate">${item.itemowners.length}</span></div>
                                 <div><span class="CatalogItemInfoLabel">Favorited:</span> <span class="HoverInfo">${item.itemfavorites.length} times</span></div>
@@ -4607,7 +4607,7 @@ module.exports = {
                 res.render("sitetest/catalogitem", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.itemid,
-                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemid}`,
+                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.nl/asset/?id=${asset.itemid}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -4635,7 +4635,7 @@ module.exports = {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.itemid,
                 genre: asset.itemgenre,
-                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.tk/asset/?id=${asset.itemid}`,
+                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.nl/asset/?id=${asset.itemid}`,
                 price: asset.price || 0,
                 name: asset.itemname,
                 name2: asset.itemname.replaceAll(" ", "-"),
@@ -4985,7 +4985,7 @@ module.exports = {
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
-                    <a href="https://sitetest.rbx2016.tk/games/${game.gameid}" class="game-card-link">
+                    <a href="https://sitetest.rbx2016.nl/games/${game.gameid}" class="game-card-link">
                         <div class="game-card-thumb-container">
                             <img class="game-card-thumb"
                                 src="${game.iconthumbnail}"
@@ -5025,7 +5025,7 @@ module.exports = {
                     </a>
                     <span class="game-card-footer">
                         <span class="text-label xsmall">By </span>
-                        <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a>
+                        <a class="text-link xsmall text-overflow" href="https://sitetest.rbx2016.nl/users/${creator.userid}/profile">${creator.username}</a>
                     </span>
                 </div>
             </li>
@@ -5038,7 +5038,7 @@ module.exports = {
             if (!req.user) {
                 return res.status(403).send("User is not authorized.");
             }
-            res.send("http://sitetest.rbx2016.tk/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
+            res.send("http://sitetest.rbx2016.nl/Login/Negotiate.ashx?suggest=" + await db.generateUserTokenByCookie(req.user.cookie));
         });
 
         app.get("/games/getgameinstancesjson", async (req, res) => {
@@ -5070,11 +5070,11 @@ module.exports = {
                     players.push({
                         "Id": plr.userid,
                         "Username": plr.username,
-                        // "Thumbnail": "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png",
+                        // "Thumbnail": "https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png",
                         // "AssetId": plr.userid,
                         // "AssetHash": plrs.userid.toString(),
                         // "AssetTypeId": 0,
-                        "Url": "https://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78Headshot.png",
+                        "Url": "https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png",
                     })
                 }
 
@@ -5253,10 +5253,10 @@ module.exports = {
                 const created = db.unixToDate(game.created);
                 const updated = db.unixToDate(game.updated);
                 out += `<table class="item-table" data-item-id="${game.gameid}" data-type="game" data-universeid="{game.gameid}"
-                data-developerstats-url="https://create.rbx2016.tk/creations/experiences/{game.gameid}/stats">
+                data-developerstats-url="https://create.rbx2016.nl/creations/experiences/{game.gameid}/stats">
                 <tr>
                     <td class="image-col">
-                        <a href="https://sitetest.rbx2016.tk/games/{game.gameid}/${gamename2}" class="game-image">
+                        <a href="https://sitetest.rbx2016.nl/games/{game.gameid}/${gamename2}" class="game-image">
                             <img src="${game.iconthumbnail}"
                                 alt="${game.gamename}" />
                         </a>
@@ -5297,7 +5297,7 @@ module.exports = {
                 const created = db.unixToDate(game.created);
                 const updated = db.unixToDate(game.updated);
                 out += `<div class="asset model" id="newasset"
-                onclick="document.location.href ='http://sitetest.rbx2016.tk/ide/publish/editplace?placeId=${game.gameid}&t=${user.cookie}';">
+                onclick="document.location.href ='http://sitetest.rbx2016.nl/ide/publish/editplace?placeId=${game.gameid}&t=${user.cookie}';">
                 <a class="model-image">
                     <img id="newModelImage" class="modelThumbnail" src="${game.iconthumbnail}" alt="${game.gamename}" />
                 </a>
@@ -5897,13 +5897,13 @@ module.exports = {
             res.cookie('.ROBLOSECURITY', "delete", {
                 maxAge: -1,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
             res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
                 maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
                 path: "/",
-                domain: "rbx2016.tk",
+                domain: "rbx2016.nl",
                 httpOnly: true
             });
 
@@ -6057,7 +6057,7 @@ module.exports = {
                 }
                 gamepassesHtml += `<li class="list-item">
                 <div class="store-card">
-                    <a href="https://sitetest.rbx2016.tk/game-pass/${gamepass.id}" class="gear-passes-asset"><img class="" src="${gamepass.thumbnailurl}"></a>
+                    <a href="https://sitetest.rbx2016.nl/game-pass/${gamepass.id}" class="gear-passes-asset"><img class="" src="${gamepass.thumbnailurl}"></a>
                     <div class="store-card-caption">
                         <div class="text-overflow store-card-name" title="${gamepass.name}">
                             ${gamepass.name}
@@ -6591,7 +6591,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 res.render("sitetest/asset", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.id,
-                    icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://sitetest.rbx2016.tk/asset/?id=${asset.id}`,
+                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://sitetest.rbx2016.nl/asset/?id=${asset.id}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -6620,7 +6620,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.render("sitetest/asset", {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.id,
-                icon: asset.deleted ? "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.tk/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.tk/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.tk/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://sitetest.rbx2016.tk/asset/?id=${asset.id}`,
+                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://sitetest.rbx2016.nl/asset/?id=${asset.id}`,
                 price: asset.price || 0,
                 name: asset.name,
                 name2: asset.name.replaceAll(" ", "-"),
@@ -6964,9 +6964,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 "MarketplaceTaxRate": 0.3,
                 "ActivePrivateServersCount": 0,
                 "ActivePrivateServersSubscriptionsCount": 0,
-                "PrivateServerConfigurationLink": "https://develop.rbx2016.tk/v1/universes/configuration/vip-servers",
+                "PrivateServerConfigurationLink": "https://develop.rbx2016.nl/v1/universes/configuration/vip-servers",
                 "Price": 0,
-                "PrivateServersHelpLink": "https://developer.rbx2016.tk/en-us/articles/Creating-a-VIP-Server-on-Roblox",
+                "PrivateServersHelpLink": "https://developer.rbx2016.nl/en-us/articles/Creating-a-VIP-Server-on-Roblox",
                 "OverridesDefaultAvatar": false,
                 "UsePortraitMode": false,
                 "BCSellRequirement": null,
@@ -6997,7 +6997,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 "DefaultDevelopTabName": "Experience",
                 "PortraitModeEnabled": false,
                 "IsEngagementPayoutEnabled": true,
-                "EngagementPayoutUrl": "https://sitetest.rbx2016.tk/develop/premium-payout?ctx=gameDetail",
+                "EngagementPayoutUrl": "https://sitetest.rbx2016.nl/develop/premium-payout?ctx=gameDetail",
                 "UserIsSellerBanned": false,
                 "DeviceConfigurationEnabled": true,
                 "ConsoleContentAgreementEnabled": true,
@@ -7034,8 +7034,8 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         "StructuredDataContext": "http://schema.org",
                         "StructuredDataType": "Organization",
                         "StructuredDataName": "Roblox",
-                        "RobloxUrl": "https://sitetest.rbx2016.tk/",
-                        "RobloxLogoUrl": "https://images.rbx2016.tk/cece570e37aa8f95a450ab0484a18d91",
+                        "RobloxUrl": "https://sitetest.rbx2016.nl/",
+                        "RobloxLogoUrl": "https://images.rbx2016.nl/cece570e37aa8f95a450ab0484a18d91",
                         "RobloxFacebookUrl": "https://www.facebook.com/roblox/",
                         "RobloxTwitterUrl": "https://twitter.com/roblox",
                         "RobloxLinkedInUrl": "https://www.linkedin.com/company/147977",
@@ -7535,18 +7535,18 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         "ValidCodeCharacters": null
                     }
                 },
-                "ApiProxyDomain": "https://api.rbx2016.tk",
-                "AccountSettingsApiDomain": "https://accountsettings.rbx2016.tk",
-                "AuthDomain": "https://auth.rbx2016.tk",
+                "ApiProxyDomain": "https://api.rbx2016.nl",
+                "AccountSettingsApiDomain": "https://accountsettings.rbx2016.nl",
+                "AuthDomain": "https://auth.rbx2016.nl",
                 "IsDisconnectFacebookEnabled": true,
                 "IsDisconnectXboxEnabled": true,
-                "NotificationSettingsDomain": "https://notifications.rbx2016.tk",
+                "NotificationSettingsDomain": "https://notifications.rbx2016.nl",
                 "AllowedNotificationSourceTypes": ["Test", "FriendRequestReceived", "FriendRequestAccepted", "PartyInviteReceived", "PartyMemberJoined", "ChatNewMessage", "PrivateMessageReceived", "UserAddedToPrivateServerWhiteList", "ConversationUniverseChanged", "TeamCreateInvite", "GameUpdate", "DeveloperMetricsAvailable", "GroupJoinRequestAccepted", "Sendr"],
                 "AllowedReceiverDestinationTypes": ["DesktopPush", "NotificationStream"],
                 "BlacklistedNotificationSourceTypesForMobilePush": [],
                 "MinimumChromeVersionForPushNotifications": 50,
                 "PushNotificationsEnabledOnFirefox": true,
-                "LocaleApiDomain": "https://locale.rbx2016.tk",
+                "LocaleApiDomain": "https://locale.rbx2016.nl",
                 "HasValidPasswordSet": true,
                 "FastTrackMember": null,
                 "IsFastTrackAccessible": false,
@@ -7580,7 +7580,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 games_json.push({
                     "CreatorID": game.creatorid,
                     "CreatorName": user.username,
-                    "CreatorAbsoluteUrl": "https://sitetest.rbx2016.tk/users/" + user.userid + "/profile/",
+                    "CreatorAbsoluteUrl": "https://sitetest.rbx2016.nl/users/" + user.userid + "/profile/",
                     "Plays": 0,
                     "Price": 0,
                     "ProductID": 0,
@@ -7594,10 +7594,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     "Favorites": 0,
                     "Description": "",
                     "HideGameCardInfo": false,
-                    "GameDetailReferralUrl": "https://sitetest.rbx2016.tk/games/refer?PlaceId=" + game.gameid + "\u0026Position=1\u0026PageType=Profile",
+                    "GameDetailReferralUrl": "https://sitetest.rbx2016.nl/games/refer?PlaceId=" + game.gameid + "\u0026Position=1\u0026PageType=Profile",
                     "Thumbnail": {
                         "Final": true,
-                        "Url": "https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
+                        "Url": "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
                         "RetryUrl": null,
                         "UserId": 0,
                         "EndpointType": "Avatar"
@@ -8264,27 +8264,27 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         app.get("/account/settings/settings-groups", db.requireAuth, async (req, res) => {
             res.json([{
                 "title": "Account Info",
-                "url": "https://sitetest.rbx2016.tk/my/account#!/info",
+                "url": "https://sitetest.rbx2016.nl/my/account#!/info",
                 "suffix": "info"
             }, {
                 "title": "Security",
-                "url": "https://sitetest.rbx2016.tk/my/account#!/security",
+                "url": "https://sitetest.rbx2016.nl/my/account#!/security",
                 "suffix": "security"
             }, {
                 "title": "Privacy",
-                "url": "https://sitetest.rbx2016.tk/my/account#!/privacy",
+                "url": "https://sitetest.rbx2016.nl/my/account#!/privacy",
                 "suffix": "privacy"
             }, {
                 "title": "Parental Controls",
-                "url": "https://sitetest.rbx2016.tk/my/account#!/parental-controls",
+                "url": "https://sitetest.rbx2016.nl/my/account#!/parental-controls",
                 "suffix": "parental-controls"
             }, {
                 "title": "Billing",
-                "url": "https://sitetest.rbx2016.tk/my/account#!/billing",
+                "url": "https://sitetest.rbx2016.nl/my/account#!/billing",
                 "suffix": "billing"
             }, {
                 "title": "Notifications",
-                "url": "https://sitetest.rbx2016.tk/my/account#!/notifications",
+                "url": "https://sitetest.rbx2016.nl/my/account#!/notifications",
                 "suffix": "notifications"
             }])
         });

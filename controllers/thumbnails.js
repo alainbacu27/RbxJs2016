@@ -29,7 +29,7 @@ module.exports = {
             data.forEach(asset => {
                 newReturn.push({
                     requestId: asset.requestId || asset.targetId,
-                    location: `https://thumbnails.rbx2016.tk/v1/thumbnail/?id=${asset.assetId}`,
+                    location: `https://thumbnails.rbx2016.nl/v1/thumbnail/?id=${asset.assetId}`,
                     IsHashDynamic: true,
                     IsCopyrightProtected: false,
                     isArchived: false,
@@ -97,7 +97,7 @@ module.exports = {
             res.json({
                 "targetId": assetid,
                 "state": "Completed",
-                "imageUrl": "https://thumbnails.rbx2016.tk/v1/assets-thumbnail-3d2?assetid=" + assetid,
+                "imageUrl": "https://thumbnails.rbx2016.nl/v1/assets-thumbnail-3d2?assetid=" + assetid,
             });
         });
 

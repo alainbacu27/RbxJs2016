@@ -102,7 +102,7 @@ module.exports = {
                 if (fs.existsSync(fp)) {
                     res.download(fp, "Download");
                 }else{
-                    res.redirect("https://static.rbx2016.tk/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
+                    res.redirect("https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
                 }
                 return;
             }
@@ -216,27 +216,27 @@ module.exports = {
                 message.archivable = false
                 
                 game:GetService("ContentProvider"):SetThreadPool(16)
-                pcall(function() game:GetService("InsertService"):SetFreeModelUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?type=fm&q=%s&pg=%d&rs=%d") end) -- Used for free model search (insert tool)
-                pcall(function() game:GetService("InsertService"):SetFreeDecalUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?type=fd&q=%s&pg=%d&rs=%d") end) -- Used for free decal search (insert tool)
+                pcall(function() game:GetService("InsertService"):SetFreeModelUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?type=fm&q=%s&pg=%d&rs=%d") end) -- Used for free model search (insert tool)
+                pcall(function() game:GetService("InsertService"):SetFreeDecalUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?type=fd&q=%s&pg=%d&rs=%d") end) -- Used for free decal search (insert tool)
                 
                 settings().Diagnostics:LegacyScriptMode()
                 
-                game:GetService("InsertService"):SetBaseSetsUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
-                game:GetService("InsertService"):SetUserSetsUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
-                game:GetService("InsertService"):SetCollectionUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?sid=%d")
-                game:GetService("InsertService"):SetAssetUrl("https://www.rbx2016.tk/Asset/?id=%d")
-                game:GetService("InsertService"):SetAssetVersionUrl("https://www.rbx2016.tk/Asset/?assetversionid=%d")
+                game:GetService("InsertService"):SetBaseSetsUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
+                game:GetService("InsertService"):SetUserSetsUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
+                game:GetService("InsertService"):SetCollectionUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?sid=%d")
+                game:GetService("InsertService"):SetAssetUrl("https://www.rbx2016.nl/Asset/?id=%d")
+                game:GetService("InsertService"):SetAssetVersionUrl("https://www.rbx2016.nl/Asset/?assetversionid=%d")
                 
                 -- TODO: move this to a text file to be included with other scripts
-                pcall(function() game:GetService("SocialService"):SetFriendUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
-                pcall(function() game:GetService("SocialService"):SetBestFriendUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
-                pcall(function() game:GetService("SocialService"):SetGroupUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
-                pcall(function() game:GetService("SocialService"):SetGroupRankUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
-                pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
-                pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("https://api.rbx2016.tk/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
-                pcall(function() game:GetService("MarketplaceService"):SetProductInfoUrl("https://api.rbx2016.tk/marketplace/productinfo?assetId=%d") end)
-                --pcall(function() game:GetService("MarketplaceService"):SetDevProductInfoUrl("https://api.rbx2016.tk/marketplace/productDetails?productId=%d") end)
-                pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl("https://api.rbx2016.tk/ownership/hasasset?userId=%d&assetId=%d") end)
+                pcall(function() game:GetService("SocialService"):SetFriendUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
+                pcall(function() game:GetService("SocialService"):SetBestFriendUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
+                pcall(function() game:GetService("SocialService"):SetGroupUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
+                pcall(function() game:GetService("SocialService"):SetGroupRankUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
+                pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
+                pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("https://api.rbx2016.nl/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
+                pcall(function() game:GetService("MarketplaceService"):SetProductInfoUrl("https://api.rbx2016.nl/marketplace/productinfo?assetId=%d") end)
+                --pcall(function() game:GetService("MarketplaceService"):SetDevProductInfoUrl("https://api.rbx2016.nl/marketplace/productDetails?productId=%d") end)
+                pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl("https://api.rbx2016.nl/ownership/hasasset?userId=%d&assetId=%d") end)
                 pcall(function() game:SetCreatorID(${game.creatorid}, Enum.CreatorType.User) end)
                 
                 pcall(function() game:SetScreenshotInfo("") end)
@@ -244,9 +244,9 @@ module.exports = {
                 
                 message.Text = "Loading Place. Please wait..." 
                 coroutine.yield()
-                game:Load("http://www.rbx2016.tk/asset?id=${game.gameid}${token2}")
+                game:Load("http://www.rbx2016.nl/asset?id=${game.gameid}${token2}")
                 
-                visit:SetUploadUrl("${upload ? `http://data.rbx2016.tk/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
+                visit:SetUploadUrl("${upload ? `http://data.rbx2016.nl/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
                 
                 message.Parent = nil
                 
@@ -256,7 +256,7 @@ module.exports = {
                 if (user) {
                     script += `spawn(function()
                     while true do
-                        loadfile("http://assetgame.rbx2016.tk/game/studiobeat.ashx?cookie=${user.cookie}")()
+                        loadfile("http://assetgame.rbx2016.nl/game/studiobeat.ashx?cookie=${user.cookie}")()
                         wait(25)
                     end
                 end)
@@ -264,7 +264,7 @@ module.exports = {
                 game:SetCreatorId(${user.userid})
                 
                 game.OnClose = function()
-                    loadfile("http://assetgame.rbx2016.tk/game/quit.ashx?cookie=${user.cookie}")()
+                    loadfile("http://assetgame.rbx2016.nl/game/quit.ashx?cookie=${user.cookie}")()
                 end`
                 }
             } else {
@@ -296,27 +296,27 @@ module.exports = {
                 message2.Text = "TeamCreate is currently disabled and a local copy is being loaded instead."
                 
                 game:GetService("ContentProvider"):SetThreadPool(16)
-                pcall(function() game:GetService("InsertService"):SetFreeModelUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?type=fm&q=%s&pg=%d&rs=%d") end) -- Used for free model search (insert tool)
-                pcall(function() game:GetService("InsertService"):SetFreeDecalUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?type=fd&q=%s&pg=%d&rs=%d") end) -- Used for free decal search (insert tool)
+                pcall(function() game:GetService("InsertService"):SetFreeModelUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?type=fm&q=%s&pg=%d&rs=%d") end) -- Used for free model search (insert tool)
+                pcall(function() game:GetService("InsertService"):SetFreeDecalUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?type=fd&q=%s&pg=%d&rs=%d") end) -- Used for free decal search (insert tool)
                 
                 settings().Diagnostics:LegacyScriptMode()
                 
-                game:GetService("InsertService"):SetBaseSetsUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
-                game:GetService("InsertService"):SetUserSetsUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
-                game:GetService("InsertService"):SetCollectionUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?sid=%d")
-                game:GetService("InsertService"):SetAssetUrl("https://www.rbx2016.tk/Asset/?id=%d")
-                game:GetService("InsertService"):SetAssetVersionUrl("https://www.rbx2016.tk/Asset/?assetversionid=%d")
+                game:GetService("InsertService"):SetBaseSetsUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
+                game:GetService("InsertService"):SetUserSetsUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
+                game:GetService("InsertService"):SetCollectionUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?sid=%d")
+                game:GetService("InsertService"):SetAssetUrl("https://www.rbx2016.nl/Asset/?id=%d")
+                game:GetService("InsertService"):SetAssetVersionUrl("https://www.rbx2016.nl/Asset/?assetversionid=%d")
                 
                 -- TODO: move this to a text file to be included with other scripts
-                pcall(function() game:GetService("SocialService"):SetFriendUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
-                pcall(function() game:GetService("SocialService"):SetBestFriendUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
-                pcall(function() game:GetService("SocialService"):SetGroupUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
-                pcall(function() game:GetService("SocialService"):SetGroupRankUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
-                pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
-                pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("https://api.rbx2016.tk/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
-                pcall(function() game:GetService("MarketplaceService"):SetProductInfoUrl("https://api.rbx2016.tk/marketplace/productinfo?assetId=%d") end)
-                --pcall(function() game:GetService("MarketplaceService"):SetDevProductInfoUrl("https://api.rbx2016.tk/marketplace/productDetails?productId=%d") end)
-                pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl("https://api.rbx2016.tk/ownership/hasasset?userId=%d&assetId=%d") end)
+                pcall(function() game:GetService("SocialService"):SetFriendUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
+                pcall(function() game:GetService("SocialService"):SetBestFriendUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
+                pcall(function() game:GetService("SocialService"):SetGroupUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
+                pcall(function() game:GetService("SocialService"):SetGroupRankUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
+                pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
+                pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("https://api.rbx2016.nl/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
+                pcall(function() game:GetService("MarketplaceService"):SetProductInfoUrl("https://api.rbx2016.nl/marketplace/productinfo?assetId=%d") end)
+                --pcall(function() game:GetService("MarketplaceService"):SetDevProductInfoUrl("https://api.rbx2016.nl/marketplace/productDetails?productId=%d") end)
+                pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl("https://api.rbx2016.nl/ownership/hasasset?userId=%d&assetId=%d") end)
                 pcall(function() game:SetCreatorID(${game.creatorid}, Enum.CreatorType.User) end)
                 
                 pcall(function() game:SetScreenshotInfo("") end)
@@ -324,9 +324,9 @@ module.exports = {
                 
                 message.Text = "Loading Place. Please wait..." 
                 coroutine.yield()
-                game:Load("http://www.rbx2016.tk/asset?id=${game.gameid}${token2}")
+                game:Load("http://www.rbx2016.nl/asset?id=${game.gameid}${token2}")
                 
-                visit:SetUploadUrl("${upload ? `http://data.rbx2016.tk/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
+                visit:SetUploadUrl("${upload ? `http://data.rbx2016.nl/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
                 
                 message.Parent = nil
                 spawn(function()
@@ -338,7 +338,7 @@ module.exports = {
                 
                 spawn(function()
                     while true do
-                        loadfile("http://assetgame.rbx2016.tk/game/studiobeat.ashx?cookie=${user.cookie}")()
+                        loadfile("http://assetgame.rbx2016.nl/game/studiobeat.ashx?cookie=${user.cookie}")()
                         wait(25)
                     end
                 end)
@@ -346,7 +346,7 @@ module.exports = {
                 game:SetCreatorId(${user.userid})
                 
                 game.OnClose = function()
-                    loadfile("http://assetgame.rbx2016.tk/game/quit.ashx?cookie=${user.cookie}")()
+                    loadfile("http://assetgame.rbx2016.nl/game/quit.ashx?cookie=${user.cookie}")()
                 end
                 `;
                 } else {
@@ -368,27 +368,27 @@ module.exports = {
                     message.archivable = false
                     
                     game:GetService("ContentProvider"):SetThreadPool(16)
-                    pcall(function() game:GetService("InsertService"):SetFreeModelUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?type=fm&q=%s&pg=%d&rs=%d") end) -- Used for free model search (insert tool)
-                    pcall(function() game:GetService("InsertService"):SetFreeDecalUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?type=fd&q=%s&pg=%d&rs=%d") end) -- Used for free decal search (insert tool)
+                    pcall(function() game:GetService("InsertService"):SetFreeModelUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?type=fm&q=%s&pg=%d&rs=%d") end) -- Used for free model search (insert tool)
+                    pcall(function() game:GetService("InsertService"):SetFreeDecalUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?type=fd&q=%s&pg=%d&rs=%d") end) -- Used for free decal search (insert tool)
                     
                     settings().Diagnostics:LegacyScriptMode()
                     
-                    game:GetService("InsertService"):SetBaseSetsUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
-                    game:GetService("InsertService"):SetUserSetsUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
-                    game:GetService("InsertService"):SetCollectionUrl("https://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?sid=%d")
-                    game:GetService("InsertService"):SetAssetUrl("https://www.rbx2016.tk/Asset/?id=%d")
-                    game:GetService("InsertService"):SetAssetVersionUrl("https://www.rbx2016.tk/Asset/?assetversionid=%d")
+                    game:GetService("InsertService"):SetBaseSetsUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
+                    game:GetService("InsertService"):SetUserSetsUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
+                    game:GetService("InsertService"):SetCollectionUrl("https://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?sid=%d")
+                    game:GetService("InsertService"):SetAssetUrl("https://www.rbx2016.nl/Asset/?id=%d")
+                    game:GetService("InsertService"):SetAssetVersionUrl("https://www.rbx2016.nl/Asset/?assetversionid=%d")
                     
                     -- TODO: move this to a text file to be included with other scripts
-                    pcall(function() game:GetService("SocialService"):SetFriendUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
-                    pcall(function() game:GetService("SocialService"):SetBestFriendUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
-                    pcall(function() game:GetService("SocialService"):SetGroupUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
-                    pcall(function() game:GetService("SocialService"):SetGroupRankUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
-                    pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("https://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
-                    pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("https://api.rbx2016.tk/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
-                    pcall(function() game:GetService("MarketplaceService"):SetProductInfoUrl("https://api.rbx2016.tk/marketplace/productinfo?assetId=%d") end)
-                    --pcall(function() game:GetService("MarketplaceService"):SetDevProductInfoUrl("https://api.rbx2016.tk/marketplace/productDetails?productId=%d") end)
-                    pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl("https://api.rbx2016.tk/ownership/hasasset?userId=%d&assetId=%d") end)
+                    pcall(function() game:GetService("SocialService"):SetFriendUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
+                    pcall(function() game:GetService("SocialService"):SetBestFriendUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
+                    pcall(function() game:GetService("SocialService"):SetGroupUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
+                    pcall(function() game:GetService("SocialService"):SetGroupRankUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
+                    pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("https://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
+                    pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("https://api.rbx2016.nl/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
+                    pcall(function() game:GetService("MarketplaceService"):SetProductInfoUrl("https://api.rbx2016.nl/marketplace/productinfo?assetId=%d") end)
+                    --pcall(function() game:GetService("MarketplaceService"):SetDevProductInfoUrl("https://api.rbx2016.nl/marketplace/productDetails?productId=%d") end)
+                    pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl("https://api.rbx2016.nl/ownership/hasasset?userId=%d&assetId=%d") end)
                     pcall(function() game:SetCreatorID(${game.creatorid}, Enum.CreatorType.User) end)
                     
                     pcall(function() game:SetScreenshotInfo("") end)
@@ -396,7 +396,7 @@ module.exports = {
                     
                     message.Text = "Loading Place. Please wait..." 
                     coroutine.yield()
-                    -- game:Load("http://www.rbx2016.tk/asset?id=${game.gameid}|${await db.generateUserTokenByCookie(user.cookie)}")
+                    -- game:Load("http://www.rbx2016.nl/asset?id=${game.gameid}|${await db.generateUserTokenByCookie(user.cookie)}")
                     local nc = game:GetService("NetworkClient")
                     nc.ConnectionFailed:Connect(function()
                         message.Text = "Connection failed. Please try again later."
@@ -417,7 +417,7 @@ module.exports = {
                         analytics("Created Player")
                     end
                     
-                    visit:SetUploadUrl("${upload ? `http://data.rbx2016.tk/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
+                    visit:SetUploadUrl("${upload ? `http://data.rbx2016.nl/Data/Upload.ashx?assetid=${game.gameid}&ispublic=${db.toString(game.isPublic)}&c=${user.cookie}&groupId=` : ""}")
                     
                     message.Parent = nil
                     
@@ -425,7 +425,7 @@ module.exports = {
                     
                     spawn(function()
                         while true do
-                            loadfile("http://assetgame.rbx2016.tk/game/studiobeat.ashx?cookie=${user.cookie}")()
+                            loadfile("http://assetgame.rbx2016.nl/game/studiobeat.ashx?cookie=${user.cookie}")()
                             wait(25)
                         end
                     end)
@@ -433,7 +433,7 @@ module.exports = {
                     game:SetCreatorId(${user.userid})
                     
                     game.OnClose = function()
-                        loadfile("http://assetgame.rbx2016.tk/game/quit.ashx?cookie=${user.cookie}")()
+                        loadfile("http://assetgame.rbx2016.nl/game/quit.ashx?cookie=${user.cookie}")()
                     end
                     `;
                 }
@@ -511,18 +511,18 @@ module.exports = {
                         "ValidCodeCharacters": null
                     }
                 },
-                "ApiProxyDomain": "https://api.rbx2016.tk",
-                "AccountSettingsApiDomain": "https://accountsettings.rbx2016.tk",
-                "AuthDomain": "https://auth.rbx2016.tk",
+                "ApiProxyDomain": "https://api.rbx2016.nl",
+                "AccountSettingsApiDomain": "https://accountsettings.rbx2016.nl",
+                "AuthDomain": "https://auth.rbx2016.nl",
                 "IsDisconnectFacebookEnabled": true,
                 "IsDisconnectXboxEnabled": true,
-                "NotificationSettingsDomain": "https://notifications.rbx2016.tk",
+                "NotificationSettingsDomain": "https://notifications.rbx2016.nl",
                 "AllowedNotificationSourceTypes": ["Test", "FriendRequestReceived", "FriendRequestAccepted", "PartyInviteReceived", "PartyMemberJoined", "ChatNewMessage", "PrivateMessageReceived", "UserAddedToPrivateServerWhiteList", "ConversationUniverseChanged", "TeamCreateInvite", "GameUpdate", "DeveloperMetricsAvailable", "GroupJoinRequestAccepted", "Sendr"],
                 "AllowedReceiverDestinationTypes": ["DesktopPush", "NotificationStream"],
                 "BlacklistedNotificationSourceTypesForMobilePush": [],
                 "MinimumChromeVersionForPushNotifications": 50,
                 "PushNotificationsEnabledOnFirefox": true,
-                "LocaleApiDomain": "https://locale.rbx2016.tk",
+                "LocaleApiDomain": "https://locale.rbx2016.nl",
                 "HasValidPasswordSet": true,
                 "FastTrackMember": null,
                 "IsFastTrackAccessible": false,
@@ -550,25 +550,25 @@ module.exports = {
                 res.sendStatus(404);
                 return;
             }
-            res.redirect("http://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78.png");
+            res.redirect("http://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78.png");
             // res.json([{
             //     id: user.userid,
             //     name: user.username,
             //     url: "/user.aspx?id=" + user.userid.toString(),
             //     thumbnailFinal: true, // if false, thumbnailUrl will be a placeholder
-            //     thumbnailUrl: "http://images.rbx2016.tk/e6ea624485b22e528cc719f04560fe78.png",
+            //     thumbnailUrl: "http://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78.png",
             //     bcOverlayUrl: null // null if NBC
             // }])
         });
 
         app.get("/Asset/CharacterFetch.ashx", (req, res) => {
             const userId = parseInt(req.query.player);
-            res.send(`https://www.rbx2016.tk/asset/BodyColors.ashx?userId=${userId}`) // ;http://www.rbx2016.tk/asset/?id=63690008&version=5;http://www.rbx2016.tk/asset/?id=144076358;http://www.rbx2016.tk/asset/?id=144076760;http://www.rbx2016.tk/asset/?id=144075659;http://www.rbx2016.tk/asset/?id=86500054&version=1;http://www.rbx2016.tk/asset/?id=86500078&version=1;http://www.rbx2016.tk/asset/?id=86500036&version=1;http://www.rbx2016.tk/asset/?id=86500008&version=1;http://www.rbx2016.tk/asset/?id=86500064&version=1;http://www.rbx2016.tk/asset/?id=86498048&version=1
+            res.send(`https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${userId}`) // ;http://www.rbx2016.nl/asset/?id=63690008&version=5;http://www.rbx2016.nl/asset/?id=144076358;http://www.rbx2016.nl/asset/?id=144076760;http://www.rbx2016.nl/asset/?id=144075659;http://www.rbx2016.nl/asset/?id=86500054&version=1;http://www.rbx2016.nl/asset/?id=86500078&version=1;http://www.rbx2016.nl/asset/?id=86500036&version=1;http://www.rbx2016.nl/asset/?id=86500008&version=1;http://www.rbx2016.nl/asset/?id=86500064&version=1;http://www.rbx2016.nl/asset/?id=86498048&version=1
         });
 
         app.get("/Assets/CharacterFetch.php", (req, res) => {
             const userId = parseInt(req.query.player);
-            res.send(`https://www.rbx2016.tk/asset/BodyColors.ashx?userId=${userId}`); // ;http://www.rbx2016.tk/asset/?id=63690008&version=5;http://www.rbx2016.tk/asset/?id=144076358;http://www.rbx2016.tk/asset/?id=144076760;http://www.rbx2016.tk/asset/?id=144075659;http://www.rbx2016.tk/asset/?id=86500054&version=1;http://www.rbx2016.tk/asset/?id=86500078&version=1;http://www.rbx2016.tk/asset/?id=86500036&version=1;http://www.rbx2016.tk/asset/?id=86500008&version=1;http://www.rbx2016.tk/asset/?id=86500064&version=1;http://www.rbx2016.tk/asset/?id=86498048&version=1
+            res.send(`https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${userId}`); // ;http://www.rbx2016.nl/asset/?id=63690008&version=5;http://www.rbx2016.nl/asset/?id=144076358;http://www.rbx2016.nl/asset/?id=144076760;http://www.rbx2016.nl/asset/?id=144075659;http://www.rbx2016.nl/asset/?id=86500054&version=1;http://www.rbx2016.nl/asset/?id=86500078&version=1;http://www.rbx2016.nl/asset/?id=86500036&version=1;http://www.rbx2016.nl/asset/?id=86500008&version=1;http://www.rbx2016.nl/asset/?id=86500064&version=1;http://www.rbx2016.nl/asset/?id=86498048&version=1
         });
 
         app.get("/asset/BodyColors.ashx", async (req, res) => {
@@ -576,7 +576,7 @@ module.exports = {
             const avatarColors = await db.getUserProperty(userId, "avatarColors") || [1002, 1002, 1002, 1002, 1002, 1002];
             
             res.send(`<?xml version="1.0" encoding="utf-8" ?>
-            <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.rbx2016.tk/roblox.xsd" version="4">
+            <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.rbx2016.nl/roblox.xsd" version="4">
                 <External>null</External>
                 <External>nil</External>
                 <Item class="BodyColors">
@@ -684,7 +684,7 @@ module.exports = {
             local badgeUrlFlagExists, badgeUrlFlagValue = pcall(function () return settings():GetFFlag("NewBadgeServiceUrlEnabled") end)
             local newBadgeUrlEnabled = badgeUrlFlagExists and badgeUrlFlagValue
             if url~=nil then
-                local url = "http://www.rbx2016.tk/"
+                local url = "http://www.rbx2016.nl/"
             
                 pcall(function() game:GetService("Players"):SetAbuseReportUrl(url .. "/AbuseReport/InGameChatHandler.ashx") end)
                 pcall(function() game:GetService("ScriptInformationProvider"):SetAssetUrl(url .. "/Asset/") end)
@@ -848,7 +848,7 @@ end
 pcall(function()
 	local t = ElapsedTime()
 	local platform = settings().Diagnostics.OsPlatform
-	game:HttpGet("http://www.rbx2016.tk/Game/JoinRate.ashx?st=0&i=0&p=-1&c=GameAppInit&r=Success&d=" .. (math.floor(t*1000)) .. "&ip=localhost&errorType=&platform=" .. platform, false)
+	game:HttpGet("http://www.rbx2016.nl/Game/JoinRate.ashx?st=0&i=0&p=-1&c=GameAppInit&r=Success&d=" .. (math.floor(t*1000)) .. "&ip=localhost&errorType=&platform=" .. platform, false)
 end)
 
 pcall(function() game:SetPlaceID(-1, false) end)
@@ -875,7 +875,7 @@ pcall(function() settings().Physics.PhysicsEnvironmentalThrottle = Enum.Envirome
 
 function reportContentProvider(time, queueLength, blocking)
 	pcall(function()
-		game:HttpGet("http://www.rbx2016.tk/Analytics/ContentProvider.ashx?t=" .. time .. "&ql=" .. queueLength, blocking and not isTouchDevice)
+		game:HttpGet("http://www.rbx2016.nl/Analytics/ContentProvider.ashx?t=" .. time .. "&ql=" .. queueLength, blocking and not isTouchDevice)
 	end)
 end
 function reportCdn(blocking)
@@ -887,7 +887,7 @@ function reportCdn(blocking)
 		cdnSuccess = newCdnSuccess
 		cdnFailure = newCdnFailure
 		if successDelta > 0 or failureDelta > 0 then
-			game:HttpGet("http://www.rbx2016.tk/Game/Cdn.ashx?source=client&success=" .. successDelta .. "&failure=" .. failureDelta, blocking and not isTouchDevice)
+			game:HttpGet("http://www.rbx2016.nl/Game/Cdn.ashx?source=client&success=" .. successDelta .. "&failure=" .. failureDelta, blocking and not isTouchDevice)
 		end
 	end)
 end
@@ -901,7 +901,7 @@ function reportDuration(category, result, duration, blocking,errorType)
 	if stats().Network:getChildren()[2] ~= nil then
 		bytesReceived = stats().Network:getChildren()[2].Stats.totalBytesReceived:GetValue()
 	end
-	pcall(function() game:HttpGet("http://www.rbx2016.tk/Game/JoinRate.ashx?st=0&i=0&p=-1&c=" .. category .. "&r=" .. result .. "&d=" .. (math.floor(duration*1000)) .. "&b=" .. bytesReceived .. "&ip=localhost&errorType=" .. errorType .. "&platform=" .. platform, blocking and not isTouchDevice) end)
+	pcall(function() game:HttpGet("http://www.rbx2016.nl/Game/JoinRate.ashx?st=0&i=0&p=-1&c=" .. category .. "&r=" .. result .. "&d=" .. (math.floor(duration*1000)) .. "&b=" .. bytesReceived .. "&ip=localhost&errorType=" .. errorType .. "&platform=" .. platform, blocking and not isTouchDevice) end)
 end
 -- arguments ---------------------------------------
 local threadSleepTime = ...
@@ -934,26 +934,26 @@ local closeConnection = game.Close:connect(function()
 			playResolved = true
 			reportDuration("GameDuration","Success", duration, true)
 		end
-		if true then pcall(function() game:HttpPost("https://api.rbx2016.tk/auth/invalidate", "invalidate") end) end
+		if true then pcall(function() game:HttpPost("https://api.rbx2016.nl/auth/invalidate", "invalidate") end) end
 	end
 end)
 
 game:GetService("ChangeHistoryService"):SetEnabled(false)
 game:GetService("ContentProvider"):SetThreadPool(16)
-game:GetService("InsertService"):SetBaseSetsUrl("http://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
-game:GetService("InsertService"):SetUserSetsUrl("http://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
-game:GetService("InsertService"):SetCollectionUrl("http://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?sid=%d")
-game:GetService("InsertService"):SetAssetUrl("http://www.rbx2016.tk/Asset/?id=%d")
-game:GetService("InsertService"):SetAssetVersionUrl("http://www.rbx2016.tk/Asset/?assetversionid=%d")
+game:GetService("InsertService"):SetBaseSetsUrl("http://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
+game:GetService("InsertService"):SetUserSetsUrl("http://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
+game:GetService("InsertService"):SetCollectionUrl("http://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?sid=%d")
+game:GetService("InsertService"):SetAssetUrl("http://www.rbx2016.nl/Asset/?id=%d")
+game:GetService("InsertService"):SetAssetVersionUrl("http://www.rbx2016.nl/Asset/?assetversionid=%d")
 
-pcall(function() game:GetService("SocialService"):SetFriendUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
-pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
-pcall(function() game:GetService("SocialService"):SetGroupUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
-pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
-pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
-pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://www.rbx2016.tk/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
-pcall(function() game:GetService("MarketplaceService"):SetProductInfoUrl("https://api.rbx2016.tk/marketplace/productinfo?assetId=%d") end)
-pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl("https://api.rbx2016.tk/ownership/hasasset?userId=%d&assetId=%d") end)
+pcall(function() game:GetService("SocialService"):SetFriendUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
+pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
+pcall(function() game:GetService("SocialService"):SetGroupUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
+pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
+pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
+pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://www.rbx2016.nl/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
+pcall(function() game:GetService("MarketplaceService"):SetProductInfoUrl("https://api.rbx2016.nl/marketplace/productinfo?assetId=%d") end)
+pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl("https://api.rbx2016.nl/ownership/hasasset?userId=%d&assetId=%d") end)
 pcall(function() game:SetCreatorID(0, Enum.CreatorType.User) end)
 
 -- Bubble chat.  This is all-encapsulated to allow us to turn it off with a config setting
@@ -1052,7 +1052,7 @@ function onDisconnection(peer, lostConnection)
 		showErrorWindow("This game has shut down", "Kick", "Kick")
 	end
 	pcall(function() game:HttpGet("&disconnect=true", true) end)
-	if true then pcall(function() game:HttpPost("https://api.rbx2016.tk/auth/invalidate", "invalidate") end) end
+	if true then pcall(function() game:HttpPost("https://api.rbx2016.nl/auth/invalidate", "invalidate") end) end
 end
 
 function requestCharacter(replicator)
@@ -1201,10 +1201,10 @@ local success, err = pcall(function()
 	-- negotiate an auth token (Not needed for studio testing .-.)
 	--[[
         if true then
-            pcall(function() game:HttpPost("https://api.rbx2016.tk/auth/negotiate?ticket=" .. rbxApiTicket, "negotiate") end)
+            pcall(function() game:HttpPost("https://api.rbx2016.nl/auth/negotiate?ticket=" .. rbxApiTicket, "negotiate") end)
             delay(300, function()
                 while true do
-                    pcall(function() game:HttpPost("https://api.rbx2016.tk/auth/renew", "renew") end)
+                    pcall(function() game:HttpPost("https://api.rbx2016.nl/auth/renew", "renew") end)
                     wait(300)
                 end
             end)
@@ -1257,7 +1257,7 @@ if 0 then
 end
 
 pcall(function() game:SetScreenshotInfo("") end)
-pcall(function() game:SetVideoInfo('<?xml version="1.0"?><entry xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:yt="http://gdata.youtube.com/schemas/2007"><media:group><media:title type="plain"><![CDATA[ROBLOX Place]]></media:title><media:description type="plain"><![CDATA[ For more games visit http://www.rbx2016.tk]]></media:description><media:category scheme="http://gdata.youtube.com/schemas/2007/categories.cat">Games</media:category><media:keywords>ROBLOX, video, free game, online virtual world</media:keywords></media:group></entry>') end)
+pcall(function() game:SetVideoInfo('<?xml version="1.0"?><entry xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:yt="http://gdata.youtube.com/schemas/2007"><media:group><media:title type="plain"><![CDATA[ROBLOX Place]]></media:title><media:description type="plain"><![CDATA[ For more games visit http://www.rbx2016.nl]]></media:description><media:category scheme="http://gdata.youtube.com/schemas/2007/categories.cat">Games</media:category><media:keywords>ROBLOX, video, free game, online virtual world</media:keywords></media:group></entry>') end)
 -- use single quotes here because the video info string may have unescaped double quotes
 
 analytics("Join Finished")
@@ -1289,7 +1289,7 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
                     "ClientPort": 0,
                     "MachineAddress": game.ip,
                     "ServerPort": game.port,
-                    "PingUrl": `https://assetgame.rbx2016.tk/Game/ClientPresence.ashx?version=old&PlaceID=${game.gameid}&GameID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&UserID=${user.userid}`,
+                    "PingUrl": `https://assetgame.rbx2016.nl/Game/ClientPresence.ashx?version=old&PlaceID=${game.gameid}&GameID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&UserID=${user.userid}`,
                     "PingInterval": 20,
                     "UserName": user.username,
                     "SeleniumTestMode": false,
@@ -1300,7 +1300,7 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
                     "PlaceId": game.gameid,
                     "MeasurementUrl": "",
                     "WaitingForCharacterGuid": db.uuidv4(),
-                    "BaseUrl": "http://rbx2016.tk",
+                    "BaseUrl": "http://rbx2016.nl",
                     "ChatStyle": "ClassicAndBubble",
                     "VendorId": 0,
                     "ScreenShotInfo": "",
@@ -1322,14 +1322,14 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
                     "UsePortraitMode": false,
                     "FollowUserId": 0,
                     "CharacterAppearanceId": user.userid,
-                    "CharacterAppearance": `http://rbx2016.tk/Assets/CharacterFetch.php?player=${user.userid}`
+                    "CharacterAppearance": `http://rbx2016.nl/Assets/CharacterFetch.php?player=${user.userid}`
                 });
             } else {
                 joinScript = "\r\n" + JSON.stringify({
                     "ClientPort": 0,
                     "MachineAddress": game.teamCreateIp,
                     "ServerPort": game.teamCreatePort,
-                    "PingUrl": `https://assetgame.rbx2016.tk/Game/ClientPresence.ashx?version=old&PlaceID=${game.gameid}&GameID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&UserID=${user.userid}`,
+                    "PingUrl": `https://assetgame.rbx2016.nl/Game/ClientPresence.ashx?version=old&PlaceID=${game.gameid}&GameID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&UserID=${user.userid}`,
                     "PingInterval": 20,
                     "UserName": user.username,
                     "SeleniumTestMode": false,
@@ -1340,7 +1340,7 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
                     "PlaceId": game.gameid,
                     "MeasurementUrl": "",
                     "WaitingForCharacterGuid": db.uuidv4(),
-                    "BaseUrl": "http://rbx2016.tk",
+                    "BaseUrl": "http://rbx2016.nl",
                     "ChatStyle": "ClassicAndBubble",
                     "VendorId": 0,
                     "ScreenShotInfo": "",
@@ -1362,7 +1362,7 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
                     "UsePortraitMode": false,
                     "FollowUserId": 0,
                     "CharacterAppearanceId": user.userid,
-                    "CharacterAppearance": `http://rbx2016.tk/Assets/CharacterFetch.php?player=${user.userid}`
+                    "CharacterAppearance": `http://rbx2016.nl/Assets/CharacterFetch.php?player=${user.userid}`
                 });
             }
 
@@ -1395,30 +1395,30 @@ local message = Instance.new("Message")
 message.Parent = workspace
 message.archivable = false
 
-game:GetService("ScriptInformationProvider"):SetAssetUrl("http://www.rbx2016.tk/Asset/")
+game:GetService("ScriptInformationProvider"):SetAssetUrl("http://www.rbx2016.nl/Asset/")
 game:GetService("ContentProvider"):SetThreadPool(16)
-pcall(function() game:GetService("InsertService"):SetFreeModelUrl("http://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?type=fm&q=%s&pg=%d&rs=%d") end) -- Used for free model search (insert tool)
-pcall(function() game:GetService("InsertService"):SetFreeDecalUrl("http://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?type=fd&q=%s&pg=%d&rs=%d") end) -- Used for free decal search (insert tool)
+pcall(function() game:GetService("InsertService"):SetFreeModelUrl("http://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?type=fm&q=%s&pg=%d&rs=%d") end) -- Used for free model search (insert tool)
+pcall(function() game:GetService("InsertService"):SetFreeDecalUrl("http://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?type=fd&q=%s&pg=%d&rs=%d") end) -- Used for free decal search (insert tool)
 
 ifSeleniumThenSetCookie("SeleniumTest2", "Set URL service")
 
 settings().Diagnostics:LegacyScriptMode()
 
-game:GetService("InsertService"):SetBaseSetsUrl("http://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
-game:GetService("InsertService"):SetUserSetsUrl("http://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
-game:GetService("InsertService"):SetCollectionUrl("http://www.rbx2016.tk/Game/Tools/InsertAsset.ashx?sid=%d")
-game:GetService("InsertService"):SetAssetUrl("http://www.rbx2016.tk/Asset/?id=%d")
-game:GetService("InsertService"):SetAssetVersionUrl("http://www.rbx2016.tk/Asset/?assetversionid=%d")
+game:GetService("InsertService"):SetBaseSetsUrl("http://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
+game:GetService("InsertService"):SetUserSetsUrl("http://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
+game:GetService("InsertService"):SetCollectionUrl("http://www.rbx2016.nl/Game/Tools/InsertAsset.ashx?sid=%d")
+game:GetService("InsertService"):SetAssetUrl("http://www.rbx2016.nl/Asset/?id=%d")
+game:GetService("InsertService"):SetAssetVersionUrl("http://www.rbx2016.nl/Asset/?assetversionid=%d")
 
-pcall(function() game:GetService("SocialService"):SetFriendUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
-pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
-pcall(function() game:GetService("SocialService"):SetGroupUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
-pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
-pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://www.rbx2016.tk/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
-pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://www.rbx2016.tk/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
-pcall(function() game:GetService("MarketplaceService"):SetProductInfoUrl("https://api.rbx2016.tk/marketplace/productinfo?assetId=%d") end)
-pcall(function() game:GetService("MarketplaceService"):SetDevProductInfoUrl("https://api.rbx2016.tk/marketplace/productDetails?productId=%d") end)
-pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl("https://api.rbx2016.tk/ownership/hasasset?userId=%d&assetId=%d") end)
+pcall(function() game:GetService("SocialService"):SetFriendUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
+pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
+pcall(function() game:GetService("SocialService"):SetGroupUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
+pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
+pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
+pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://www.rbx2016.nl/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
+pcall(function() game:GetService("MarketplaceService"):SetProductInfoUrl("https://api.rbx2016.nl/marketplace/productinfo?assetId=%d") end)
+pcall(function() game:GetService("MarketplaceService"):SetDevProductInfoUrl("https://api.rbx2016.nl/marketplace/productDetails?productId=%d") end)
+pcall(function() game:GetService("MarketplaceService"):SetPlayerOwnsAssetUrl("https://api.rbx2016.nl/ownership/hasasset?userId=%d&assetId=%d") end)
 pcall(function() game:SetCreatorID(0, Enum.CreatorType.User) end)
 
 ifSeleniumThenSetCookie("SeleniumTest3", "Set creator ID")
@@ -1443,7 +1443,7 @@ pcall(function() settings().Rendering.EnableFRM = true end)
 pcall(function() settings()["Task Scheduler"].PriorityMethod = Enum.PriorityMethod.AccumulatedError end)
 
 game:GetService("ChangeHistoryService"):SetEnabled(false)
-pcall(function() game:GetService("Players"):SetBuildUserPermissionsUrl("http://www.rbx2016.tk//Game/BuildActionPermissionCheck.ashx?assetId=0&userId=%d&isSolo=true") end)
+pcall(function() game:GetService("Players"):SetBuildUserPermissionsUrl("http://www.rbx2016.nl//Game/BuildActionPermissionCheck.ashx?assetId=0&userId=%d&isSolo=true") end)
 
 workspace:SetPhysicsThrottleEnabled(true)
 
@@ -1483,7 +1483,7 @@ function doVisit()
     else
         player = game:GetService("Players"):CreateLocalPlayer(0)
     end
-    player.CharacterAppearance = "http://www.rbx2016.tk/Asset/CharacterFetch.ashx?userId=${UserID}&placeId=${PlaceId}"
+    player.CharacterAppearance = "http://www.rbx2016.nl/Asset/CharacterFetch.ashx?userId=${UserID}&placeId=${PlaceId}"
     pcall(function()
         player.UserId = ${UserID}
     end)
@@ -1502,7 +1502,7 @@ function doVisit()
     
     if not inStudio and false then
         message.Text = "Setting Ping"
-        visit:SetPing("http://www.rbx2016.tk/Game/ClientPresence.ashx?version=old&PlaceID=${PlaceId}", 120)
+        visit:SetPing("http://www.rbx2016.nl/Game/ClientPresence.ashx?version=old&PlaceID=${PlaceId}", 120)
 
         message.Text = "Sending Stats"
         game:HttpGet("")
@@ -1536,7 +1536,7 @@ else
     message.Text = "Error on visit: " .. err
     if not inStudio then
         if false then
-            game:HttpPost("http://www.rbx2016.tk/Error/Lua.ashx?", "Visit.lua: " .. err)
+            game:HttpPost("http://www.rbx2016.nl/Error/Lua.ashx?", "Visit.lua: " .. err)
         end
     end
 end
@@ -1653,7 +1653,7 @@ end
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
                         "authenticationTicket": "",
                         "message": ""
@@ -1726,7 +1726,7 @@ end
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
                         "authenticationTicket": "",
                         "message": ""
@@ -1809,7 +1809,7 @@ end
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "http://",
                         "authenticationTicket": "",
                         "message": ""
@@ -1925,7 +1925,7 @@ publicIp = "${ip}"`
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
                         "authenticationTicket": "",
                         "message": ""
@@ -1998,7 +1998,7 @@ publicIp = "${ip}"`
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
                         "authenticationTicket": "",
                         "message": ""
@@ -2081,7 +2081,7 @@ publicIp = "${ip}"`
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.tk/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "http://",
                         "authenticationTicket": "",
                         "message": ""

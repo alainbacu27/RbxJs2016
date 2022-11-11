@@ -137,7 +137,7 @@ module.exports = {
             }
             const assets = await db.getFirstXUnapprovedAssets(limit);
             let html = `
-            <link rel="stylesheet" href="https://static.rbx2016.tk/css/main.css">
+            <link rel="stylesheet" href="https://static.rbx2016.nl/css/main.css">
 <script type='text/javascript' src='/shut/realtime.js'></script>
 <script type='text/javascript' src='/js/jquery-1.11.1.min.js'></script>
             <script type='text/javascript'>
@@ -151,7 +151,7 @@ module.exports = {
             <script>
                 function approveAsset(id){
                     $.ajax({
-                        url: 'https://www.rbx2016.tk/v1/admin/approve',
+                        url: 'https://www.rbx2016.nl/v1/admin/approve',
                         type: 'POST',
                         data: {
                             'assetid': id
@@ -164,7 +164,7 @@ module.exports = {
                 
                 function deleteAsset(id){
                     $.ajax({
-                        url: 'https://www.rbx2016.tk/v1/admin/delete',
+                        url: 'https://www.rbx2016.nl/v1/admin/delete',
                         type: 'POST',
                         data: {
                             'assetid': id
@@ -192,8 +192,8 @@ module.exports = {
                 const asset = assets[i];
                 const creator = await db.getUser(asset.creatorid);
                 html += `<tr>
-                 <td><a href="https://www.rbx2016.tk/users/${creator.userid}/profile">${creator.username}</a></td>
-                 <td><a href="https://www.rbx2016.tk/library/${asset.id}">${asset.name}</a></td>
+                 <td><a href="https://www.rbx2016.nl/users/${creator.userid}/profile">${creator.username}</a></td>
+                 <td><a href="https://www.rbx2016.nl/library/${asset.id}">${asset.name}</a></td>
                  <td id="asset-${asset.id}"><button onclick="approveAsset(${asset.id})">Approve</button> <button onclick="deleteAsset(${asset.id})">Delete</button></td>
                </tr>`;
             }

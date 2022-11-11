@@ -132,15 +132,15 @@ for (let i = 0; i < files.length; i++) {
     if (file.endsWith(".js")) {
         const domain = file.trim().replace(".js", "");
         if (domain == "MAIN") {
-            domains.push("http://web.rbx2016.tk");
-            domains.push("https://web.rbx2016.tk");
-            domains.push("http://www.rbx2016.tk");
-            domains.push("https://www.rbx2016.tk");
-            domains.push("http://rbx2016.tk");
-            domains.push("https://rbx2016.tk");
+            domains.push("http://web.rbx2016.nl");
+            domains.push("https://web.rbx2016.nl");
+            domains.push("http://www.rbx2016.nl");
+            domains.push("https://www.rbx2016.nl");
+            domains.push("http://rbx2016.nl");
+            domains.push("https://rbx2016.nl");
         } else {
-            domains.push("http://" + domain + ".rbx2016.tk");
-            domains.push("https://" + domain + ".rbx2016.tk");
+            domains.push("http://" + domain + ".rbx2016.nl");
+            domains.push("https://" + domain + ".rbx2016.nl");
         }
     }
 }

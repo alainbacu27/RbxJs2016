@@ -66,13 +66,13 @@ module.exports = {
 
         app.get("/user-agreements/v1/agreements-resolution/web", (req, res) => {
             res.json([{
-                "displayUrl": "https://en.help.rbx2016.tk/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
+                "displayUrl": "https://en.help.rbx2016.nl/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
                 "id": "848d8d8f-0e33-4176-bcd9-aa4e22ae7905",
                 "agreementType": "TermsOfService",
                 "clientType": "Web",
                 "regulationType": "Global"
             }, {
-                "displayUrl": "https://en.help.rbx2016.tk/hc/en-us/articles/115004630823-Roblox-Privacy-and-Cookie-Policy-",
+                "displayUrl": "https://en.help.rbx2016.nl/hc/en-us/articles/115004630823-Roblox-Privacy-and-Cookie-Policy-",
                 "id": "54d8a8f0-d9c8-4cf3-bd26-0cbf8af0bba3",
                 "agreementType": "PrivacyPolicy",
                 "clientType": "Web",

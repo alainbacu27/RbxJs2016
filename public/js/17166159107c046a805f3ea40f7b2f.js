@@ -153,7 +153,7 @@ Roblox = Roblox || {}, Roblox.ForgotPasswordOrUsername = function() {
     }
 
 	function z() {
-        window.location.href = "https://www.rbx2016.tk/games";
+        window.location.href = "https://www.rbx2016.nl/games";
     }
 	
     function u(n, t) {
@@ -321,7 +321,7 @@ Roblox = Roblox || {}, Roblox.ShopAmazon = function() {
     }
 
     function r() {
-        return "<p>Your are about to visit our amazon store. You will be redirected to ROBLOX merchandise store on <a class='text-link' target='_blank' href='" + n + "' >Amazon.com</a>.</p> <p>Please note that you need to be over 18 to purchase products online. The amazon store is not part of rbx2016.tk and is governed by a separate privacy policy.</p>"
+        return "<p>Your are about to visit our amazon store. You will be redirected to ROBLOX merchandise store on <a class='text-link' target='_blank' href='" + n + "' >Amazon.com</a>.</p> <p>Please note that you need to be over 18 to purchase products online. The amazon store is not part of rbx2016.nl and is governed by a separate privacy policy.</p>"
     }
 
     function u() {

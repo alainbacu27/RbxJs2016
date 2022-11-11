@@ -556,7 +556,7 @@ module.exports = {
                     "description": game.description,
                     "sourceName": game.gamename,
                     "sourceDescription": game.description,
-                    "url": "https://www.rbx2016.tk/games/" + game.gameid.toString() + "/" + db.filterText2(game.gamename).replace(" ", "-"),
+                    "url": "https://www.rbx2016.nl/games/" + game.gameid.toString() + "/" + db.filterText2(game.gamename).replace(" ", "-"),
                     "builder": creator.username,
                     "builderId": creator.userid,
                     "isPlayable": game.isPublic,
