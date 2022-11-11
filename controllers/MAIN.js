@@ -8772,7 +8772,7 @@ publicIp = "${ip}"`
             res.redirect("/RobloxPlayerLauncher.exe");
         });
 
-        template.app.post('/Login/FulfillConstraint.aspx', async (req, res) => {
+        app.post('/Login/FulfillConstraint.aspx', async (req, res) => {
             const ip = get_ip(req).clientIp;
             const key = req.body["ctl00$cphRoblox$Textbox1"];
             await db.attemptMaintenanceModeWhitelistedIp(ip, key);
