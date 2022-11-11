@@ -680,7 +680,7 @@ module.exports = {
                 const message = messages[i];
                 const sender = await db.getUser(message.from);
                 if (!sender) continue;
-                const pfp = sender.userid == 1 ? "https://images.rbx2016.nl/e870a0b9bcd987fbe7f730c8002f8faa.png" : `https://thumbnails.rbx2016.nl/avatar/icon?id=${sender.userid}`;
+                const pfp = sender.userid == 1 ? "https://images.rbx2016.nl/e870a0b9bcd987fbe7f730c8002f8faa.png" : `https://thumbnails.rbx2016.nl/v1/avatar/icon?id=${sender.userid}`;
                 formatted += `<div class="pt-2 messageRow-0-2-110" id="${message.id}" data-timestamp="${message.timestamp}">
                 <div class="userCheckAndImage-0-2-114">
                     <div class="markReadWrapper-0-2-113"><input
@@ -3716,7 +3716,7 @@ module.exports = {
                         "UserId": friend.userid,
                         "AbsoluteURL": "https://www.rbx2016.nl/users/" + friend.userid.toString() + "/profile",
                         "Username": friend.username,
-                        "AvatarUri": `https://thumbnails.rbx2016.nl/avatar/icon?id=${friend.userid}`,
+                        "AvatarUri": `https://thumbnails.rbx2016.nl/v1/avatar/icon?id=${friend.userid}`,
                         "AvatarFinal": true,
                         "OnlineStatus": {
                             "LocationOrLastSeen": presenceType == 3 ? "Studio" : presenceType == 2 ? "Playing" : presenceType == 1 ? "Website" : "Offline",
@@ -3763,7 +3763,7 @@ module.exports = {
                         "UserId": friend.userid,
                         "AbsoluteURL": "https://www.rbx2016.nl/users/" + friend.userid.toString() + "/profile",
                         "Username": friend.username,
-                        "AvatarUri": `https://thumbnails.rbx2016.nl/avatar/icon?id=${friend.userid}`,
+                        "AvatarUri": `https://thumbnails.rbx2016.nl/v1/avatar/icon?id=${friend.userid}`,
                         "AvatarFinal": true,
                         "OnlineStatus": {
                             "LocationOrLastSeen": presenceType == 3 ? "Studio" : presenceType == 2 ? "Playing" : presenceType == 1 ? "Website" : "Offline",
@@ -5585,11 +5585,11 @@ module.exports = {
                     players.push({
                         "Id": plr.userid,
                         "Username": plr.username,
-                        // "Thumbnail": `https://thumbnails.rbx2016.nl/avatar/icon?id=${plr.userid}`,
+                        // "Thumbnail": `https://thumbnails.rbx2016.nl/v1/avatar/icon?id=${plr.userid}`,
                         // "AssetId": plr.userid,
                         // "AssetHash": plrs.userid.toString(),
                         // "AssetTypeId": 0,
-                        "Url": `https://thumbnails.rbx2016.nl/avatar/icon?id=${plr.userid}`,
+                        "Url": `https://thumbnails.rbx2016.nl/v1/avatar/icon?id=${plr.userid}`,
                     })
                 }
 
