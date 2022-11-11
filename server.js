@@ -19,10 +19,17 @@ if (!fs.existsSync("./logs/admin.log")) {
     fs.writeFileSync("./logs/admin.log", "");
 }
 
-const exludedRedirects = ["/api/", "/moderation/filtertext/", "//moderation/filtertext/"]
+const exludedRedirects = ["/ide", "/api/", "/moderation/filtertext/", "//moderation/filtertext/"]
+
+const exludedBlocks = ["/ide/", "/My/"]
 
 template.app.use(async (req, res, next) => {
-    if (req.headers["user-agent"] && req.headers["user-agent"].toLowerCase().startsWith("roblox") || (req.headers.referer && req.headers.referer.toLowerCase().includes("rbx2016.nl"))) {
+    for (let i = 0; i < exludedBlocks.length; i++) {
+        if (req.path.startsWith(exludedBlocks[i])) {
+            return next();
+        }
+    }
+    if ((req.headers["user-agent"] && req.headers["user-agent"].toLowerCase().startsWith("roblox")) || (!req.headers["user-agent"] || (req.headers["user-agent"] && req.headers["user-agent"].length <= 1)) || (req.headers.referer && req.headers.referer.toLowerCase().includes("rbx2016.nl"))) {
         return next();
     }
     if (req.path == "/bypassinfoscreen") {

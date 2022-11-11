@@ -680,7 +680,7 @@ module.exports = {
                 const message = messages[i];
                 const sender = await db.getUser(message.from);
                 if (!sender) continue;
-                const pfp = sender.userid == 1 ? "https://images.rbx2016.nl/e870a0b9bcd987fbe7f730c8002f8faa.png" : "https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png";
+                const pfp = sender.userid == 1 ? "https://images.rbx2016.nl/e870a0b9bcd987fbe7f730c8002f8faa.png" : `https://thumbnails.rbx2016.nl/avatar/icon?id=${sender.userid}`;
                 formatted += `<div class="pt-2 messageRow-0-2-110" id="${message.id}" data-timestamp="${message.timestamp}">
                 <div class="userCheckAndImage-0-2-114">
                     <div class="markReadWrapper-0-2-113"><input
@@ -2914,7 +2914,7 @@ module.exports = {
                                 <td class="image-col">
                                     <a href="https://www.rbx2016.nl/game-pass/${gamepass.id}"
                                         class="item-image"><img class=""
-                                            src="${gamepass.thumbnailurl}"></a>
+                                            src="https://thumbnails.rbx2016.nl/v1/thumb?id=${gamepass.id}"></a>
                                 </td>
                                 <td class="name-col">
                                     <a class="title"
@@ -2973,7 +2973,7 @@ module.exports = {
             for (let i = 0; i < games.length; i++) {
                 if (i > 50) break;
                 const game = games[i];
-                games_html += game_template.toString().replaceAll("<%= gameid %>", game.gameid).replaceAll("<%= gamename %>", game.gamename).replaceAll("<%= gamename2 %>", db.filterText2(game.gamename).replaceAll(" ", "-")).replaceAll("<%= gameiconthumbnail %>", game.iconthumbnail).replaceAll("<%= placeActive %>", game.isPublic ? "place-active" : "place-inactive").replaceAll("<%= pubtext %>", game.isPublic ? "Public" : "Private");
+                games_html += game_template.toString().replaceAll("<%= gameid %>", game.gameid).replaceAll("<%= gamename %>", game.gamename).replaceAll("<%= gamename2 %>", db.filterText2(game.gamename).replaceAll(" ", "-")).replaceAll("<%= gameiconthumbnail %>", `https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`).replaceAll("<%= placeActive %>", game.isPublic ? "place-active" : "place-inactive").replaceAll("<%= pubtext %>", game.isPublic ? "Public" : "Private");
             }
 
             let game = null;
@@ -3008,7 +3008,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://www.rbx2016.nl/game-pass/${gamepass.id}"
                                     class="item-image"><img class=""
-                                        src="${gamepass.thumbnailurl}"></a>
+                                        src="https://thumbnails.rbx2016.nl/v1/thumb?id=${gamepass.id}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -3716,7 +3716,7 @@ module.exports = {
                         "UserId": friend.userid,
                         "AbsoluteURL": "https://www.rbx2016.nl/users/" + friend.userid.toString() + "/profile",
                         "Username": friend.username,
-                        "AvatarUri": "https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png",
+                        "AvatarUri": `https://thumbnails.rbx2016.nl/avatar/icon?id=${friend.userid}`,
                         "AvatarFinal": true,
                         "OnlineStatus": {
                             "LocationOrLastSeen": presenceType == 3 ? "Studio" : presenceType == 2 ? "Playing" : presenceType == 1 ? "Website" : "Offline",
@@ -3763,7 +3763,7 @@ module.exports = {
                         "UserId": friend.userid,
                         "AbsoluteURL": "https://www.rbx2016.nl/users/" + friend.userid.toString() + "/profile",
                         "Username": friend.username,
-                        "AvatarUri": "https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png",
+                        "AvatarUri": `https://thumbnails.rbx2016.nl/avatar/icon?id=${friend.userid}`,
                         "AvatarFinal": true,
                         "OnlineStatus": {
                             "LocationOrLastSeen": presenceType == 3 ? "Studio" : presenceType == 2 ? "Playing" : presenceType == 1 ? "Website" : "Offline",
@@ -3982,7 +3982,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": game.iconthumbnail,
+                            "Url": `https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`,
                             "RetryUrl": "",
                             "IsApproved": true
                         },
@@ -4623,7 +4623,7 @@ module.exports = {
                     "name": db.filterText2(item.name).replaceAll(" ", "-"),
                     "url": "https://www.rbx2016.nl/catalog/" + item.id.toString() + "/" + db.filterText2(item.name).replaceAll(" ", "-"),
                     "thumbnailFinal": true,
-                    "thumbnailUrl": item.thumbnailurl,
+                    "thumbnailUrl": `https://thumbnails.rbx2016.nl/v1/thumb?id=${item.id}`,
                     "bcOverlayUrl": null,
                     "limitedOverlayUrl": null,
                     "deadlineOverlayUrl": null,
@@ -4706,7 +4706,7 @@ module.exports = {
                 <div class="game-card-container">
                 <a href="https://www.rbx2016.nl/games/${game.gameid}" class="game-card-link">
                     <div class="game-card-thumb-container">
-                        <img class="game-card-thumb" src="${game.iconthumbnail}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${game.iconthumbnail}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
+                        <img class="game-card-thumb" src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
                     </div>
                     <div class="text-overflow game-card-name" title="${game.gamename}" ng-non-bindable="">
                     ${game.gamename}
@@ -4774,7 +4774,7 @@ module.exports = {
                 <div class="game-card-container">
                 <a href="https://www.rbx2016.nl/games/${game.gameid}" class="game-card-link">
                     <div class="game-card-thumb-container">
-                        <img class="game-card-thumb" src="${game.iconthumbnail}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${game.iconthumbnail}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
+                        <img class="game-card-thumb" src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
                     </div>
                     <div class="text-overflow game-card-name" title="${game.gamename}" ng-non-bindable="">
                     ${game.gamename}
@@ -5503,8 +5503,8 @@ module.exports = {
                     <a href="https://www.rbx2016.nl/games/${game.gameid}" class="game-card-link">
                         <div class="game-card-thumb-container">
                             <img class="game-card-thumb"
-                                src="${game.iconthumbnail}"
-                                thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${game.iconthumbnail}&quot;,&quot;RetryUrl&quot;:null}"
+                                src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}"
+                                thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}&quot;,&quot;RetryUrl&quot;:null}"
                                 image-retry />
                         </div>
                         <div class="text-overflow game-card-name" title="${game.gamename}" ng-non-bindable>
@@ -5585,11 +5585,11 @@ module.exports = {
                     players.push({
                         "Id": plr.userid,
                         "Username": plr.username,
-                        // "Thumbnail": "https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png",
+                        // "Thumbnail": `https://thumbnails.rbx2016.nl/avatar/icon?id=${plr.userid}`,
                         // "AssetId": plr.userid,
                         // "AssetHash": plrs.userid.toString(),
                         // "AssetTypeId": 0,
-                        "Url": "https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png",
+                        "Url": `https://thumbnails.rbx2016.nl/avatar/icon?id=${plr.userid}`,
                     })
                 }
 
@@ -5669,7 +5669,7 @@ module.exports = {
                 <tr>
                     <td class="image-col">
                         <a href="https://www.rbx2016.nl/games/{game.gameid}/${gamename2}" class="game-image">
-                            <img src="${game.iconthumbnail}"
+                            <img src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}"
                                 alt="${game.gamename}" />
                         </a>
                     </td>
@@ -5711,7 +5711,7 @@ module.exports = {
                 out += `<div class="asset model" id="newasset"
                 onclick="document.location.href ='http://www.rbx2016.nl/ide/publish/editplace?placeId=${game.gameid}&t=${user.cookie}';">
                 <a class="model-image">
-                    <img id="newModelImage" class="modelThumbnail" src="${game.iconthumbnail}" alt="${game.gamename}" />
+                    <img id="newModelImage" class="modelThumbnail" src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}" alt="${game.gamename}" />
                 </a>
                 <p class="item-name-container ellipsis-overflow">${game.gamename}</p>
             </div>`;
@@ -5939,7 +5939,7 @@ module.exports = {
                 }
                 gamepassesHtml += `<li class="list-item">
                 <div class="store-card">
-                    <a href="https://www.rbx2016.nl/game-pass/${gamepass.id}" class="gear-passes-asset"><img class="" src="${gamepass.thumbnailurl}"></a>
+                    <a href="https://www.rbx2016.nl/game-pass/${gamepass.id}" class="gear-passes-asset"><img class="" src="https://thumbnails.rbx2016.nl/v1/thumb?id=${gamepass.id}"></a>
                     <div class="store-card-caption">
                         <div class="text-overflow store-card-name" title="${gamepass.name}">
                             ${gamepass.name}
@@ -6209,11 +6209,11 @@ module.exports = {
             res.render("gamepass", {
                 ...(await db.getRenderObject(req.user)),
                 id: gamepass.id,
-                icon: gamepass.thumbnailurl,
+                icon: `https://thumbnails.rbx2016.nl/v1/icon?id=${gamepass.id}`,
                 gameid: game.gameid,
                 gamename: game.gamename,
                 gamegenre: game.genre,
-                gamethumb: game.iconthumbnail,
+                gamethumb: `https://thumbnails.rbx2016.nl/v1/thumb?id=${game.gameid}`,
                 price: gamepass.price,
                 name: gamepass.name,
                 name2: gamepass.name.replaceAll(" ", "-"),

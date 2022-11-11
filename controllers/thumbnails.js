@@ -19,7 +19,7 @@ module.exports = {
                 res.end("Invalid data");
             }
 
-            if (data.length > db.getSiteConfig().backend.maxBatchSize){
+            if (data.length > db.getSiteConfig().backend.maxBatchSize) {
                 res.end("Too many requests");
                 return;
             }
@@ -29,7 +29,7 @@ module.exports = {
             data.forEach(asset => {
                 newReturn.push({
                     requestId: asset.requestId || asset.targetId,
-                    location: `https://thumbnails.rbx2016.nl/v1/thumbnail/?id=${asset.assetId}`,
+                    location: `https://thumbnails.rbx2016.nl/v1/v1/thumbnail/?id=${asset.assetId}`,
                     IsHashDynamic: true,
                     IsCopyrightProtected: false,
                     isArchived: false,
@@ -59,7 +59,7 @@ module.exports = {
                 data.push({
                     "targetId": universeId,
                     "state": "Completed",
-                    "imageUrl": game.iconthumbnail,
+                    "imageUrl": `https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`,
                 })
             }
 
@@ -97,7 +97,7 @@ module.exports = {
             res.json({
                 "targetId": assetid,
                 "state": "Completed",
-                "imageUrl": "https://thumbnails.rbx2016.nl/v1/assets-thumbnail-3d2?assetid=" + assetid,
+                "imageUrl": "https://thumbnails.rbx2016.nl/v1/v1/assets-thumbnail-3d2?assetid=" + assetid,
             });
         });
 
@@ -115,7 +115,7 @@ module.exports = {
                 data.push({
                     "targetId": 1,
                     "state": "Completed", // Pending
-                    "imageUrl": game.iconthumbnail
+                    "imageUrl": `https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`
                 })
             }
             res.json({
@@ -159,6 +159,66 @@ module.exports = {
                 "obj": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 "textures": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
             });
+        });
+
+        app.get("/v1/icon", async (req, res) => {
+            const bp = path.resolve(__dirname + "/../thumbnails/icons/") + path.sep;
+            const fp = path.resolve(bp + req.query.id.toString() + ".asset");
+            if (!fp.startsWith(bp)) {
+                res.status(403).send("Forbidden");
+                return;
+            }
+            if (fs.existsSync(fp)) {
+                res.attachment("Download");
+                res.send(fs.readFileSync(fp));
+            } else {
+                res.redirect("https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
+            }
+        });
+
+        app.get("/v1/thumb", async (req, res) => {
+            const bp = path.resolve(__dirname + "/../thumbnails/thumbs/") + path.sep;
+            const fp = path.resolve(bp + req.query.id.toString() + ".asset");
+            if (!fp.startsWith(bp)) {
+                res.status(403).send("Forbidden");
+                return;
+            }
+            if (fs.existsSync(fp)) {
+                res.attachment("Download");
+                res.send(fs.readFileSync(fp));
+            } else {
+                res.redirect("https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
+            }
+        });
+
+        app.get("/v1/avatar/icon", async (req, res) => {
+            const bp = path.resolve(__dirname + "/../thumbnails/avatars/icons/") + path.sep;
+            const fp = path.resolve(bp + req.query.id.toString() + ".asset");
+            if (!fp.startsWith(bp)) {
+                res.status(403).send("Forbidden");
+                return;
+            }
+            if (fs.existsSync(fp)) {
+                res.attachment("Download");
+                res.send(fs.readFileSync(fp));
+            } else {
+                res.redirect("https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png");
+            }
+        });
+        
+        app.get("/v1/avatar/thumb", async (req, res) => {
+            const bp = path.resolve(__dirname + "/../thumbnails/avatars/thumbs/") + path.sep;
+            const fp = path.resolve(bp + req.query.id.toString() + ".asset");
+            if (!fp.startsWith(bp)) {
+                res.status(403).send("Forbidden");
+                return;
+            }
+            if (fs.existsSync(fp)) {
+                res.attachment("Download");
+                res.send(fs.readFileSync(fp));
+            } else {
+                res.redirect("https://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Avatar.png");
+            }
         });
     }
 }

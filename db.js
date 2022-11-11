@@ -6333,7 +6333,7 @@ module.exports = {
         });
     },
 
-    createGamepass: async function (creatorid, gameid, name, desc, price, thumbnailurl = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
+    createGamepass: async function (creatorid, gameid, name, desc, price) {
         return new Promise(async returnPromise => {
             name = censorText(filterText(name));
             MongoClient.connect(mongourl, function (err, db) {
@@ -6367,7 +6367,6 @@ module.exports = {
                             name: name,
                             description: desc,
                             price: price,
-                            thumbnailurl: thumbnailurl,
                             owners: [creatorid],
                             sold: 0,
                             created: getUnixTimestamp(),
@@ -6419,7 +6418,7 @@ module.exports = {
 
     log: log,
 
-    createDevProduct(creatorid, gameid, name, desc, price, thumbnailurl = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
+    createDevProduct(creatorid, gameid, name, desc, price) {
         return new Promise(async returnPromise => {
             name = censorText(filterText(name));
             MongoClient.connect(mongourl, function (err, db) {
@@ -6453,7 +6452,6 @@ module.exports = {
                             name: name,
                             description: desc,
                             price: price,
-                            thumbnailurl: thumbnailurl,
                             sold: 0,
                             created: getUnixTimestamp(),
                             updated: getUnixTimestamp(),
@@ -6474,7 +6472,7 @@ module.exports = {
         });
     },
 
-    editDevProduct: async function (id, creatorid, gameid, name, desc, price, onSale = true, thumbnailurl = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
+    editDevProduct: async function (id, creatorid, gameid, name, desc, price, onSale = true) {
         return new Promise(async returnPromise => {
             name = censorText(filterText(name));
             MongoClient.connect(mongourl, function (err, db) {
@@ -6489,7 +6487,6 @@ module.exports = {
                         name: name,
                         description: desc,
                         price: price,
-                        thumbnailurl: thumbnailurl,
                         updated: getUnixTimestamp(),
                         onSale: onSale
                     }
@@ -7334,7 +7331,7 @@ module.exports = {
         });
     },
 
-    createGame: async function (gamename, gamedescription, creatorid, iconthumbnail = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png", thumbnail = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png") {
+    createGame: async function (gamename, gamedescription, creatorid) {
         return new Promise(async returnPromise => {
             gamename = censorText(filterText5(gamename));
             gamedescription = censorText(filterText4(gamedescription));
@@ -7372,8 +7369,6 @@ module.exports = {
                             dislikes: [],
                             favorites: [],
                             played: [],
-                            iconthumbnail: iconthumbnail,
-                            thumbnail: thumbnail,
                             deleted: false,
                             created: getUnixTimestamp(),
                             updated: getUnixTimestamp(),
