@@ -21,7 +21,7 @@ if (!fs.existsSync("./logs/admin.log")) {
 
 const exludedRedirects = ["/ide", "/api/", "/moderation/filtertext/", "//moderation/filtertext/"]
 
-const exludedBlocks = ["/ide/", "/My/"]
+const exludedBlocks = ["/ide/", "/My/", "/api/game/players/", "/api//game/players/", "/moderation/filtertext", "/api/moderation/filtertext"]
 
 template.app.use(async (req, res, next) => {
     for (let i = 0; i < exludedBlocks.length; i++) {
@@ -82,6 +82,17 @@ template.app.get("/api//game/players/:userid", (req, res) => { // Cuz yes.
     res.json({
         "ChatFilter": "whitelist"
     });
+});
+
+template.app.use(async (req, res, next) => {
+    console.log(req.hostname, req.path);
+    if (req.hostname == "rbx2016.nl" && req.path.startsWith("/api/") && req.path.includes("/game/players/")) {
+        const userid = req.params.userid;
+        return res.json({
+            "ChatFilter": "whitelist"
+        });
+    }
+    return next();
 });
 
 template.app.use(async (req, res, next) => {
