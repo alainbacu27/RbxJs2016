@@ -2216,6 +2216,42 @@ module.exports = {
             res.render("versionhistory", await db.getBlankRenderObject());
         });
 
+        app.get("/ownership/hasasset", async (req, res) => {
+            const userId = parseInt(req.query.userId);
+            const assetId = parseInt(req.query.assetId);
+            const owned = await db.userOwnsAsset(userId, assetId);
+            res.send(owned ? "true" : "false");
+        });
+
+        app.post("/marketplace/submitpurchase", async (req, res) => {
+            let user = req.user;
+            if (!user) {
+                let sessionid = req.get("roblox-session-id");
+                if (sessionid) {
+                    sessionid = sessionid.split("|")
+                    if (sessionid.length >= 3) {
+                        const cookie = sessionid[sessionid.length - 3].replaceAll("Â§", "|");
+                        user = await db.findUserByCookie(cookie);
+                    }
+                }
+            }
+            if (!user) {
+                res.status(401).send("");
+                return;
+            }
+            const productId = parseInt(req.body.productId);
+            const bought = await db.buyDevProduct(user.userid, productId);
+            if (bought) {
+                res.json({
+                    success: true,
+                    status: "Bought",
+                    receipt: db.uuidv4()
+                })
+            } else {
+                res.status.send("")
+            }
+        });
+
         app.post("/places/developerproducts/add", db.requireAuth, async (req, res) => {
             const universeId = parseInt(req.body.universeId);
             const name = req.body.name;
