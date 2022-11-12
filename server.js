@@ -37,7 +37,7 @@ template.app.use(async (req, res, next) => {
             return next();
         }
     }
-    if ((req.headers["user-agent"] && req.headers["user-agent"].toLowerCase().startsWith("roblox")) || (!req.headers["user-agent"] || (req.headers["user-agent"] && req.headers["user-agent"].length <= 1)) || (req.headers.referer && req.headers.referer.toLowerCase().includes("rbx2016.nl"))) {
+    if ((req.headers["user-agent"] && req.headers["user-agent"].toLowerCase().includes("roblox")) || (!req.headers["user-agent"] || (req.headers["user-agent"] && req.headers["user-agent"].length <= 1)) || (req.headers.referer && req.headers.referer.toLowerCase().includes("rbx2016.nl"))) {
         return next();
     }
     if (req.path == "/bypassinfoscreen") {
