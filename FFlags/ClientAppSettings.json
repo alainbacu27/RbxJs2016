@@ -620,7 +620,7 @@
   "DFFlagCSGPhysicsRecalculateBadContactsInConnectors": "True",
   "FFlagStudioPartAlignmentChangeEnabled": "True",
   "FFlagStudioToolBoxModelDragFix": "True",
-  "DFFlagOrder66": "False","FFlagCloudIconFixEnabled": "True",
+  "DFFlagOrder66": "True","FFlagCloudIconFixEnabled": "True",
   "DFFlagFixHealthReplication": "True",
   "DFFlagReplicateAnimationSpeed": "True",
   "FFlagLuaFollowers": "True",
