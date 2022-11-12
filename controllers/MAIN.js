@@ -2241,7 +2241,7 @@ module.exports = {
                 res.status(403).send("Developer products are disabled");
                 return;
             }
-            if (db.getSiteConfig().backend.devProducuts.isAdminOnly == false && !(user.role == "admin" || user.role == "owner")) {
+            if (db.getSiteConfig().backend.devProducuts.isAdminOnly == false && !(req.user.role == "admin" || req.user.role == "owner")) {
                 res.status(403).send("Developer products are disabled");
                 return;
             }
