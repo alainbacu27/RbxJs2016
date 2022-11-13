@@ -3529,6 +3529,10 @@ module.exports = {
         return hostPublicIp;
     },
 
+    getHostPublicIps: function () {
+        return ["127.0.0.1", "::1", hostPublicIp]; // Todo, make this have mulitple servers and ips.
+    },
+
     pendingStudioAuthentications: {},
     pendingPlayerAuthentications: {},
 
@@ -8429,10 +8433,19 @@ module.exports = {
 
     updateGame: async function (gameid, gamename, allowstudioaccesstoapis, isPublic) {
         return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
+            MongoClient.connect(mongourl, async function (err, db) {
                 if (err) throw err;
                 gamename = censorText(filterText5(gamename));
                 const dbo = db.db(dbName);
+                if (!isPublic) {
+                    const jobs = await getJobsByGameId(gameid);
+                    for (let i = 0; i < jobs.length; i++) {
+                        const job = getJob(jobs[i]);
+                        if (typeof job !== "undefined") {
+                            job.stop();
+                        }
+                    }
+                }
                 dbo.collection("games").updateOne({
                     gameid: gameid
                 }, {
@@ -8457,11 +8470,20 @@ module.exports = {
 
     updateGameStudio: async function (gameid, gamename, description, isPublic, genre) {
         return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
+            MongoClient.connect(mongourl, async function (err, db) {
                 if (err) throw err;
                 gamename = censorText(filterText5(gamename));
                 description = censorText(filterText4(description));
                 const dbo = db.db(dbName);
+                if (!isPublic) {
+                    const jobs = await getJobsByGameId(gameid);
+                    for (let i = 0; i < jobs.length; i++) {
+                        const job = getJob(jobs[i]);
+                        if (typeof job !== "undefined") {
+                            job.stop();
+                        }
+                    }
+                }
                 dbo.collection("games").updateOne({
                     gameid: gameid
                 }, {

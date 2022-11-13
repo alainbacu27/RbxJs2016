@@ -1658,6 +1658,7 @@ module.exports = {
                 ReturnUrl = ReturnUrl[0]
             }
             const isClient = req.get('User-Agent').toLowerCase().includes("roblox");
+            const isAndroid = req.get('User-Agent').toLowerCase().includes("android");
             if (typeof username == "undefined") {
                 res.status(400).send();
                 return;
@@ -1687,7 +1688,7 @@ module.exports = {
                 httpOnly: true
             });
 
-            if (isClient) {
+            if (isClient && !isAndroid) {
                 res.redirect("/ide/welcome");
                 return;
             }

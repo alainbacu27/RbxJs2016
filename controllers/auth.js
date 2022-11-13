@@ -376,7 +376,6 @@ module.exports = {
                 res.status(401).render("401", await db.getBlankTemplateData());
                 return;
             }
-            console.log(req);
             const cvalue = req.body.username;
             const password = req.body.password;
             const isClient = req.get('User-Agent').toLowerCase().includes("roblox");

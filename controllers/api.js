@@ -16,6 +16,80 @@ module.exports = {
             res.send(owned ? "true" : "false");
         });
 
+        app.post("/device/initialize", (req, res) => {
+            res.json({
+                "browserTrackerId": 0,
+                "appDeviceIdentifier": null
+            });
+        });
+
+        app.post('/login/v1', async (req, res) => {
+            if (db.getSiteConfig().shared.allowLogin == false) {
+                res.status(401).render("401", await db.getBlankTemplateData());
+                return;
+            }
+            const cvalue = req.body.username;
+            const password = req.body.password;
+            const isClient = req.get('User-Agent').toLowerCase().includes("roblox");
+            if (typeof cvalue == "undefined") {
+                res.status(400).send();
+                return;
+            }
+            const user = await db.loginUser(cvalue, password, isClient);
+            if (user == false) {
+                res.status(403).json({
+                    "errors": [{
+                        "code": 1,
+                        "message": "Incorrect username or password. Please try again.",
+                        "userFacingMessage": "Something went wrong"
+                    }]
+                });
+                return;
+            }
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.nl",
+                httpOnly: true
+            });
+            res.cookie('.ROBLOSECURITY', user.cookie, {
+                maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
+                path: "/",
+                domain: "rbx2016.nl",
+                httpOnly: true
+            });
+            res.json({
+                "user": {
+                    "id": user.userid,
+                    "name": user.username,
+                    "displayName": user.username
+                },
+                "isBanned": user.banned
+            });
+        });
+
+        app.post("/sign-out/v1", async (req, res) => {
+            if ((await db.getConfig()).maintenance && db.backend.disableLogoutOnMaintenance) {
+                res.status(503).send("Maintenance");
+                return;
+            }
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.nl",
+                httpOnly: true
+            });
+            if (typeof req.headers["x-csrf-token"] !== "undefined") {
+                if (req.headers["x-csrf-token"].length == 128) {
+                    const user = await db.getUserByCsrfToken(req.headers["x-csrf-token"]);
+                    if (user) {
+                        await db.setUserProperty(user.userid, "cookie", "");
+                    }
+                }
+            }
+            res.redirect("/");
+        });
+
         app.post("/marketplace/submitpurchase", async (req, res) => {
             let user = req.user;
             if (!user) {

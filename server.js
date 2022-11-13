@@ -93,7 +93,6 @@ template.app.get("/api//game/players/:userid", (req, res) => { // Cuz yes.
 });
 
 template.app.use(async (req, res, next) => {
-    console.log(req.hostname, req.path);
     if (req.hostname == "rbx2016.nl" && req.path.startsWith("/api/") && req.path.includes("/game/players/")) {
         const userid = req.params.userid;
         return res.json({

@@ -3,10 +3,17 @@ const path = require("path");
 const cookieParser = require('cookie-parser');
 const fetch = require('node-fetch');
 const querystring = require('querystring');
+const get_ip = require('ipware')().get_ip;
 
 module.exports = {
     init: (app, db) => {
         app.post("/persistence/set", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            const allowedIps = db.getHostPublicIps();
+            if (!allowedIps.includes(ip)) {
+                return res.status(403).send("Forbidden");
+            }
+
             const placeId = parseInt(req.query.placeId);
             const key = req.query.key;
             const type = req.query.type;
@@ -26,6 +33,12 @@ module.exports = {
         });
 
         app.post("/persistence/getSortedValues", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            const allowedIps = db.getHostPublicIps();
+            if (!allowedIps.includes(ip)) {
+                return res.status(403).send("Forbidden");
+            }
+            
             const placeId = parseInt(req.query.placeId);
             const type = req.query.type;
             const key = req.query.key;
@@ -55,8 +68,14 @@ module.exports = {
                 "ExclusiveStartKey": "AQEBAgRLZXky"
             });
         });
-        
+
         app.post("/persistence/increment", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            const allowedIps = db.getHostPublicIps();
+            if (!allowedIps.includes(ip)) {
+                return res.status(403).send("Forbidden");
+            }
+
             const placeId = parseInt(req.query.placeId);
             const type = req.query.type;
             const key = req.query.key;
@@ -89,24 +108,36 @@ module.exports = {
         });
 
         app.post("/persistence/getV2", async (req, res) => {
-            const placeId = parseInt(req.query.placeId);
-            const type = req.query.type;
-            const scope = req.query.scope;
-            const target = req.body.qkeys[1];
-            const key = req.body.qkeys[2];
-            const value = await db.getDataStore(placeId, key, type, scope, target);
-            if (value) {
-                const data = [{
-                    "Value": value,
-                    "Scope": scope,
-                    "Key": key,
-                    "Target": target
-                }];
-                res.json({
-                    // "error": null,
-                    "data": data
-                });
-            } else {
+            const ip = get_ip(req).clientIp;
+            const allowedIps = db.getHostPublicIps();
+            if (!allowedIps.includes(ip)) {
+                return res.status(403).send("Forbidden");
+            }
+            try {
+                const placeId = parseInt(req.query.placeId);
+                const type = req.query.type;
+                const scope = req.query.scope;
+                const target = req.body.qkeys[1];
+                const key = req.body.qkeys[2];
+                const value = await db.getDataStore(placeId, key, type, scope, target);
+                if (value) {
+                    const data = [{
+                        "Value": value,
+                        "Scope": scope,
+                        "Key": key,
+                        "Target": target
+                    }];
+                    res.json({
+                        // "error": null,
+                        "data": data
+                    });
+                } else {
+                    res.json({
+                        // "error": null,
+                        "data": []
+                    });
+                }
+            } catch {
                 res.json({
                     // "error": null,
                     "data": []

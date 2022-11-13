@@ -199,7 +199,7 @@
         "maxServers": 500,
         "hostingTeamCreateEnabled": false,
         "hostingConnectsToLocalhost": false,
-        "maxGameStartupTime": 25,
+        "maxGameStartupTime": 45,
 
         "devProducuts": {
             "enabled": true,
