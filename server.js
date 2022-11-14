@@ -19,11 +19,11 @@ if (!fs.existsSync("./logs/admin.log")) {
     fs.writeFileSync("./logs/admin.log", "");
 }
 
-const exludedRedirects = ["/ide", "/api/", "/moderation/filtertext/", "//moderation/filtertext/"]
+const exludedRedirects = ["/ide", "/api/", "/api/moderation/v2/filtertext/", "//api/moderation/v2/filtertext/", "/moderation/filtertext/", "//moderation/filtertext/"]
 
 const bypassedIps = ["::1", "127.0.0.1"]
 
-const exludedBlocks = ["/ide/", "/My/", "/api/game/players/", "/api//game/players/", "/moderation/filtertext", "/api/moderation/filtertext"]
+const exludedBlocks = ["/ide/", "/My/", "/api/game/players/", "/api//game/players/", "/api/moderation/v2/filtertext/", "//api/moderation/v2/filtertext/", "/moderation/filtertext", "/api/moderation/filtertext"]
 
 template.app.use(async (req, res, next) => {
     const ip = get_ip(req).clientIp;
@@ -72,6 +72,20 @@ template.app.post("/moderation/filtertext", (req, res) => {
 });
 
 template.app.post("/api/moderation/filtertext", (req, res) => {
+    const text = req.body.text;
+    const userid = req.body.userId;
+
+    const badWords = db.getBadWords(text);
+
+    res.json({
+        "data": {
+            "white": db.getGoodWords(text, badWords),
+            "black": badWords.join(" ")
+        }
+    });
+});
+
+template.app.post("/api/moderation/v2/filtertext", (req, res) => {
     const text = req.body.text;
     const userid = req.body.userId;
 

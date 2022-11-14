@@ -796,6 +796,20 @@ module.exports = {
                 }
             });
         });
+        
+        app.post("/api/moderation/v2/filtertext", (req, res) => {
+            const text = req.body.text;
+            const userid = req.body.userId;
+
+            const badWords = db.getBadWords(text);
+
+            res.json({
+                "data": {
+                    "white": db.getGoodWords(text, badWords),
+                    "black": badWords.join(" ")
+                }
+            });
+        });
 
         app.get("/game/players/:userid", (req, res) => {
             const userid = req.params.userid;
