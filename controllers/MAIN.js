@@ -2324,7 +2324,7 @@ module.exports = {
                 return;
             }
             const productId = parseInt(req.body.productId);
-            const bought = await db.buyDevProduct(user.userid, productId);
+            const bought = await db.buyGamepass(user.userid, productId);
             if (bought) {
                 res.json({
                     success: true,
