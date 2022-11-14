@@ -144,7 +144,8 @@
         "tix": {
             "enabled": true,
             "exchangeRate": 10,
-            "tixEverySeconds": 86400
+            "tixEverySeconds": 86400,
+            "tixPerGameVisit": 1
         },
         "marketplaceEarnings": {
             "user": 10,

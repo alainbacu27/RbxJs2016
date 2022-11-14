@@ -74,7 +74,7 @@ async function gitClone(cloneURL, localPath) {
                 });
             });
         */
-       returnPromise(false);
+        returnPromise(false);
     });
 }
 
@@ -7628,42 +7628,103 @@ module.exports = {
                                     returnPromise(false);
                                     return;
                                 }
-                                dbo.collection("users").findOne({
-                                    userid: userid
-                                }, function (err, user) {
+                                dbo.collection("users").updateOne({
+                                    userid: game.creatorid
+                                }, {
+                                    $inc: {
+                                        tix: siteConfig.backend.tix.tixPerGameVisit
+                                    }
+                                }, function (err, res) {
                                     if (err) {
                                         db.close();
                                         returnPromise(false);
                                         return;
                                     }
-                                    dbo.collection("users").updateOne({
+                                    dbo.collection("users").findOne({
                                         userid: userid
-                                    }, {
-                                        $inc: {
-                                            placeVisits: 1
-                                        },
-                                        $set: {
-                                            playing: gameid
-                                        }
-                                    }, function (err, res) {
+                                    }, function (err, user) {
                                         if (err) {
                                             db.close();
                                             returnPromise(false);
                                             return;
                                         }
-                                        if (user.recentlyPlayedGames.includes(gameid)) {
-                                            dbo.collection("users").updateOne({
-                                                userid: userid
-                                            }, {
-                                                $set: {
-                                                    recentlyPlayedGames: user.recentlyPlayedGames.filter(id => id != gameid)
-                                                }
-                                            }, function (err, res) {
-                                                if (err) {
-                                                    db.close();
-                                                    returnPromise(false);
-                                                    return;
-                                                }
+                                        dbo.collection("users").updateOne({
+                                            userid: userid
+                                        }, {
+                                            $inc: {
+                                                placeVisits: 1
+                                            },
+                                            $set: {
+                                                playing: gameid
+                                            }
+                                        }, function (err, res) {
+                                            if (err) {
+                                                db.close();
+                                                returnPromise(false);
+                                                return;
+                                            }
+                                            if (user.recentlyPlayedGames.includes(gameid)) {
+                                                dbo.collection("users").updateOne({
+                                                    userid: userid
+                                                }, {
+                                                    $set: {
+                                                        recentlyPlayedGames: user.recentlyPlayedGames.filter(id => id != gameid)
+                                                    }
+                                                }, function (err, res) {
+                                                    if (err) {
+                                                        db.close();
+                                                        returnPromise(false);
+                                                        return;
+                                                    }
+                                                    if (true) {
+                                                        if (user.recentlyPlayedGames.length >= 6) {
+                                                            dbo.collection("users").updateOne({
+                                                                userid: userid
+                                                            }, {
+                                                                $inc: {
+                                                                    placeVisits: 1
+                                                                },
+                                                                $pop: {
+                                                                    recentlyPlayedGames: -1
+                                                                },
+                                                                $push: {
+                                                                    recentlyPlayedGames: gameid
+                                                                }
+                                                            }, function (err, res) {
+                                                                if (err) {
+                                                                    db.close();
+                                                                    returnPromise(false);
+                                                                    return;
+                                                                }
+                                                                db.close();
+                                                                returnPromise(true);
+                                                            });
+                                                        } else {
+                                                            dbo.collection("users").updateOne({
+                                                                userid: userid
+                                                            }, {
+                                                                $inc: {
+                                                                    placeVisits: 1
+                                                                },
+                                                                $push: {
+                                                                    recentlyPlayedGames: gameid
+                                                                }
+                                                            }, function (err, res) {
+                                                                if (err) {
+                                                                    db.close();
+                                                                    returnPromise(false);
+                                                                    return;
+                                                                }
+                                                                db.close();
+                                                                returnPromise(true);
+                                                            });
+                                                        }
+                                                    } else {
+                                                        db.close();
+                                                        returnPromise(true);
+                                                    }
+                                                });
+                                            } else {
                                                 if (true) {
                                                     if (user.recentlyPlayedGames.length >= 6) {
                                                         dbo.collection("users").updateOne({
@@ -7711,56 +7772,8 @@ module.exports = {
                                                     db.close();
                                                     returnPromise(true);
                                                 }
-                                            });
-                                        } else {
-                                            if (true) {
-                                                if (user.recentlyPlayedGames.length >= 6) {
-                                                    dbo.collection("users").updateOne({
-                                                        userid: userid
-                                                    }, {
-                                                        $inc: {
-                                                            placeVisits: 1
-                                                        },
-                                                        $pop: {
-                                                            recentlyPlayedGames: -1
-                                                        },
-                                                        $push: {
-                                                            recentlyPlayedGames: gameid
-                                                        }
-                                                    }, function (err, res) {
-                                                        if (err) {
-                                                            db.close();
-                                                            returnPromise(false);
-                                                            return;
-                                                        }
-                                                        db.close();
-                                                        returnPromise(true);
-                                                    });
-                                                } else {
-                                                    dbo.collection("users").updateOne({
-                                                        userid: userid
-                                                    }, {
-                                                        $inc: {
-                                                            placeVisits: 1
-                                                        },
-                                                        $push: {
-                                                            recentlyPlayedGames: gameid
-                                                        }
-                                                    }, function (err, res) {
-                                                        if (err) {
-                                                            db.close();
-                                                            returnPromise(false);
-                                                            return;
-                                                        }
-                                                        db.close();
-                                                        returnPromise(true);
-                                                    });
-                                                }
-                                            } else {
-                                                db.close();
-                                                returnPromise(true);
                                             }
-                                        }
+                                        });
                                     });
                                 });
                             });
@@ -7914,13 +7927,10 @@ module.exports = {
                                     return;
                                 }
                                 dbo.collection("users").updateOne({
-                                    userid: userid
+                                    userid: game.creatorid
                                 }, {
                                     $inc: {
-                                        placeVisits: 1
-                                    },
-                                    $set: {
-                                        playing: gameid
+                                        tix: siteConfig.backend.tix.tixPerGameVisit
                                     }
                                 }, function (err, res) {
                                     if (err) {
@@ -7928,27 +7938,91 @@ module.exports = {
                                         returnPromise(false);
                                         return;
                                     }
-                                    dbo.collection("users").findOne({
+                                    dbo.collection("users").updateOne({
                                         userid: userid
-                                    }, function (err, user) {
+                                    }, {
+                                        $inc: {
+                                            placeVisits: 1
+                                        },
+                                        $set: {
+                                            playing: gameid
+                                        }
+                                    }, function (err, res) {
                                         if (err) {
                                             db.close();
                                             returnPromise(false);
                                             return;
                                         }
-                                        if (user.recentlyPlayedGames.includes(gameid)) {
-                                            dbo.collection("users").updateOne({
-                                                userid: userid
-                                            }, {
-                                                $set: {
-                                                    recentlyPlayedGames: user.recentlyPlayedGames.filter(id => id != gameid)
-                                                }
-                                            }, function (err, res) {
-                                                if (err) {
-                                                    db.close();
-                                                    returnPromise(false);
-                                                    return;
-                                                }
+                                        dbo.collection("users").findOne({
+                                            userid: userid
+                                        }, function (err, user) {
+                                            if (err) {
+                                                db.close();
+                                                returnPromise(false);
+                                                return;
+                                            }
+                                            if (user.recentlyPlayedGames.includes(gameid)) {
+                                                dbo.collection("users").updateOne({
+                                                    userid: userid
+                                                }, {
+                                                    $set: {
+                                                        recentlyPlayedGames: user.recentlyPlayedGames.filter(id => id != gameid)
+                                                    }
+                                                }, function (err, res) {
+                                                    if (err) {
+                                                        db.close();
+                                                        returnPromise(false);
+                                                        return;
+                                                    }
+                                                    if (true) {
+                                                        if (user.recentlyPlayedGames.length >= 6) {
+                                                            dbo.collection("users").updateOne({
+                                                                userid: userid
+                                                            }, {
+                                                                $inc: {
+                                                                    placeVisits: 1
+                                                                },
+                                                                $pop: {
+                                                                    recentlyPlayedGames: -1
+                                                                },
+                                                                $push: {
+                                                                    recentlyPlayedGames: gameid
+                                                                }
+                                                            }, function (err, res) {
+                                                                if (err) {
+                                                                    db.close();
+                                                                    returnPromise(false);
+                                                                    return;
+                                                                }
+                                                                db.close();
+                                                                returnPromise(true);
+                                                            });
+                                                        } else {
+                                                            dbo.collection("users").updateOne({
+                                                                userid: userid
+                                                            }, {
+                                                                $inc: {
+                                                                    placeVisits: 1
+                                                                },
+                                                                $push: {
+                                                                    recentlyPlayedGames: gameid
+                                                                }
+                                                            }, function (err, res) {
+                                                                if (err) {
+                                                                    db.close();
+                                                                    returnPromise(false);
+                                                                    return;
+                                                                }
+                                                                db.close();
+                                                                returnPromise(true);
+                                                            });
+                                                        }
+                                                    } else {
+                                                        db.close();
+                                                        returnPromise(true);
+                                                    }
+                                                });
+                                            } else {
                                                 if (true) {
                                                     if (user.recentlyPlayedGames.length >= 6) {
                                                         dbo.collection("users").updateOne({
@@ -7996,56 +8070,8 @@ module.exports = {
                                                     db.close();
                                                     returnPromise(true);
                                                 }
-                                            });
-                                        } else {
-                                            if (true) {
-                                                if (user.recentlyPlayedGames.length >= 6) {
-                                                    dbo.collection("users").updateOne({
-                                                        userid: userid
-                                                    }, {
-                                                        $inc: {
-                                                            placeVisits: 1
-                                                        },
-                                                        $pop: {
-                                                            recentlyPlayedGames: -1
-                                                        },
-                                                        $push: {
-                                                            recentlyPlayedGames: gameid
-                                                        }
-                                                    }, function (err, res) {
-                                                        if (err) {
-                                                            db.close();
-                                                            returnPromise(false);
-                                                            return;
-                                                        }
-                                                        db.close();
-                                                        returnPromise(true);
-                                                    });
-                                                } else {
-                                                    dbo.collection("users").updateOne({
-                                                        userid: userid
-                                                    }, {
-                                                        $inc: {
-                                                            placeVisits: 1
-                                                        },
-                                                        $push: {
-                                                            recentlyPlayedGames: gameid
-                                                        }
-                                                    }, function (err, res) {
-                                                        if (err) {
-                                                            db.close();
-                                                            returnPromise(false);
-                                                            return;
-                                                        }
-                                                        db.close();
-                                                        returnPromise(true);
-                                                    });
-                                                }
-                                            } else {
-                                                db.close();
-                                                returnPromise(true);
                                             }
-                                        }
+                                        });
                                     });
                                 });
                             });
