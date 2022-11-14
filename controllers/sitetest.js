@@ -5586,7 +5586,34 @@ module.exports = {
             if (!item && !game && !gamepass && !devProduct) {
                 res.json({
                     "error": true,
-                    "message": "Item not found"
+                    "message": "Item not found",
+                    "TargetId": assetid,
+                    "ProductType": "User Product",
+                    "AssetId": assetid,
+                    "ProductId": assetid,
+                    "Name": "?UNKNOWN?",
+                    "Description": "?UNKNOWN?",
+                    "AssetTypeId": 0,
+                    "Creator": {
+                        "Id": 0,
+                        "Name": "?UNKNOWN?",
+                        "CreatorType": "User",
+                        "CreatorTargetId": 0
+                    },
+                    "IconImageAssetId": assetid,
+                    "Created": db.unixToDate(0).toISOString(),
+                    "Updated": db.unixToDate(0).toISOString(),
+                    "PriceInRobux": 0,
+                    "PriceInTickets": null,
+                    "Sales": 0,
+                    "IsNew": false,
+                    "IsForSale": false,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": false,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
                 });
                 return;
             }
@@ -5740,7 +5767,34 @@ module.exports = {
             if (!item && !game && !gamepass && !devProduct) {
                 res.json({
                     "error": true,
-                    "message": "Item not found"
+                    "message": "Item not found",
+                    "TargetId": assetid,
+                    "ProductType": "User Product",
+                    "AssetId": assetid,
+                    "ProductId": assetid,
+                    "Name": "?UNKNOWN?",
+                    "Description": "?UNKNOWN?",
+                    "AssetTypeId": 0,
+                    "Creator": {
+                        "Id": 0,
+                        "Name": "?UNKNOWN?",
+                        "CreatorType": "User",
+                        "CreatorTargetId": 0
+                    },
+                    "IconImageAssetId": assetid,
+                    "Created": db.unixToDate(0).toISOString(),
+                    "Updated": db.unixToDate(0).toISOString(),
+                    "PriceInRobux": 0,
+                    "PriceInTickets": null,
+                    "Sales": 0,
+                    "IsNew": false,
+                    "IsForSale": false,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": false,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
                 });
                 return;
             }
