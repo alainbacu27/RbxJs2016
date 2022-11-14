@@ -6408,6 +6408,7 @@ module.exports = {
                         returnPromise(null);
                         return;
                     }
+                    result = result.reverse();
                     if (playerid > 0) {
                         db.close();
                         returnPromise(result.filter(pass => pass.owners.includes(playerid)));
