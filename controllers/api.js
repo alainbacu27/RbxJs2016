@@ -115,7 +115,11 @@ module.exports = {
                     receipt: db.uuidv4()
                 })
             } else {
-                res.status.send("")
+                res.json({
+                    success: false,
+                    status: "Error",
+                    receipt: ""
+                });
             }
         });
 
@@ -136,15 +140,19 @@ module.exports = {
                 return;
             }
             const productId = parseInt(req.body.productId);
-            const bought = await db.buyGamepass(user.userid, productId);
+            const bought = await db.buyGamepass(user, productId);
             if (bought) {
                 res.json({
                     success: true,
                     status: "Bought",
                     receipt: db.uuidv4()
-                })
+                });
             } else {
-                res.status.send("")
+                res.json({
+                    success: false,
+                    status: "Error",
+                    receipt: ""
+                });
             }
         });
 
