@@ -2263,5 +2263,24 @@ publicIp = "${ip}"`
         app.get("/game/report-stats", (req, res) => {
             res.send();
         });
+
+        app.get("/Game/GamePass/GamePassHandler.ashx", async (req, res) => {
+            const action = req.query.Action;
+            const userid = req.query.UserID;
+            const passid = req.query.PassID;
+            if (action == "HasPass" && userid < 0) {
+                return res.send("<Value Type=\"boolean\">true</Value>");
+            }
+            const user = await db.getUser(userid);
+            if (action == "HasPass") {
+                if (user != null && await db.userOwnsAsset(user.userid, passid)){
+                    res.send("<Value Type=\"boolean\">true</Value>");
+                }else{
+                    res.send("<Value Type=\"boolean\">false</Value>");
+                }
+            }else{
+                res.stauts(404).send("Unknown Action");
+            }
+        });
     }
 }
