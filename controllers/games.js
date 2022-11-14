@@ -184,9 +184,9 @@ module.exports = {
                                         "contextCountryRegionId": 214,
                                         "tokenExpiryInSeconds": 3600.0
                                     }, {
-                                        "token": "T637894298113747805_PersonalRecommendation,N,H_7a48",
-                                        "name": "PersonalRecommendation",
-                                        "displayName": "Recommended For You",
+                                        "token": "T637894298113747805_NewGames,N,H_7a48",
+                                        "name": "NewGames",
+                                        "displayName": "Newly published games",
                                         "gameSetTypeId": 24,
                                         "gameSetTargetId": null,
                                         "timeOptionsAvailable": false,

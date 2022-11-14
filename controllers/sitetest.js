@@ -5013,6 +5013,35 @@ module.exports = {
                 genre = db.genres[GenreID]
             }
 
+            switch (SortFilter) {
+                case 1:
+                    // Sort games by playing
+                    games = games.sort((a, b) => {
+                        return b.playing - a.playing;
+                    });
+                    break;
+                case 11:
+                    // Sort games by likes and dislikes
+                    games = games.sort((a, b) => {
+                        return b.likes - b.dislikes - (a.likes - a.dislikes);
+                    });
+                    break;
+                case 3:
+                    // Sort games by visits
+                    games = games.sort((a, b) => {
+                        return b.visits - a.visits;
+                    });
+                    break;
+                case 16:
+                    // Sort games by created
+                    games = games.sort((a, b) => {
+                        return b.created - a.created;
+                    });
+                    break;
+                default:
+                    break;
+            }
+
             let out = "";
             for (let i = 0; i < games.length; i++) {
                 if (i < StartRows || i > MaxRows || games[i].genre != genre) {

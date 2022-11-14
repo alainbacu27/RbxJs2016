@@ -716,7 +716,7 @@ module.exports = {
                 "AvatarAnimations": 12,
                 "CommunityCreations": 13,
                 "Video": 14,
-                "Recommended": 15,
+                "New": 15,
                 "LayeredClothing": 16,
                 "Characters": 17
             });
@@ -764,7 +764,7 @@ module.exports = {
                 "EmoteAnimations": 39,
                 "CommunityCreations": 40,
                 "Video": 41,
-                "Recommended": 51,
+                "New": 51,
                 "LayeredClothing": 52,
                 "AllBundles": 53,
                 "HeadAccessories": 54,

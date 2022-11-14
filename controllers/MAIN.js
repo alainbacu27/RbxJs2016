@@ -85,7 +85,7 @@ module.exports = {
             const ip = get_ip(req).clientIp;
             let user = req.user;
             if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
-                while (db.pendingStudioAuthentications[ip].length > 0 && !user){
+                while (db.pendingStudioAuthentications[ip].length > 0 && !user) {
                     const cookieObject = db.pendingStudioAuthentications[ip].shift();
                     if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
                         // return res.sendStatus(403);
@@ -769,7 +769,7 @@ module.exports = {
                 });
                 return;
             }
-            if (user.userid == 1){
+            if (user.userid == 1) {
                 res.status(401).json({
                     "success": false,
                     "error": "You cannot send messages to this user"
@@ -803,14 +803,14 @@ module.exports = {
                     "error": "You've reached the message limit for today"
                 });
                 return;
-            }else if (messagesThisDay == 0) {
+            } else if (messagesThisDay == 0) {
                 startMessagesThisDay = db.getUnixTimestamp();
                 messagesThisDay = 1;
-            }else{
+            } else {
                 messagesThisDay++;
             }
             await db.setUserProperty(user.userid, "messagesThisDay", messagesThisDay);
-            if (shouldUpdateStartTimestamp){
+            if (shouldUpdateStartTimestamp) {
                 await db.setUserProperty(user.userid, "startMessagesThisDay", startMessagesThisDay);
             }
             await db.sendMessage(req.user.userid, userid, db.censorText(db.filterText4(subject)), db.censorText(db.filterText4(body)));
@@ -5528,6 +5528,35 @@ module.exports = {
                 genre = db.genres[GenreID]
             }
 
+            switch (SortFilter) {
+                case 1:
+                    // Sort games by playing
+                    games = games.sort((a, b) => {
+                        return b.playing - a.playing;
+                    });
+                    break;
+                case 11:
+                    // Sort games by likes and dislikes
+                    games = games.sort((a, b) => {
+                        return b.likes - b.dislikes - (a.likes - a.dislikes);
+                    });
+                    break;
+                case 3:
+                    // Sort games by visits
+                    games = games.sort((a, b) => {
+                        return b.visits - a.visits;
+                    });
+                    break;
+                case 16:
+                    // Sort games by created
+                    games = games.sort((a, b) => {
+                        return b.created - a.created;
+                    });
+                    break;
+                default:
+                    break;
+            }
+
             let out = "";
             for (let i = 0; i < games.length; i++) {
                 if (i < StartRows || i > MaxRows || games[i].genre != genre) {
@@ -6354,7 +6383,7 @@ module.exports = {
                 res.status(401).send("Invalid years of experience");
                 return;
             }
-            if (!comments){
+            if (!comments) {
                 comments = "None";
             }
             if (comments.length < 3 || comments.length > 250) {
@@ -6440,7 +6469,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 res.status(401).send("Invalid years of experience");
                 return;
             }
-            if (!comments){
+            if (!comments) {
                 comments = "None";
             }
             if (comments.length < 3 || comments.length > 250) {
