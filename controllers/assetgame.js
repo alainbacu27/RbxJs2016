@@ -1832,6 +1832,97 @@ end
             });
         });
 
+        app.get("/my/settings/json", db.requireAuth, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            res.json({
+                "ChangeUsernameEnabled": true,
+                "IsAdmin": req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner",
+                "UserId": req.user.userid,
+                "Name": req.user.username,
+                "DisplayName": req.user.username,
+                "IsEmailOnFile": req.user.emailverified,
+                "IsEmailVerified": req.user.emailverified,
+                "IsPhoneFeatureEnabled": false,
+                "RobuxRemainingForUsernameChange": Math.max(0, 1000 - req.user.robux),
+                "PreviousUserNames": "",
+                "UseSuperSafePrivacyMode": false,
+                "IsAppChatSettingEnabled": true,
+                "IsGameChatSettingEnabled": true,
+                "IsContentRatingsSettingEnabled": false,
+                "IsParentalControlsTabEnabled": true,
+                "IsParentalSpendControlsEnabled": true,
+                "IsParentalScreentimeRestrictionsEnabled": false,
+                "IsSetPasswordNotificationEnabled": false,
+                "ChangePasswordRequiresTwoStepVerification": false,
+                "ChangeEmailRequiresTwoStepVerification": false,
+                "UserEmail": db.censorEmail(req.user.email),
+                "UserEmailMasked": true,
+                "UserEmailVerified": req.user.emailverified,
+                "CanHideInventory": true,
+                "CanTrade": false,
+                "MissingParentEmail": false,
+                "IsUpdateEmailSectionShown": true,
+                "IsUnder13UpdateEmailMessageSectionShown": false,
+                "IsUserConnectedToFacebook": false,
+                "IsTwoStepToggleEnabled": false,
+                "AgeBracket": 0,
+                "UserAbove13": !(await db.isUserUnder13(req.user.userid)),
+                "ClientIpAddress": ip,
+                "AccountAgeInDays": 1105,
+                "IsBcRenewalMembership": false,
+                "PremiumFeatureId": null,
+                "HasCurrencyOperationError": false,
+                "CurrencyOperationErrorMessage": null,
+                "BlockedUsersModel": {
+                    "BlockedUserIds": [],
+                    "BlockedUsers": [],
+                    "MaxBlockedUsers": 100,
+                    "Total": 0,
+                    "Page": 1
+                },
+                "Tab": null,
+                "ChangePassword": false,
+                "IsAccountPinEnabled": true,
+                "IsAccountRestrictionsFeatureEnabled": true,
+                "IsAccountRestrictionsSettingEnabled": false,
+                "IsAccountSettingsSocialNetworksV2Enabled": false,
+                "IsUiBootstrapModalV2Enabled": true,
+                "IsDateTimeI18nPickerEnabled": true,
+                "InApp": false,
+                "MyAccountSecurityModel": {
+                    "IsEmailSet": true,
+                    "IsEmailVerified": true,
+                    "IsTwoStepEnabled": false,
+                    "ShowSignOutFromAllSessions": true,
+                    "TwoStepVerificationViewModel": {
+                        "UserId": req.user.userid,
+                        "IsEnabled": false,
+                        "CodeLength": 0,
+                        "ValidCodeCharacters": null
+                    }
+                },
+                "ApiProxyDomain": "https://api.rbx2016.nl",
+                "AccountSettingsApiDomain": "https://accountsettings.rbx2016.nl",
+                "AuthDomain": "https://auth.rbx2016.nl",
+                "IsDisconnectFacebookEnabled": true,
+                "IsDisconnectXboxEnabled": true,
+                "NotificationSettingsDomain": "https://notifications.rbx2016.nl",
+                "AllowedNotificationSourceTypes": ["Test", "FriendRequestReceived", "FriendRequestAccepted", "PartyInviteReceived", "PartyMemberJoined", "ChatNewMessage", "PrivateMessageReceived", "UserAddedToPrivateServerWhiteList", "ConversationUniverseChanged", "TeamCreateInvite", "GameUpdate", "DeveloperMetricsAvailable", "GroupJoinRequestAccepted", "Sendr"],
+                "AllowedReceiverDestinationTypes": ["DesktopPush", "NotificationStream"],
+                "BlacklistedNotificationSourceTypesForMobilePush": [],
+                "MinimumChromeVersionForPushNotifications": 50,
+                "PushNotificationsEnabledOnFirefox": true,
+                "LocaleApiDomain": "https://locale.rbx2016.nl",
+                "HasValidPasswordSet": true,
+                "FastTrackMember": null,
+                "IsFastTrackAccessible": false,
+                "HasFreeNameChange": false,
+                "IsAgeDownEnabled": !(await db.isUserUnder13(req.user.userid)),
+                "IsDisplayNamesEnabled": false,
+                "IsBirthdateLocked": await db.isUserUnder13(req.user.userid)
+            })
+        });
+
         app.get("/Game/api/v1/GetPublicIp", async (req, res) => {
             const apiKey = req.query.apiKey;
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
