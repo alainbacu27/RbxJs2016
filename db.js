@@ -4796,6 +4796,7 @@ module.exports = {
                         returnPromise(null);
                     } else {
                         db.close();
+                        result.favoritedGames = result.favoritedGames.reverse();
                         returnPromise(result.favoritedGames);
                     }
                 });
