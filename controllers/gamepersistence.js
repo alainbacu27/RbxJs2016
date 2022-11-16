@@ -137,7 +137,8 @@ module.exports = {
                         "data": []
                     });
                 }
-            } catch {
+            } catch (err) {
+                console.error("DATASTORE FAILED", err);
                 res.json({
                     // "error": null,
                     "data": []

@@ -1366,6 +1366,229 @@ module.exports = {
             });
         });
 
+        app.get("/My/Character/Wearing", db.requireAuth, async (req, res) => {
+            const equippedItems = await db.getEquippedCatalogItems(req.user.userid);
+            let html = ``;
+            for (let i = 0; i < equippedItems.length; i++) {
+                const item = await db.getCatalogItem(equippedItems[i]);
+                if (!item) continue;
+                html += `<div class="col-3 mt-4" id="item${item.itemid}">
+                <div class="image-0-2-92">
+                    <div class="thumbWrapper-0-2-98"><img class="image-0-2-102 "
+                            src="https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}">
+                    </div>
+                    <div class="wearButtonWrapper-0-2-94" style="bottom: 6.25em;">
+                        <div><button class="btn-0-2-99 wearButton-0-2-93 cancelButton-0-2-61" id="remove${item.itemid}"
+                                title="">Remove</button></div>
+                    </div>
+                </div>
+                <p class="itemName-0-2-91"><a href="/catalog/${item.itemid}/${db.filterText2(item.itemname).replaceAll(" ", "-")}">${item.itemname}</a></p>
+                <div class="assetTypeWrapper-0-2-97"><span class="assetTypeLabel-0-2-95">Type:
+                    </span> <span class="assetType-0-2-96">${item.itemtype == "TShirt" ? "T-Shirt" : item.itemtype}</span></div>
+                <script>
+                    const btn = document.getElementById("remove${item.itemid}");
+                    btn.addEventListener("click", () => {
+                        fetch("/My/Character/Remove", {
+                            method: "POST",
+                            credentials: "include",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                "itemid": ${item.itemid}
+                            })
+                        }).then(res => {
+                            if (res.status == 200) {
+                                const item = document.getElementById("item${item.itemid}");
+                                item.parentNode.removeChild(item);
+                                const item2 = document.getElementById("wear${item.itemid}");
+                                if (item2) {
+                                    item2.disabled = false;
+                                    item2.innerHTML = "Wear";
+                                }
+                            }
+                        });
+                    });
+                </script>
+            </div>`;
+            }
+
+            res.send(html);
+        });
+
+        app.get("/My/Character/Items/:type", db.requireAuth, async (req, res) => {
+            const types = ["Heads", "Faces", "TShirts", "Shirts", "Pants", "Gear", "Accessories", "Hats", "Hair", "Face", "Neck", "Shoulder", "Front", "Back", "Waist", "Torsos", "LArms", "RArms", "LLegs", "RLegs", "Packages"];
+            let type = req.params.type;
+            if (!types.includes(type)) {
+                res.status(404).send("");
+                return;
+            }
+            switch (type) {
+                case "Accessories":
+                    type = "Accessory";
+                    break;
+                case "Heads":
+                    type = "Head";
+                    break;
+                case "Faces":
+                    type = "Face";
+                    break;
+                case "TShirts":
+                    type = "TShirt";
+                    break;
+                case "Shirts":
+                    type = "Shirt";
+                    break;
+                case "Torsos":
+                    type = "Torso";
+                    break;
+                case "LArms":
+                    type = "LArm";
+                    break;
+                case "RArms":
+                    type = "RArm";
+                    break;
+                case "LLegs":
+                    type = "LLeg";
+                    break;
+                case "RLegs":
+                    type = "RLeg";
+                    break;
+                case "Packages":
+                    type = "Package";
+                    break;
+            }
+
+            const items = await db.getOwnedCatalogItems(req.user.userid, type);
+            let itemsHtml = "";
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
+                itemsHtml += `<div class="col-3 mt-4">
+                <div class="image-0-2-92">
+                    <div class="thumbWrapper-0-2-98"><img class="image-0-2-102 "
+                            src="https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}">
+                    </div>
+                    <div class="wearButtonWrapper-0-2-94" style="bottom: 6.25em;">
+                        <div><button
+                                class="btn-0-2-99 wearButton-0-2-93 continueButton-0-2-62" id="wear${item.itemid}"
+                                title="" ${wearing ? "disabled" : ""}>${wearing ? "Wearing" : "Wear"}</button></div>
+                    </div>
+                </div>
+                <p class="itemName-0-2-91"><a
+                        href="/catalog/${item.itemid}/${db.filterText2(item.itemname).replaceAll(" ", "-")}">${item.itemname}</a></p>
+                <script>
+                    const btn = document.getElementById("wear${item.itemid}");
+                    btn.addEventListener("click", () => {
+                        fetch("/My/Character/Wear", {
+                            method: "POST",
+                            credentials: "include",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                "itemid": ${item.itemid}
+                            })
+                        }).then(res => {
+                            if (res.status == 200) {
+                                btn.innerText = "Wearing";
+                                btn.disabled = true;
+                                fetchCurrentlyWearing();
+                            }
+                        });
+                    });
+                </script>
+            </div>`;
+            }
+
+            res.send(itemsHtml);
+        });
+
+        app.post("/My/Character/Wear", db.requireAuth, async (req, res) => {
+            const itemid = parseInt(req.body.itemid);
+            const item = await db.getCatalogItem(itemid);
+            if (!item) {
+                res.status(404).json({
+                    "success": false
+                });
+                return;
+            }
+            if (!(await db.userOwnsAsset(req.user.userid, itemid))) {
+                res.status(403).json({
+                    "success": false
+                });
+                return;
+            }
+
+            // Some items can only be equipped in certain amount of times..
+            let otherItems = 0;
+            const equippedItems = await db.getEquippedCatalogItems(req.user.userid);
+            for (let i = 0; i < equippedItems.length; i++) {
+                const item = await db.getCatalogItem(equippedItems[i]);
+                switch (item.itemtype) {
+                    case "TShirt":
+                        returnPromise(false);
+                        return;
+                    case "Shirt":
+                        returnPromise(false);
+                        return;
+                    case "Pants":
+                        returnPromise(false);
+                        return;
+                    default:
+                        otherItems++;
+                        if (otherItems >= db.getSiteConfig().backend.MaxUserOtherItemsEquipped) {
+                            returnPromise(false);
+                            return;
+                        }
+                        break;
+                }
+            }
+
+            const equipped = await db.equipCatalogItem(req.user.userid, itemid);
+            if (equipped) {
+                res.json({
+                    "success": true
+                });
+            } else {
+                res.status(500).json({
+                    "success": false
+                });
+            }
+        });
+
+        app.post("/My/Character/Remove", db.requireAuth, async (req, res) => {
+            const itemid = parseInt(req.body.itemid);
+            const item = await db.getCatalogItem(itemid);
+            if (!item) {
+                res.status(404).json({
+                    "success": false
+                });
+                return;
+            }
+            if (!(await db.userOwnsAsset(req.user.userid, itemid))) {
+                res.status(403).json({
+                    "success": false
+                });
+            }
+            if (!(await db.isCatalogItemEquipped(req.user.userid, itemid))) {
+                res.status(400).json({
+                    "success": false
+                });
+            }
+            const equipped = await db.unequipCatalogItem(req.user.userid, itemid);
+            if (equipped) {
+                res.json({
+                    "success": true
+                });
+            } else {
+                res.status(500).json({
+                    "success": false
+                });
+            }
+        });
+
         app.get("/users/:userid/profile", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.users.canViewUsers == false) {
                 res.status(404).render("404", await db.getRenderObject(req.user));
@@ -3086,7 +3309,7 @@ module.exports = {
             if (Page) {
                 Page = Page.toLowerCase();
             }
-            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts") || View != null) {
+            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts" && Page != "pants" && Page != "tshirts") || View != null) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -3369,6 +3592,106 @@ module.exports = {
                 }
             }
 
+            let pantsHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "pants") {
+                let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "Pants");
+                assets = assets.reverse();
+                for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
+                    const asset = assets[i];
+                    // if (asset.deleted) continue;
+                    const created = db.unixToDate(asset.created);
+                    const updated = db.unixToDate(asset.updated);
+                    pantsHtml += `<table class="item-table" data-item-id="${asset.itemid}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://www.rbx2016.nl/library/${asset.itemid}"
+                                    class="item-image"><img class=""
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://www.rbx2016.nl/catalog/${asset.itemid}">${asset.itemname}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${asset.itemowners.length}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
+            let tshirtHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "tshirts") {
+                let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "TShirt");
+                assets = assets.reverse();
+                for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
+                    const asset = assets[i];
+                    // if (asset.deleted) continue;
+                    const created = db.unixToDate(asset.created);
+                    const updated = db.unixToDate(asset.updated);
+                    tshirtHtml += `<table class="item-table" data-item-id="${asset.itemid}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://www.rbx2016.nl/library/${asset.itemid}"
+                                    class="item-image"><img class=""
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://www.rbx2016.nl/catalog/${asset.itemid}">${asset.itemname}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${asset.itemowners.length}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
             res.render("develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
@@ -3378,6 +3701,8 @@ module.exports = {
                 audios: audiosHtml,
                 meshes: meshesHtml,
                 shirts: shirtsHtml,
+                pants: pantsHtml,
+                tshirts: tshirtHtml,
                 tab: Page,
                 assetTypeId: Page == "game-passes" ? 34 : Page == "decals" ? 13 : Page == "audios" ? 3 : Page == "meshes" ? 4 : null,
                 gameid: Page == "game-passes" ? game != null ? game.gameid : null : null
@@ -3503,9 +3828,132 @@ module.exports = {
                 const file = req.files.file;
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
                     id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
-                    await db.createCatalogItem(name, desc, 0, "Shirt", req.user.userid, id);
                     req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.ShirtUploadCost);
+
+                    const internalId = await db.createAsset(req.user.userid, name + "-SHIRT-INTERNAL", desc, "Shirt", req.user.userid, true);
+                    const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+                    <External>null</External>
+                    <External>nil</External>
+                    <Item class="Shirt" referent="RBX0">
+                      <Properties>
+                        <Content name="ShirtTemplate">
+                          <url>http://www.rbx2016.nl/asset/?id=${id}</url>
+                        </Content>
+                        <string name="Name">Shirt</string>
+                        <bool name="archivable">true</bool>
+                      </Properties>
+                    </Item>
+                  </roblox>`;
+                  fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
+                  await db.createCatalogItem(name, desc, 0, "Shirt", req.user.userid, internalId);
+                  await db.setCatalogItemProperty(id, "internalAssetId", internalId);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
+            } else if (assetTypeId == 2) {
+                if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
+                    if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                            res.status(401).send("You have reached the daily asset upload limit");
+                            return;
+                        }
+                    } else {
+                        await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                    }
+                } else if (req.user.firstDailyAssetUpload == 0) {
+                    await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                }
+
+                if (!req.files || Object.keys(req.files).length == 0) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                const file = req.files.file;
+                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
+                    id = await db.createAsset(req.user.userid, name + "-TSHIRT", desc, "TShirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`); // TODO: CHECK WHY NOT UPLOADING?!
+
+                    const internalId = await db.createAsset(req.user.userid, name + "-TSHIRT-INTERNAL", desc, "TShirt", req.user.userid, true);
+                    const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+                    <External>null</External>
+                    <External>nil</External>
+                    <Item class="ShirtGraphic" referent="RBX0">
+                      <Properties>
+                        <Content name="Graphic">
+                          <url>http://www.rbx2016.nl/asset/?id=${id}</url>
+                        </Content>
+                        <string name="Name">Shirt Graphic</string>
+                        <bool name="archivable">true</bool>
+                      </Properties>
+                    </Item>
+                  </roblox>`;
+                  fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
+                  await db.createCatalogItem(name, desc, 0, "TShirt", req.user.userid, internalId);
+                  await db.setCatalogItemProperty(id, "internalAssetId", internalId);
+
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
+            } else if (assetTypeId == 12) {
+                if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
+                    if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                            res.status(401).send("You have reached the daily asset upload limit");
+                            return;
+                        }
+                    } else {
+                        await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                    }
+                } else if (req.user.firstDailyAssetUpload == 0) {
+                    await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                }
+
+                if (!req.files || Object.keys(req.files).length == 0) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                if (db.getSiteConfig().shared.PantsUploadCost < 0) {
+                    res.status(400).send("Pants are disabled");
+                    return;
+                }
+                if (req.user.robux < db.getSiteConfig().shared.ShirtUploadCost) {
+                    res.status(401).send("You do not have enough Robux to upload pants");
+                    return;
+                }
+                const file = req.files.file;
+                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
+                    id = await db.createAsset(req.user.userid, name + "-PANTS", desc, "Pants", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.PantsUploadCost);
+
+                    const internalId = await db.createAsset(req.user.userid, name + "-PANTS-INTERNAL", desc, "Pants", req.user.userid, true);
+                    const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+                    <External>null</External>
+                    <External>nil</External>
+                    <Item class="Pants" referent="RBX0">
+                      <Properties>
+                        <Content name="PantsTemplate">
+                          <url>http://www.rbx2016.nl/asset/?id=${id}</url>
+                        </Content>
+                        <string name="Name">Pants</string>
+                        <bool name="archivable">true</bool>
+                      </Properties>
+                    </Item>
+                  </roblox>`;
+                  fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
+                  await db.createCatalogItem(name, desc, 0, "Pants", req.user.userid, internalId);
+                  await db.setCatalogItemProperty(id, "internalAssetId", internalId);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -3655,7 +4103,7 @@ module.exports = {
                     <div><a id="upload-fee-confirmation-link" target="_top">Audio</a> successfully created!</div>
                 </div>
             </div>`;
-            } else if (assetTypeId == 4) {
+            } else if (assetTypeId == 40) {
                 formData = `<div class="form-row">
                 <label for="file">Find your mesh:</label>
                 <input id="file" type="file" accept="model/obj" name="file" tabindex="1">
@@ -3711,6 +4159,45 @@ module.exports = {
                 <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
                 <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                     <div><a id="upload-fee-confirmation-link" target="_top">Shirt</a> successfully created!</div>
+                </div>
+                </div>`
+            } else if (assetTypeId == 2) {
+                formData = `<div class="form-row">
+                <label for="file">Find your image:</label>
+                <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
+                <span id="file-error" class="error"></span>
+            </div>
+                    <div class="form-row">
+                <label for="name">T-Shirt Name:</label>
+                <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
+                <span id="name-error" class="error"></span>
+            </div>
+                <div class="form-row submit-buttons">
+                            <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
+                                    <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+            <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+            <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
+                <div><a id="upload-fee-confirmation-link" target="_top">T-Shirt</a> successfully created!</div>
+            </div>
+            </div>`
+            } else if (assetTypeId == 12) {
+                formData = `<div class="form-row">Did you use the template? If not, <a target="_blank" href="https://static.rbx2016.nl/images/pantstemplate.png">download it here</a>.</div>
+                <div class="form-row">
+                    <label for="file">Find your image:</label>
+                    <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
+                    <span id="file-error" class="error"></span>
+                </div>
+                        <div class="form-row">
+                    <label for="name">Pants Name:</label>
+                    <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
+                    <span id="name-error" class="error"></span>
+                </div>
+                    <div class="form-row submit-buttons">
+                                <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload for ${db.getSiteConfig().shared.PantsUploadCost} Robux<span class=""></span></a>
+                                        <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+                <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
+                    <div><a id="upload-fee-confirmation-link" target="_top">Pants</a> successfully created!</div>
                 </div>
                 </div>`
             } else {
@@ -4769,7 +5256,7 @@ module.exports = {
                 "name": db.filterText2(item.itemname).replaceAll(" ", "-"),
                 "url": "https://www.rbx2016.nl/catalog/" + item.itemid.toString() + "/" + db.filterText2(item.itemname).replaceAll(" ", "-"),
                 "thumbnailFinal": true,
-                "thumbnailUrl": item.itemimage,
+                "thumbnailUrl": `https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}`,
                 "bcOverlayUrl": null,
                 "limitedOverlayUrl": null,
                 "deadlineOverlayUrl": null,
@@ -5003,7 +5490,7 @@ module.exports = {
                             <div class="roblox-item-image image-small" data-item-id="${item.id}" data-image-size="small">
                                 <div class="item-image-wrapper">
                                     <a href="https://www.rbx2016.nl/catalog/${item.itemid}">
-                                        <img title="${item.itemname}" alt="${item.itemname}" class="original-image " src="${item.itemimage}">
+                                        <img title="${item.itemname}" alt="${item.itemname}" class="original-image " src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}`}">
                                                                 ${limitedHtml}
                                                                                     ${db.getUnixTimestamp() - item.created > 86400 ? `<img src="https://static.rbx2016.nl/b84cdb8c0e7c6cbe58e91397f91b8be8.png" alt="New">` : ``}
                                     </a>
@@ -5086,6 +5573,13 @@ module.exports = {
             res.redirect("/catalog/" + asset.itemid.toString() + "/" + db.filterText(asset.itemname).replaceAll(" ", "-"));
         });
 
+        app.get("/api/v1/avatar/redraw", db.requireAuth, async (req, res) => {
+            // TODO: Implment API endpoint request limit!
+            const job = await db.newJob(0, false, true);
+            await job.render(req.user.userid, true);
+            res.redirect('back');
+        });
+
         app.post("/api/v1/thumbnail/upload", async (req, res) => {
             if (db.getSiteConfig().backend.thumbnailServiceEnabled == false) {
                 res.status(400).send();
@@ -5164,12 +5658,12 @@ module.exports = {
                 ],
                 "animationAssetIds": {},
                 "bodyColors": {
-                    "headColorId": 194,
-                    "torsoColorId": 194,
-                    "rightArmColorId": 194,
-                    "leftArmColorId": 194,
-                    "rightLegColorId": 194,
-                    "leftLegColorId": 194
+                    "headColorId": user.avatarColors ? parseInt(user.avatarColors[0]) : 194,
+                    "torsoColorId": user.avatarColors ? parseInt(user.avatarColors[1]) : 194,
+                    "rightArmColorId": user.avatarColors ? parseInt(user.avatarColors[2]) : 194,
+                    "leftArmColorId": user.avatarColors ? parseInt(user.avatarColors[3]) : 194,
+                    "rightLegColorId": user.avatarColors ? parseInt(user.avatarColors[4]) : 194,
+                    "leftLegColorId": user.avatarColors ? parseInt(user.avatarColors[5]) : 194
                 },
                 "scales": {
                     "height": 1.0000,
@@ -6701,7 +7195,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     return;
                 }
                 await db.setCatalogItemProperty(itemId, "price", price);
-                res.redirect(`/catalog/${itemId}/${db.filterText2(item.name).replaceAll(" ", "-")}`);
+                res.redirect(`/catalog/${itemId}/${db.filterText2(item.itemname).replaceAll(" ", "-")}`);
                 return;
             }
             if (gamepass.creatorid != req.user.userid) {
@@ -7235,7 +7729,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
             });
         });
-        
+
         app.post("/api/moderation/v2/filtertext", (req, res) => {
             const text = req.body.text;
             const userid = req.body.userId;
@@ -8959,12 +9453,12 @@ publicIp = "${ip}"`
             }
             const user = await db.getUser(userid);
             if (action == "HasPass") {
-                if (user != null && await db.userOwnsAsset(user.userid, passid)){
+                if (user != null && await db.userOwnsAsset(user.userid, passid)) {
                     res.send("<Value Type=\"boolean\">true</Value>");
-                }else{
+                } else {
                     res.send("<Value Type=\"boolean\">false</Value>");
                 }
-            }else{
+            } else {
                 res.stauts(404).send("Unknown Action");
             }
         });

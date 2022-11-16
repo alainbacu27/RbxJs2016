@@ -621,7 +621,7 @@
   "FFlagStudioPartAlignmentChangeEnabled": "True",
   "FFlagStudioToolBoxModelDragFix": "True",
   "DFFlagOrder66": "False",
-  "FlagOrder66": "False",
+  "FFlagOrder66": "False",
   "FFlagCloudIconFixEnabled": "True",
   "DFFlagFixHealthReplication": "True",
   "DFFlagReplicateAnimationSpeed": "True",

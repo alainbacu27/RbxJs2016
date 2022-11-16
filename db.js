@@ -1268,6 +1268,30 @@ async function getCatalogItem(itemid) {
     });
 }
 
+async function isCatalogItemEquipped(userid, itemid) {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("users").findOne({
+                userid: userid
+            }, function (err, obj) {
+                if (err || obj === null) {
+                    db.close();
+                    returnPromise(false);
+                    return;
+                }
+                db.close();
+                if (Object.keys(obj).includes("equipped")) {
+                    returnPromise(obj.equipped.includes(itemid));
+                } else {
+                    returnPromise(false);
+                }
+            });
+        });
+    });
+}
+
 setInterval(() => {
     MongoClient.connect(mongourl, async function (err, db) {
         if (err) throw err;
@@ -1756,102 +1780,16 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     return script;
 }
 
-async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (ThumbnailGenerator crashes rcc.)
+async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN, DO NOT USE (ThumbnailGenerator crashes rcc.)
     const isGame = await getGame(itemid) != null;
 
     let script = ``;
 
-    if (isGame) {
-        const key = uuidv4();
-        PRIVATE_PLACE_KEYS.push(key);
-        script = `local placeId = ${itemid}
-        local port = ${port}
-        local url = "http://www.rbx2016.nl"
-
-        function waitForChild(parent, childName)
-            while true do
-                local child = parent:findFirstChild(childName)
-                if child then
-                    return child
-                end
-                parent.ChildAdded:wait()
-            end
-        end
-
-        pcall(function() settings().Network.UseInstancePacketCache = true end)
-        pcall(function() settings().Network.UsePhysicsPacketCache = true end)
-        pcall(function() settings()["Task Scheduler"].PriorityMethod = Enum.PriorityMethod.AccumulatedError end)
-
-        settings().Network.PhysicsSend = Enum.PhysicsSendMethod.TopNErrors
-        settings().Network.ExperimentalPhysicsEnabled = true
-        settings().Network.WaitingForCharacterLogRate = 100
-        pcall(function() settings().Diagnostics:LegacyScriptMode() end)
-
-        local scriptContext = game:GetService('ScriptContext')
-        pcall(function() scriptContext:AddStarterScript(37801172) end)
-        scriptContext.ScriptsDisabled = true
-
-        game:SetPlaceID(placeId, false)
-        game:GetService("ChangeHistoryService"):SetEnabled(false)
-
-        local ns = game:GetService("NetworkServer")
-
-        if url~=nil then
-            pcall(function() game:GetService("Players"):SetAbuseReportUrl(url .. "/AbuseReport/InGameChatHandler.ashx") end)
-            pcall(function() game:GetService("ScriptInformationProvider"):SetAssetUrl(url .. "/Asset/") end)
-            pcall(function() game:GetService("ContentProvider"):SetBaseUrl(url .. "/") end)
-            pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/Game/ChatFilter.ashx") end)
-
-            game:GetService("BadgeService"):SetPlaceId(placeId)
-
-            game:GetService("BadgeService"):SetIsBadgeLegalUrl("")
-            game:GetService("InsertService"):SetBaseSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
-            game:GetService("InsertService"):SetUserSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
-            game:GetService("InsertService"):SetCollectionUrl(url .. "/Game/Tools/InsertAsset.ashx?sid=%d")
-            game:GetService("InsertService"):SetAssetUrl(url .. "/Asset/?id=%d")
-            game:GetService("InsertService"):SetAssetVersionUrl(url .. "/Asset/?assetversionid=%d")
-
-            pcall(function() loadfile(url .. "/Game/LoadPlaceInfo.ashx?PlaceId=" .. placeId)() end)
-
-        end
-
-        settings().Diagnostics.LuaRamLimit = 0
-
-        if placeId~=nil and url~=nil then
-            wait()
-
-            game:Load("http://www.rbx2016.nl/asset/?id=${itemid}|${key}")
-        end
-
-        spawn(function()
-            while true do
-                wait(25)
-                loadfile(url .. "/Game/api/v1/close?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. game.JobId .. "|${itemid}")
-                game:FinishShutdown(false)
-            end
-        end)
-
-        local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
-        local https = game:GetService("HttpService")
-        local url = "https://www.rbx2016.nl/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
-
-        local data = ""
-        for k, v in pairs(result) do
-            data = data .. ("&%s=%s"):format(
-                https:UrlEncode(k),
-                https:UrlEncode(v)
-            )
-        end
-        data = data:sub(2)
-
-        local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)`;
-    } else {
-        const item = getCatalogItem(itemid);
-        if (!item) {
-            script = `local url = "http://www.rbx2016.nl"
+    if (isUserRender) {
+        script = `local url = "http://www.rbx2016.nl"
         game:GetService("ScriptContext").ScriptsDisabled = true
         local plr = game.Players:CreateLocalPlayer(0)
-        plr.CharacterAppearance = "https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=15491471"
+        plr.CharacterAppearance = "http://assetgame.rbx2016.nl/Asset/CharacterFetch.ashx?userId=${itemid}"
         plr:LoadCharacter(false)
         for i,v in pairs(plr.Character:GetChildren()) do
            print(v)
@@ -1874,7 +1812,7 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
 
         local data = ""
         for k, v in pairs(result) do
-            data = data .. ("&%s=%s"):format(
+            data = data .. (string.char(38) .. "%s=%s"):format(
                 https:UrlEncode(k),
                 https:UrlEncode(v)
             )
@@ -1883,63 +1821,153 @@ async function getRCCRenderScript(itemid, port, jobid) { // BROKEN, DO NOT USE (
 
         local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)
         `;
-        } else {
-            let loadCode = ""
-            if (item.itemtype == "Shirt") {
-                loadCode = `local shirt = Instance.new("Shirt")
-                shirt.ShirtTemplate = "rbxassetid://${item.itemdecalid}"
-                shirt.Parent = plr.Character`;
-            } else if (item.itemtype == "Pants") {
-                loadCode = `local pants = Instance.new("Pants")
-                pants.PantsTemplate = "rbxassetid://${item.itemdecalid}"
-                pants.Parent = plr.Character`;
-            }
-            script = `local url = "http://www.rbx2016.nl"
-        game:GetService("ScriptContext").ScriptsDisabled = true
-        local plr = game.Players:CreateLocalPlayer(0)
-        plr.CharacterAppearance = "https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=0"
-        plr:LoadCharacter(false)
-
-        for i,v in pairs(plr.Character:GetChildren()) do
-           if v:IsA("Shirt") or v:IsA("Pants") then
-               v:Destroy()
-           end
-        end
-
-        ${loadCode}
-
-        for i,v in pairs(plr.Character:GetChildren()) do
-           if v:IsA("Tool") then
-               plr.Character.Torso["Right Shoulder"].CurrentAngle = math.pi / 2
-           end
-        end
-
-        spawn(function()
-            while true do
-                wait(25)
-                loadfile(url .. "/Game/api/v1/close?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. game.JobId .. "|${itemid}")
-                game:FinishShutdown(false)
+    } else {
+        if (isGame) {
+            const key = uuidv4();
+            PRIVATE_PLACE_KEYS.push(key);
+            script = `local placeId = ${itemid}
+            local port = ${port}
+            local url = "http://www.rbx2016.nl"
+    
+            function waitForChild(parent, childName)
+                while true do
+                    local child = parent:findFirstChild(childName)
+                    if child then
+                        return child
+                    end
+                    parent.ChildAdded:wait()
+                end
             end
-        end)
-
-        local result = game:GetService("ThumbnailGenerator"):Click("PNG", 5, 5, true)
-        error(result)
-
-        local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
-        local https = game:GetService("HttpService")
-        url = url .. "/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
-
-        local data = ""
-        for k, v in pairs(result) do
-            data = data .. ("&" .. "%s" .. "=" .. "%s"):format(
-                https:UrlEncode(k),
-                https:UrlEncode(v)
-            )
-        end
-        data = data:sub(2)
-
-        local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)
-        `;
+    
+            pcall(function() settings().Network.UseInstancePacketCache = true end)
+            pcall(function() settings().Network.UsePhysicsPacketCache = true end)
+            pcall(function() settings()["Task Scheduler"].PriorityMethod = Enum.PriorityMethod.AccumulatedError end)
+    
+            settings().Network.PhysicsSend = Enum.PhysicsSendMethod.TopNErrors
+            settings().Network.ExperimentalPhysicsEnabled = true
+            settings().Network.WaitingForCharacterLogRate = 100
+            pcall(function() settings().Diagnostics:LegacyScriptMode() end)
+    
+            local scriptContext = game:GetService('ScriptContext')
+            pcall(function() scriptContext:AddStarterScript(37801172) end)
+            scriptContext.ScriptsDisabled = true
+    
+            game:SetPlaceID(placeId, false)
+            game:GetService("ChangeHistoryService"):SetEnabled(false)
+    
+            local ns = game:GetService("NetworkServer")
+    
+            if url~=nil then
+                pcall(function() game:GetService("Players"):SetAbuseReportUrl(url .. "/AbuseReport/InGameChatHandler.ashx") end)
+                pcall(function() game:GetService("ScriptInformationProvider"):SetAssetUrl(url .. "/Asset/") end)
+                pcall(function() game:GetService("ContentProvider"):SetBaseUrl(url .. "/") end)
+                pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/Game/ChatFilter.ashx") end)
+    
+                game:GetService("BadgeService"):SetPlaceId(placeId)
+    
+                game:GetService("BadgeService"):SetIsBadgeLegalUrl("")
+                game:GetService("InsertService"):SetBaseSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
+                game:GetService("InsertService"):SetUserSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
+                game:GetService("InsertService"):SetCollectionUrl(url .. "/Game/Tools/InsertAsset.ashx?sid=%d")
+                game:GetService("InsertService"):SetAssetUrl(url .. "/Asset/?id=%d")
+                game:GetService("InsertService"):SetAssetVersionUrl(url .. "/Asset/?assetversionid=%d")
+    
+                pcall(function() loadfile(url .. "/Game/LoadPlaceInfo.ashx?PlaceId=" .. placeId)() end)
+    
+            end
+    
+            settings().Diagnostics.LuaRamLimit = 0
+    
+            if placeId~=nil and url~=nil then
+                wait()
+    
+                game:Load("http://www.rbx2016.nl/asset/?id=${itemid}|${key}")
+            end
+    
+            spawn(function()
+                while true do
+                    wait(25)
+                    loadfile(url .. "/Game/api/v1/close?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. game.JobId .. "|${itemid}")
+                    game:FinishShutdown(false)
+                end
+            end)
+    
+            local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
+            local https = game:GetService("HttpService")
+            local url = "https://www.rbx2016.nl/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+    
+            local data = ""
+            for k, v in pairs(result) do
+                data = data .. ("&%s=%s"):format(
+                    https:UrlEncode(k),
+                    https:UrlEncode(v)
+                )
+            end
+            data = data:sub(2)
+    
+            local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)`;
+        } else {
+            const item = getCatalogItem(itemid);
+            if (!item) {
+                throw new Error("Item not found.");
+            } else {
+                let loadCode = ""
+                if (item.itemtype == "Shirt") {
+                    loadCode = `local shirt = Instance.new("Shirt")
+                    shirt.ShirtTemplate = "rbxassetid://${item.itemdecalid}"
+                    shirt.Parent = plr.Character`;
+                } else if (item.itemtype == "Pants") {
+                    loadCode = `local pants = Instance.new("Pants")
+                    pants.PantsTemplate = "rbxassetid://${item.itemdecalid}"
+                    pants.Parent = plr.Character`;
+                }
+                script = `local url = "http://www.rbx2016.nl"
+            game:GetService("ScriptContext").ScriptsDisabled = true
+            local plr = game.Players:CreateLocalPlayer(0)
+            plr.CharacterAppearance = "http://assetgame.rbx2016.nl/Asset/CharacterFetch.ashx?userId=0"
+            plr:LoadCharacter(false)
+    
+            for i,v in pairs(plr.Character:GetChildren()) do
+               if v:IsA("Shirt") or v:IsA("Pants") then
+                   v:Destroy()
+               end
+            end
+    
+            ${loadCode}
+    
+            for i,v in pairs(plr.Character:GetChildren()) do
+               if v:IsA("Tool") then
+                   plr.Character.Torso["Right Shoulder"].CurrentAngle = math.pi / 2
+               end
+            end
+    
+            spawn(function()
+                while true do
+                    wait(25)
+                    loadfile(url .. "/Game/api/v1/close?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. game.JobId .. "|${itemid}")
+                    game:FinishShutdown(false)
+                end
+            end)
+    
+            local result = game:GetService("ThumbnailGenerator"):Click("PNG", 5, 5, true)
+            error(result)
+    
+            local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
+            local https = game:GetService("HttpService")
+            url = url .. "/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+    
+            local data = ""
+            for k, v in pairs(result) do
+                data = data .. ("&" .. "%s" .. "=" .. "%s"):format(
+                    https:UrlEncode(k),
+                    https:UrlEncode(v)
+                )
+            end
+            data = data:sub(2)
+    
+            local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)
+            `;
+            }
         }
     }
 
@@ -2934,10 +2962,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         }
 
                         self = {
-                            render: async function (itemid) {
+                            render: async function (itemid, isUserRender = false) {
                                 await start();
                                 await sleep(1000);
-                                const resp = await execute(await getRCCRenderScript(itemid, myHostPort, jobId, false), 6000000);
+                                const resp = await execute(await getRCCRenderScript(isUserRender, itemid, myHostPort, jobId, false), 6000000);
+                                console.error(resp); // TODO: Remove after fixing 0x7F error
                                 if (resp.length <= 0) return;
                                 if (resp[resp.length - 1] == "err|Unknown Error") {
                                     await stop();
@@ -3598,6 +3627,12 @@ module.exports = {
     approveAsset: async function (userid, assetid) {
         return new Promise(async returnPromise => {
             const dbo = await getDataStore();
+
+            if (!fs.existsSync(`./assets/${assetid}`)) {
+                returnPromise(false);
+                return;
+            }
+
             dbo.collection("assets").updateOne({
                 assetid: assetid,
             }, {
@@ -3621,6 +3656,10 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
+
+                if (fs.existsSync(`../assets/${assetid}.asset`)) {
+                    fs.unlinkSync(`../assets/${assetid}.asset`);
+                }
 
                 dbo.collection("assets").updateOne({
                     id: assetid,
@@ -3656,6 +3695,12 @@ module.exports = {
                                 return;
                             }
                             db.close();
+
+                            if (!fs.existsSync(`./assets/${assetid}`)) {
+                                returnPromise(false);
+                                return;
+                            }
+
                             returnPromise(true);
                         });
                     });
@@ -5037,7 +5082,7 @@ module.exports = {
         });
     },
 
-    createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, decalId = 0, meshId = 0, amount = -1, itemimage = "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc8.png") {
+    createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, decalId = 0, meshId = 0, amount = -1) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -5067,7 +5112,6 @@ module.exports = {
                             itemname: itemname,
                             itemdescription: itemdescription,
                             itemprice: itemprice,
-                            itemimage: itemimage,
                             itemtype: itemtype,
                             itemcreatorid: itemcreatorid,
                             itemfavorites: [],
@@ -6792,7 +6836,7 @@ module.exports = {
                 if (err) throw err;
                 const dbo = db.db(dbName);
                 dbo.collection("catalog").findOne({
-                    id: assetid
+                    itemid: assetid
                 }, function (err, result) {
                     if (err) {
                         db.close();
@@ -7314,6 +7358,7 @@ module.exports = {
                         }
                     }, function (err, result) {
                         if (err) {
+                            db.close();
                             returnPromise(false);
                             return;
                         }
@@ -7325,6 +7370,7 @@ module.exports = {
                             }
                         }, function (err, result) {
                             if (err) {
+                                db.close();
                                 returnPromise(false);
                                 return;
                             }
@@ -8091,6 +8137,11 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
+                
+                if (fs.existsSync(`../games/${assetid}.asset`)) {
+                    fs.unlinkSync(`../games/${assetid}.asset`);
+                }
+                
                 dbo.collection("games").updateOne({
                     gameid: gameid
                 }, {
@@ -8200,22 +8251,27 @@ module.exports = {
     addFriends: async function (userid, friendid) {
         return new Promise(async returnPromise => {
             if (userid == friendid) {
+                db.close();
                 returnPromise(false);
                 return;
             }
             if (await areFriends(userid, friendid)) {
+                db.close();
                 returnPromise(false);
                 return;
             }
             if (await areFriendsPending(userid, friendid)) {
+                db.close();
                 returnPromise(false);
                 return;
             }
             if (await areBlocked(userid, friendid, true)) {
+                db.close();
                 returnPromise(false);
                 return;
             }
             if (await getFriends(userid).length >= siteConfig.shared.maxFriends) {
+                db.close();
                 returnPromise(false);
                 return;
             }
@@ -8338,10 +8394,12 @@ module.exports = {
     block: async function (userid, userid2) {
         return new Promise(async returnPromise => {
             if (userid == userid2) {
+                db.close();
                 returnPromise(false);
                 return;
             }
             if (await areBlocked(userid, userid2)) {
+                db.close();
                 returnPromise(false);
                 return;
             }
@@ -8402,10 +8460,12 @@ module.exports = {
     unblock: async function (userid, userid2) {
         return new Promise(async returnPromise => {
             if (userid == userid2) {
+                db.close();
                 returnPromise(false);
                 return;
             }
             if (!(await areBlocked(userid, userid2))) {
+                db.close();
                 returnPromise(false);
                 return;
             }
@@ -8641,7 +8701,7 @@ module.exports = {
                 dbo.collection("users").findOne({
                     userid: userid
                 }, function (err, obj) {
-                    if (err) {
+                    if (err || obj === null) {
                         db.close();
                         returnPromise(null);
                         return;
@@ -8656,6 +8716,91 @@ module.exports = {
             });
         });
     },
+
+    equipCatalogItem: async function (userid, itemid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, async function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                if (await isCatalogItemEquipped(userid, itemid)) {
+                    db.close();
+                    returnPromise(false);
+                    return;
+                }
+                dbo.collection("users").updateOne({
+                    userid: userid
+                }, {
+                    $push: {
+                        equipped: itemid
+                    }
+                }, function (err, obj) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(true);
+                });
+            });
+        });
+    },
+
+    unequipCatalogItem: async function (userid, itemid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, async function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                if (!(await isCatalogItemEquipped(userid, itemid))) {
+                    db.close();
+                    returnPromise(false);
+                    return;
+                }
+                dbo.collection("users").updateOne({
+                    userid: userid
+                }, {
+                    $pull: {
+                        equipped: itemid
+                    }
+                }, function (err, obj) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(true);
+                });
+            });
+        });
+    },
+
+    getEquippedCatalogItems: async function (userid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("users").findOne({
+                    userid: userid
+                }, function (err, obj) {
+                    if (err || obj === null) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    if (Object.keys(obj).includes("equipped")) {
+                        returnPromise(obj.equipped);
+                    } else {
+                        returnPromise([]);
+                    }
+                });
+            });
+        });
+    },
+
+    isCatalogItemEquipped: isCatalogItemEquipped,
+
 
     getCpuUsage: getCpuUsage,
 

@@ -124,6 +124,7 @@
             "ip": "localhost",
             "port": 27017
         },
+        "MaxUserOtherItemsEquipped": 3,
         "badUsernames": [
             "roblox",
             "builderman",

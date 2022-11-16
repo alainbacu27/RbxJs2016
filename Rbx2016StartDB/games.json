@@ -7,7 +7,7 @@
   "description": "A basic baseplate.",
   "creatorid": 1,
   "playing": 0,
-  "visits": 14,
+  "visits": 0,
   "likes": [],
   "dislikes": [],
   "favorites": [],
@@ -82,7 +82,7 @@
   "gamename": "Testing Place",
   "description": "A testing place.",
   "creatorid": 2,
-  "playing": 1,
+  "playing": 0,
   "visits": 0,
   "likes": [
     1

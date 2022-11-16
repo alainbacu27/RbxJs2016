@@ -634,8 +634,10 @@
                                                             <a class="tab-item tab-item-disabled">Sponsored Games</a>
                                                             <a href="https://www.rbx2016.nl/develop?Page=shirts"
                                                                 class="tab-item <% if (tab == "shirts"){ %>tab-item-selected<% } %>">Shirts</a>
-                                                            <a class="tab-item tab-item-disabled">T-Shirts</a>
-                                                            <a class="tab-item tab-item-disabled">Pants</a>
+                                                            <a href="https://www.rbx2016.nl/develop?Page=tshirts"
+                                                                class="tab-item <% if (tab == "tshirts"){ %>tab-item-selected<% } %>">T-Shirts</a>
+                                                            <a href="https://www.rbx2016.nl/develop?Page=pants"
+                                                                class="tab-item <% if (tab == "pants"){ %>tab-item-selected<% } %>">Pants</a>
                                                             <a class="tab-item tab-item-disabled">Plugins</a>
 
                                                             <!-- <a href="https://www.rbx2016.nl/develop?View=9"
@@ -920,7 +922,71 @@
                                                                     </div>
             
                                                                 </td>
-                                                                <% } %>
+                                                            <% } %>
+                                                            <% if (tab == "tshirts"){ %>
+                                                                <td class="content-area ">
+                                                                    <h2>Create a T-Shirt</h2>
+                                                                    <iframe id="upload-iframe"
+                                                                        class="place-specific-assets my-upload-iframe"
+                                                                        src="/build/upload?assetTypeId=2&amp;GroupId=&amp;targetPlaceId=<%= gameid %>"
+                                                                        frameborder="0" scrolling="no"
+                                                                        data-target-universe-id="<% if (gameid){ %><%= gameid %><% } %>"></iframe>
+                                                                    <table class="section-header">
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td class="content-title">
+                                                                                    <div>
+            
+                                                                                        <h2 class="header-text">T-Shirts</h2>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <div class="items-container ">
+                                                                        <%- tshirts %>
+                                                                    </div>
+                                                                    <div class="build-loading-container" style="display: none;">
+                                                                        <div class="buildpage-loading-container">
+                                                                            <img alt="^_^" class=""
+                                                                                src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif">
+                                                                        </div>
+                                                                    </div>
+            
+                                                                </td>
+                                                            <% } %>
+                                                            <% if (tab == "pants"){ %>
+                                                                <td class="content-area ">
+                                                                    <h2>Create Pants</h2>
+                                                                    <iframe id="upload-iframe"
+                                                                        class="place-specific-assets my-upload-iframe"
+                                                                        src="/build/upload?assetTypeId=12&amp;GroupId=&amp;targetPlaceId=<%= gameid %>"
+                                                                        frameborder="0" scrolling="no"
+                                                                        data-target-universe-id="<% if (gameid){ %><%= gameid %><% } %>"></iframe>
+                                                                    <table class="section-header">
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td class="content-title">
+                                                                                    <div>
+            
+                                                                                        <h2 class="header-text">Pants</h2>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <div class="items-container ">
+                                                                        <%- pants %>
+                                                                    </div>
+                                                                    <div class="build-loading-container" style="display: none;">
+                                                                        <div class="buildpage-loading-container">
+                                                                            <img alt="^_^" class=""
+                                                                                src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif">
+                                                                        </div>
+                                                                    </div>
+            
+                                                                </td>
+                                                            <% } %>
                                                 </tbody>
                                             </table>
                                         </div>

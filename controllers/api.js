@@ -796,6 +796,160 @@ module.exports = {
                 }
             });
         });
+
+        app.get("/v1.1/avatar-fetch", async (req, res) => {
+            const userId = parseInt(req.query.userId);
+            const placeId = parseInt(req.query.placeId);
+
+            if (userId == 0) {
+                res.json({
+                    "resolvedAvatarType": "R6",
+                    "equippedGearVersionIds": [],
+                    "backpackGearVersionIds": [],
+                    "assetAndAssetTypeIds": [
+                        /*
+                                            {
+                                                "assetId": 0,
+                                                "assetTypeId": 0
+                                            }
+                                        */
+                    ],
+                    "animationAssetIds": {},
+                    "bodyColors": {
+                        "headColorId": 194,
+                        "torsoColorId": 194,
+                        "rightArmColorId": 194,
+                        "leftArmColorId": 194,
+                        "rightLegColorId": 194,
+                        "leftLegColorId": 194
+                    },
+                    "scales": {
+                        "height": 1.0000,
+                        "width": 1.0000,
+                        "head": 1.0000,
+                        "depth": 1.00,
+                        "proportion": 0.0000,
+                        "bodyType": 0.0000
+                    },
+                    "emotes": []
+                });
+                return;
+            }
+
+            const user = await db.getUser(userId);
+            if (!user) {
+                res.status(404).json({});
+                return;
+            }
+            res.json({
+                "resolvedAvatarType": "R6",
+                "equippedGearVersionIds": [],
+                "backpackGearVersionIds": [],
+                "assetAndAssetTypeIds": [
+                    /*
+                                    {
+                                        "assetId": 0,
+                                        "assetTypeId": 0
+                                    }
+                                */
+                ],
+                "animationAssetIds": {},
+                "bodyColors": {
+                    "headColorId": user.avatarColors ? parseInt(user.avatarColors[0]) : 194,
+                    "torsoColorId": user.avatarColors ? parseInt(user.avatarColors[1]) : 194,
+                    "rightArmColorId": user.avatarColors ? parseInt(user.avatarColors[2]) : 194,
+                    "leftArmColorId": user.avatarColors ? parseInt(user.avatarColors[3]) : 194,
+                    "rightLegColorId": user.avatarColors ? parseInt(user.avatarColors[4]) : 194,
+                    "leftLegColorId": user.avatarColors ? parseInt(user.avatarColors[5]) : 194
+                },
+                "scales": {
+                    "height": 1.0000,
+                    "width": 1.0000,
+                    "head": 1.0000,
+                    "depth": 1.00,
+                    "proportion": 0.0000,
+                    "bodyType": 0.0000
+                },
+                "emotes": []
+            });
+        });
+
+        app.get("/v1/avatar-fetch", async (req, res) => {
+            const userId = parseInt(req.query.userId);
+            const placeId = parseInt(req.query.placeId);
+
+            if (userId == 0) {
+                res.json({
+                    "resolvedAvatarType": "R6",
+                    "equippedGearVersionIds": [],
+                    "backpackGearVersionIds": [],
+                    "assetAndAssetTypeIds": [
+                        /*
+                                            {
+                                                "assetId": 0,
+                                                "assetTypeId": 0
+                                            }
+                                        */
+                    ],
+                    "animationAssetIds": {},
+                    "bodyColors": {
+                        "headColorId": 194,
+                        "torsoColorId": 194,
+                        "rightArmColorId": 194,
+                        "leftArmColorId": 194,
+                        "rightLegColorId": 194,
+                        "leftLegColorId": 194
+                    },
+                    "scales": {
+                        "height": 1.0000,
+                        "width": 1.0000,
+                        "head": 1.0000,
+                        "depth": 1.00,
+                        "proportion": 0.0000,
+                        "bodyType": 0.0000
+                    },
+                    "emotes": []
+                });
+                return;
+            }
+
+            const user = await db.getUser(userId);
+            if (!user) {
+                res.status(404).json({});
+                return;
+            }
+            res.json({
+                "resolvedAvatarType": "R6",
+                "equippedGearVersionIds": [],
+                "backpackGearVersionIds": [],
+                "assetAndAssetTypeIds": [
+                    /*
+                                    {
+                                        "assetId": 0,
+                                        "assetTypeId": 0
+                                    }
+                                */
+                ],
+                "animationAssetIds": {},
+                "bodyColors": {
+                    "headColorId": user.avatarColors ? parseInt(user.avatarColors[0]) : 194,
+                    "torsoColorId": user.avatarColors ? parseInt(user.avatarColors[1]) : 194,
+                    "rightArmColorId": user.avatarColors ? parseInt(user.avatarColors[2]) : 194,
+                    "leftArmColorId": user.avatarColors ? parseInt(user.avatarColors[3]) : 194,
+                    "rightLegColorId": user.avatarColors ? parseInt(user.avatarColors[4]) : 194,
+                    "leftLegColorId": user.avatarColors ? parseInt(user.avatarColors[5]) : 194
+                },
+                "scales": {
+                    "height": 1.0000,
+                    "width": 1.0000,
+                    "head": 1.0000,
+                    "depth": 1.00,
+                    "proportion": 0.0000,
+                    "bodyType": 0.0000
+                },
+                "emotes": []
+            });
+        });
         
         app.post("/api/moderation/v2/filtertext", (req, res) => {
             const text = req.body.text;

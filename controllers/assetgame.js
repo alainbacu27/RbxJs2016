@@ -83,7 +83,7 @@ module.exports = {
                 return;
             }
             const id0 = req.query.id.split("|");
-            const id = parseInt(id0[0]);
+            let id = parseInt(id0[0]);
             const apiKey = req.query.apiKey || (id0.length > 1 ? id0[1] : "");
 
             if (id0[0].startsWith("r") && db.getSiteConfig().backend.robloxAssetsUsingR == true) {
@@ -91,6 +91,7 @@ module.exports = {
                 return;
             }
 
+            /*
             const item = await db.getCatalogItem(id);
             if (item && !item.deleted) {
                 const bp = path.resolve(__dirname + "/../thumbnails/") + path.sep;
@@ -106,6 +107,7 @@ module.exports = {
                 }
                 return;
             }
+            */
 
             const game = await db.getGame(id);
             if (game) {
@@ -126,6 +128,11 @@ module.exports = {
                     }
                 }
                 return res.status(401).send("Unauthorized");
+            }
+
+            const item1 = await db.getCatalogItem(id);
+            if (item1){
+                id = item1.itemdecalid;
             }
 
             const asset = await db.getAsset(id);
@@ -561,16 +568,36 @@ module.exports = {
             // }])
         });
 
-        app.get("/Asset/CharacterFetch.ashx", (req, res) => {
-            const userId = parseInt(req.query.player);
-            res.send(`https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${userId}`) // ;http://www.rbx2016.nl/asset/?id=63690008&version=5;http://www.rbx2016.nl/asset/?id=144076358;http://www.rbx2016.nl/asset/?id=144076760;http://www.rbx2016.nl/asset/?id=144075659;http://www.rbx2016.nl/asset/?id=86500054&version=1;http://www.rbx2016.nl/asset/?id=86500078&version=1;http://www.rbx2016.nl/asset/?id=86500036&version=1;http://www.rbx2016.nl/asset/?id=86500008&version=1;http://www.rbx2016.nl/asset/?id=86500064&version=1;http://www.rbx2016.nl/asset/?id=86498048&version=1
+        app.get("/Asset/CharacterFetch.ashx", async (req, res) => {
+            const userId = parseInt(req.query.player) || parseInt(req.query.userId);
+            const user = await db.getUser(userId);
+            if (!user) {
+                res.sendStatus(404);
+                return;
+            }
+            const items = await db.getEquippedCatalogItems(userId);
+            let itemsResponse = ``;
+            for (const itemid of items) {
+                itemsResponse += `;http://www.rbx2016.nl/asset/?id=${itemid}`;
+            }
+            res.send(`https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${userId}${itemsResponse}`) // ;http://www.rbx2016.nl/asset/?id=63690008&version=5;http://www.rbx2016.nl/asset/?id=144076358;http://www.rbx2016.nl/asset/?id=144076760;http://www.rbx2016.nl/asset/?id=144075659;http://www.rbx2016.nl/asset/?id=86500054&version=1;http://www.rbx2016.nl/asset/?id=86500078&version=1;http://www.rbx2016.nl/asset/?id=86500036&version=1;http://www.rbx2016.nl/asset/?id=86500008&version=1;http://www.rbx2016.nl/asset/?id=86500064&version=1;http://www.rbx2016.nl/asset/?id=86498048&version=1
         });
 
-        app.get("/Assets/CharacterFetch.php", (req, res) => {
-            const userId = parseInt(req.query.player);
-            res.send(`https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${userId}`); // ;http://www.rbx2016.nl/asset/?id=63690008&version=5;http://www.rbx2016.nl/asset/?id=144076358;http://www.rbx2016.nl/asset/?id=144076760;http://www.rbx2016.nl/asset/?id=144075659;http://www.rbx2016.nl/asset/?id=86500054&version=1;http://www.rbx2016.nl/asset/?id=86500078&version=1;http://www.rbx2016.nl/asset/?id=86500036&version=1;http://www.rbx2016.nl/asset/?id=86500008&version=1;http://www.rbx2016.nl/asset/?id=86500064&version=1;http://www.rbx2016.nl/asset/?id=86498048&version=1
+        app.get("/Assets/CharacterFetch.php", async (req, res) => {
+            const userId = parseInt(req.query.player) || parseInt(req.query.userId);
+            const user = await db.getUser(userId);
+            if (!user) {
+                res.sendStatus(404);
+                return;
+            }
+            const items = await db.getEquippedCatalogItems(userId);
+            let itemsResponse = ``;
+            for (const itemid of items) {
+                itemsResponse += `;http://www.rbx2016.nl/asset/?id=${itemid}`;
+            }
+            res.send(`https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${userId}${itemsResponse}`) // ;http://www.rbx2016.nl/asset/?id=63690008&version=5;http://www.rbx2016.nl/asset/?id=144076358;http://www.rbx2016.nl/asset/?id=144076760;http://www.rbx2016.nl/asset/?id=144075659;http://www.rbx2016.nl/asset/?id=86500054&version=1;http://www.rbx2016.nl/asset/?id=86500078&version=1;http://www.rbx2016.nl/asset/?id=86500036&version=1;http://www.rbx2016.nl/asset/?id=86500008&version=1;http://www.rbx2016.nl/asset/?id=86500064&version=1;http://www.rbx2016.nl/asset/?id=86498048&version=1
         });
-
+        
         app.get("/asset/BodyColors.ashx", async (req, res) => {
             const userId = parseInt(req.query.userId);
             const avatarColors = await db.getUserProperty(userId, "avatarColors") || [1002, 1002, 1002, 1002, 1002, 1002];

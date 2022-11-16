@@ -1517,7 +1517,7 @@
                                             </div>
                                             <div class="col-12">
                                                 <p class="mb-0">Something wrong with your Avatar?</p>
-                                                <p class="mb-0"><a href="#">Click here to re-draw it!</a></p>
+                                                <p class="mb-0"><a href="/api/v1/avatar/redraw">Click here to re-draw it!</a></p>
                                             </div>
                                         </div>
                                         <div class="row-0-2-76 row">
@@ -2154,28 +2154,28 @@
                                                         <div class="row">
                                                             <div class="col-12">
                                                                 <div class="categoryWrapper-0-2-85">
-                                                                    <p class="categoryEntry-0-2-84"><span class=""> Heads | </span><span
-                                                                            class=""> Faces | </span><span class="selected-0-2-86">
-                                                                            T-Shirts | </span><span class=""> Shirts | </span><span
-                                                                            class=""> Pants | </span><span class=""> Gear </span></p>
+                                                                    <p class="categoryEntry-0-2-84"><span class="" id="btnHeads"> Heads </span><span>| </span><span
+                                                                            class="" id="btnFaces"> Faces </span><span>| </span><span class="" id="btnTShirts">
+                                                                            T-Shirts </span><span>| </span><span class="" id="btnShirts"> Shirts </span><span>| </span><span
+                                                                            class="" id="btnPants"> Pants </span><span>| </span><span class="" id="btnGear"> Gear </span></p>
                                                                     <p class="categoryEntry-0-2-84"><span
-                                                                            class="categoryEntry-0-2-84">Accessories</span><span
-                                                                            class=""> Hats | </span><span class=""> Hair | </span><span
-                                                                            class=""> Face | </span><span class=""> Neck | </span><span
-                                                                            class=""> Shoulder | </span><span class=""> Front |
-                                                                        </span><span class=""> Back | </span><span class=""> Waist
+                                                                            class="categoryEntry-0-2-84" id="btnAccessories"> Accessories </span><span>| </span><span
+                                                                            class="" id="btnHats"> Hats </span><span>| </span><span class="" id="btnHair"> Hair </span><span>| </span><span
+                                                                            class="" id="btnFace"> Face </span><span>| </span><span class="" id="btnNeck"> Neck </span><span>| </span><span
+                                                                            class="" id="btnShoulder"> Shoulder </span><span>| </span><span class="" id="btnFront"> Front
+                                                                        </span><span>| </span><span class="" id="btnBack"> Back </span><span>| </span><span class="" id="btnWaist"> Waist
                                                                         </span></p>
-                                                                    <p class="categoryEntry-0-2-84"><span class=""> Torsos |
-                                                                        </span><span class=""> L Arms | </span><span class=""> R Arms |
-                                                                        </span><span class=""> L Legs | </span><span class=""> R Legs |
-                                                                        </span><span class=""> Packages </span></p>
+                                                                    <p class="categoryEntry-0-2-84"><span class="" id="btnTorsos"> Torsos
+                                                                        </span><span>| </span><span class="" id="btnLArms"> L Arms </span><span>| </span><span class="" id="btnRArms"> R Arms
+                                                                        </span><span>| </span><span class="" id="btnLLegs"> L Legs </span><span>| </span><span class="" id="btnRLegs"> R Legs
+                                                                        </span><span>| </span><span class="" id="btnPackages"> Packages </span></p>
                                                                     <p class="categoryEntry-0-2-84"><a href="/catalog">Shop</a><span> ||
                                                                             <a href="/develop">Create</a></span></p>
                                                                 </div>
                                                             </div>
                                                             <div class="col-12">
                                                                 <p>&nbsp;</p>
-                                                                <div class="row">
+                                                                <div class="row" id="contents">
                                                                     <!-- <div class="col-3 mt-4">
                                                                         <div class="image-0-2-92">
                                                                             <div class="wearButtonWrapper-0-2-94">
@@ -2212,7 +2212,7 @@
                                             <div class="col-12">
                                                 <h2 class="subtitle-0-2-90">Currently Wearing</h2>
                                                 <p>&nbsp;</p>
-                                                <div class="row">
+                                                <div class="row" id="currentlyWearing">
                                                     <!-- <div class="col-3 mt-4">
                                                         <div class="image-0-2-92">
                                                             <div class="wearButtonWrapper-0-2-94">
@@ -2259,6 +2259,92 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <script>
+                                        const buttons = [
+                                            document.getElementById('btnHeads'),
+                                            document.getElementById('btnFaces'),
+                                            document.getElementById('btnTShirts'),
+                                            document.getElementById('btnShirts'),
+                                            document.getElementById('btnPants'),
+                                            document.getElementById('btnGear'),
+                                            document.getElementById('btnAccessories'),
+                                            document.getElementById('btnHats'),
+                                            document.getElementById('btnHair'),
+                                            document.getElementById('btnFace'),
+                                            document.getElementById('btnNeck'),
+                                            document.getElementById('btnShoulder'),
+                                            document.getElementById('btnFront'),
+                                            document.getElementById('btnBack'),
+                                            document.getElementById('btnWaist'),
+                                            document.getElementById('btnTorsos'),
+                                            document.getElementById('btnLArms'),
+                                            document.getElementById('btnRArms'),
+                                            document.getElementById('btnLLegs'),
+                                            document.getElementById('btnRLegs'),
+                                            document.getElementById('btnPackages')
+                                        ];
+
+                                        const contents = document.getElementById('contents');
+                                        const currentlyWearing = document.getElementById('currentlyWearing');
+
+                                        function insertAndExecute(elem, text) {
+                                            elem.innerHTML = text;
+                                            var scripts = Array.prototype.slice.call(elem.getElementsByTagName("script"));
+                                            for (var i = 0; i < scripts.length; i++) {
+                                                if (scripts[i].src != "") {
+                                                    var tag = document.createElement("script");
+                                                    tag.src = scripts[i].src;
+                                                    document.getElementsByTagName("head")[0].appendChild(tag);
+                                                }
+                                                else {
+                                                    eval(scripts[i].innerHTML);
+                                                }
+                                            }
+                                        }
+                                        
+                                        function fetchCurrentlyWearing(){
+                                            const resp = fetch(`/My/Character/Wearing`, {
+                                                method: 'GET',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                }
+                                            }).then(res => res.text()).then(data => {
+                                                insertAndExecute(currentlyWearing, data);
+                                            });
+                                        }
+
+                                        setTimeout(() => {
+                                            fetchCurrentlyWearing();
+                                        }, 50);
+
+                                        function unselectAll(){
+                                            for (let i = 0; i < buttons.length; i++) {
+                                                buttons[i].classList.remove('selected-0-2-86');
+                                            }
+                                        }
+
+                                        function select(button){
+                                            const type = button.id.replace('btn', '');
+                                            unselectAll();
+                                            button.classList.add('selected-0-2-86');
+                                            
+                                            const resp = fetch(`/My/Character/Items/${type}`, {
+                                                method: 'GET',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                }
+                                            }).then(res => res.text()).then(data => {
+                                                insertAndExecute(contents, data);
+                                            });
+                                        }
+
+                                        for (let i = 0; i < buttons.length; i++) {
+                                            buttons[i].addEventListener('click', () => {
+                                                const button = buttons[i];
+                                                select(button);
+                                            });
+                                        }
+                                    </script>
                                 </div>
                             </div>
                         </div>

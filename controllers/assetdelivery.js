@@ -147,7 +147,7 @@ module.exports = {
                 return;
             }
             const id0 = req.query.id.split("|");
-            const id = parseInt(id0[0]);
+            let id = parseInt(id0[0]);
             const apiKey = req.query.apiKey || (id0.length > 1 ? id0[1] : "");
 
             if (id0[0].startsWith("r") && db.getSiteConfig().backend.robloxAssetsUsingR == true) {
@@ -155,6 +155,7 @@ module.exports = {
                 return;
             }
 
+            /*
             const item = await db.getCatalogItem(id);
             if (item && !item.deleted) {
                 const bp = path.resolve(__dirname + "/../thumbnails/") + path.sep;
@@ -170,6 +171,7 @@ module.exports = {
                 }
                 return;
             }
+            */
 
             const game = await db.getGame(id);
             if (game) {
@@ -207,6 +209,11 @@ module.exports = {
                         return;
                     }
                 }
+            }
+
+            const item1 = await db.getCatalogItem(id);
+            if (item1){
+                id = item1.itemdecalid;
             }
 
             const asset = await db.getAsset(id);

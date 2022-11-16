@@ -19,7 +19,7 @@ module.exports = {
                 res.status(403).send("You are not allowed to access this endpoint OR an error occured.");
             }
         });
-
+        
         app.post("/v1/update/backend", async (req, res) => {
             const ip = get_ip(req).clientIp;
             const updated = await db.internalSiteUpdate("backend", req);
@@ -29,7 +29,7 @@ module.exports = {
                 res.status(403).send("You are not allowed to access this endpoint OR an error occured.");
             }
         });
-
+        
         app.get("/", db.requireNonAuth, async (req, res) => {
             let years = ``;
             const year = new Date().getFullYear();
@@ -67,6 +67,591 @@ module.exports = {
                 "robux": user.robux,
                 "tix": user.tix
             });
+        });
+
+        app.get("/universes/get-universe-containing-place", (req, res) => {
+            const placeId = parseInt(req.query.placeId);
+            res.json({
+                "UniverseId": placeId
+            });
+        });
+
+        app.get("/users/:userid/canmanage/:gameid", async (req, res) => {
+            const userid = parseInt(req.params.userid);
+            const gameid = parseInt(req.params.gameid);
+            const user = await db.getUser(userid);
+            const game = await db.getGame(gameid);
+            if ((!user || user.banned || user.inviteKey == "") || !game || db.getSiteConfig().shared.games.canManageGames == false) {
+                res.status(404).json({
+                    "Success": false,
+                    "CanManage": false
+                })
+                return;
+            }
+            if (game.creatorid == user.userid || user.role == "owner") {
+                res.json({
+                    "Success": true,
+                    "CanManage": true
+                });
+            } else {
+                res.json({
+                    "Success": true,
+                    "CanManage": false
+                });
+            }
+        });
+
+        app.post("/universes/:universeid/enablecloudedit", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            let user = req.user;
+            if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
+                while (db.pendingStudioAuthentications[ip].length > 0 && !user) {
+                    const cookieObject = db.pendingStudioAuthentications[ip].shift();
+                    if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
+                        // return res.sendStatus(403);
+                    } else {
+                        user = await db.findUserByCookie(cookieObject[1]);
+                    }
+                }
+            }
+            if (!user) {
+                res.status(401).send();
+                return;
+            }
+            if (typeof db.pendingStudioAuthentications[ip] == "object") {
+                if (!db.pendingStudioAuthentications[ip].includes(ip)) {
+                    db.pendingStudioAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
+                }
+            } else {
+                db.pendingStudioAuthentications[ip] = [
+                    [db.getUnixTimestamp(), user.cookie]
+                ];
+            }
+            const universeid = parseInt(req.params.universeid);
+            const game = await db.getGame(universeid);
+            if (!game) {
+                res.status(404).send();
+                return;
+            }
+            if (game.creatorid != user.userid) {
+                res.status(403).send();
+                return;
+            }
+            if (game.teamCreateEnabled) {
+                res.status(400).send();
+                return;
+            }
+            await db.setGameProperty(universeid, "teamCreateEnabled", true);
+            res.json({});
+        });
+
+        app.get("/universes/:universeid/cloudeditenabled", async (req, res) => {
+            const universeid = parseInt(req.params.universeid);
+            const game = await db.getGame(universeid);
+            if (!game) {
+                res.json({
+                    "enabled": false
+                });
+                return;
+            }
+            res.json({
+                "enabled": game.teamCreateEnabled && db.getSiteConfig().backend.hostingTeamCreateEnabled == true
+            });
+        });
+
+        app.get("/universes/get-universe-places", db.requireAuth2, async (req, res) => {
+            if (!req.user) {
+                res.status(403).json({});
+                return;
+            }
+            const universeId = parseInt(req.query.universeId);
+            const page = parseInt(req.query.page);
+            const game = await db.getGame(universeId);
+            if (!game) {
+                res.status(404).json({});
+                return;
+            }
+            if (req.user.userid != game.creatorid) {
+                res.status(401).json({});
+                return;
+            }
+            res.json({
+                "FinalPage": true,
+                "RootPlace": game.gameid,
+                "Places": [{
+                    "PlaceId": game.gameid,
+                    "Name": game.gamename
+                }],
+                "PageSize": 50
+            });
+        });
+
+        app.get("/universes/get-aliases", (req, res) => {
+            const universeId = parseInt(req.query.universeId);
+            const page = parseInt(req.query.page);
+            res.json({
+                "FinalPage": true,
+                "Aliases": [],
+                "PageSize": 50
+            });
+        });
+
+        app.get("/marketplace/productDetails", async (req, res) => {
+            if (db.getSiteConfig().backend.productInfoEnabled == false) {
+                res.status(404).render("sitetest/404", await db.getBlankRenderObject());
+                return;
+            }
+            const assetid = parseInt(req.query.productId);
+            const assettype = req.query.assetType;
+            const item = await db.getCatalogItem(assetid);
+            const game = await db.getGame(assetid);
+            const gamepass = await db.getGamepass(assetid);
+            const devProduct = await db.getDevProduct(assetid);
+            if (!item && !game && !gamepass && !devProduct) {
+                res.json({
+                    "error": true,
+                    "message": "Item not found",
+                    "TargetId": assetid,
+                    "ProductType": "User Product",
+                    "AssetId": assetid,
+                    "ProductId": assetid,
+                    "Name": "?UNKNOWN?",
+                    "Description": "?UNKNOWN?",
+                    "AssetTypeId": 0,
+                    "Creator": {
+                        "Id": 0,
+                        "Name": "?UNKNOWN?",
+                        "CreatorType": "User",
+                        "CreatorTargetId": 0
+                    },
+                    "IconImageAssetId": assetid,
+                    "Created": db.unixToDate(0).toISOString(),
+                    "Updated": db.unixToDate(0).toISOString(),
+                    "PriceInRobux": 0,
+                    "PriceInTickets": null,
+                    "Sales": 0,
+                    "IsNew": false,
+                    "IsForSale": false,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": false,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            }
+            if (item && !item.deleted && (typeof assettype === "undefined" || assettype === "item")) {
+                const itemcreator = await db.getUser(item.itemcreatorid);
+                res.json({
+                    "TargetId": item.itemid,
+                    "ProductType": "User Product",
+                    "AssetId": item.itemid,
+                    "ProductId": item.itemid,
+                    "Name": item.itemname,
+                    "Description": item.itemdescription,
+                    "AssetTypeId": item.itemtype,
+                    "Creator": {
+                        "Id": itemcreator.userid,
+                        "Name": itemcreator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": itemcreator.userid
+                    },
+                    "IconImageAssetId": item.itemid,
+                    "Created": db.unixToDate(item.created).toISOString(),
+                    "Updated": db.unixToDate(item.updated).toISOString(),
+                    "PriceInRobux": item.itemprice,
+                    "PriceInTickets": null,
+                    "Sales": item.itempurchases,
+                    "IsNew": false,
+                    "IsForSale": item.itempricestatus != "OffSale",
+                    "IsPublicDomain": false,
+                    "IsLimited": item.itemoffsafedeadline != null,
+                    "IsLimitedUnique": item.unitsAvailableForConsumption <= 100,
+                    "Remaining": item.itemoffsafedeadline != null ? item.unitsAvailableForConsumption - item.itempurchases : null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (gamepass && (typeof assettype === "undefined" || assettype === "gamepass")) {
+                const creator = await db.getUser(gamepass.creatorid);
+                res.json({
+                    "TargetId": gamepass.id,
+                    "ProductType": "User Product",
+                    "AssetId": gamepass.id,
+                    "ProductId": gamepass.id,
+                    "Name": gamepass.name,
+                    "Description": gamepass.description,
+                    "AssetTypeId": 34,
+                    "Creator": {
+                        "Id": creator.userid,
+                        "Name": creator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": creator.userid
+                    },
+                    "IconImageAssetId": gamepass.id,
+                    "Created": db.unixToDate(gamepass.created).toISOString(),
+                    "Updated": db.unixToDate(gamepass.updated).toISOString(),
+                    "PriceInRobux": gamepass.price,
+                    "PriceInTickets": null,
+                    "Sales": gamepass.sold,
+                    "IsNew": false,
+                    "IsForSale": gamepass.onSale,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (devProduct && (typeof assettype === "undefined" || assettype === "devproduct")) {
+                const creator = await db.getUser(devProduct.creatorid);
+                res.json({
+                    "TargetId": devProduct.id,
+                    "ProductType": "User Product",
+                    "AssetId": devProduct.id,
+                    "ProductId": devProduct.id,
+                    "Name": devProduct.name,
+                    "Description": devProduct.description,
+                    "AssetTypeId": 0,
+                    "Creator": {
+                        "Id": creator.userid,
+                        "Name": creator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": creator.userid
+                    },
+                    "IconImageAssetId": devProduct.id,
+                    "Created": db.unixToDate(devProduct.created).toISOString(),
+                    "Updated": db.unixToDate(devProduct.updated).toISOString(),
+                    "PriceInRobux": devProduct.price,
+                    "PriceInTickets": null,
+                    "Sales": devProduct.sold,
+                    "IsNew": false,
+                    "IsForSale": devProduct.onSale,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (game && (typeof assettype === "undefined" || assettype === "game")) {
+                const gamecreator = await db.getUser(game.creatorid);
+                if (!gamecreator || gamecreator.banned || game.deleted) {
+                    res.status(404).json({})
+                    return;
+                }
+                res.json({
+                    "TargetId": game.gameid,
+                    "ProductType": "User Product",
+                    "AssetId": game.gameid,
+                    "ProductId": game.gameid,
+                    "Name": game.gamename,
+                    "Description": game.description,
+                    "AssetTypeId": 9,
+                    "Creator": {
+                        "Id": gamecreator.userid,
+                        "Name": gamecreator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": gamecreator.userid
+                    },
+                    "IconImageAssetId": game.gameid,
+                    "Created": db.unixToDate(game.created).toISOString(),
+                    "Updated": db.unixToDate(game.updated).toISOString(),
+                    "PriceInRobux": game.price ? game.price : null,
+                    "PriceInTickets": null,
+                    "Sales": 0,
+                    "IsNew": false,
+                    "IsForSale": false,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            }
+            res.json({});
+        });
+
+        app.get("/marketplace/productinfo", async (req, res) => {
+            if (db.getSiteConfig().backend.productInfoEnabled == false) {
+                res.status(404).render("sitetest/404", await db.getBlankRenderObject());
+                return;
+            }
+            const assetid = parseInt(req.query.assetId);
+            const assettype = req.query.assetType;
+            const item = await db.getCatalogItem(assetid);
+            const game = await db.getGame(assetid);
+            const gamepass = await db.getGamepass(assetid);
+            const devProduct = await db.getDevProduct(assetid);
+            if (!item && !game && !gamepass && !devProduct) {
+                res.json({
+                    "error": true,
+                    "message": "Item not found",
+                    "TargetId": assetid,
+                    "ProductType": "User Product",
+                    "AssetId": assetid,
+                    "ProductId": assetid,
+                    "Name": "?UNKNOWN?",
+                    "Description": "?UNKNOWN?",
+                    "AssetTypeId": 0,
+                    "Creator": {
+                        "Id": 0,
+                        "Name": "?UNKNOWN?",
+                        "CreatorType": "User",
+                        "CreatorTargetId": 0
+                    },
+                    "IconImageAssetId": assetid,
+                    "Created": db.unixToDate(0).toISOString(),
+                    "Updated": db.unixToDate(0).toISOString(),
+                    "PriceInRobux": 0,
+                    "PriceInTickets": null,
+                    "Sales": 0,
+                    "IsNew": false,
+                    "IsForSale": false,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": false,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            }
+            if (item && !item.deleted && (typeof assettype === "undefined" || assettype === "item")) {
+                const itemcreator = await db.getUser(item.itemcreatorid);
+                res.json({
+                    "TargetId": item.itemid,
+                    "ProductType": "User Product",
+                    "AssetId": item.itemid,
+                    "ProductId": item.itemid,
+                    "Name": item.itemname,
+                    "Description": item.itemdescription,
+                    "AssetTypeId": item.itemtype,
+                    "Creator": {
+                        "Id": itemcreator.userid,
+                        "Name": itemcreator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": itemcreator.userid
+                    },
+                    "IconImageAssetId": item.itemid,
+                    "Created": db.unixToDate(item.created).toISOString(),
+                    "Updated": db.unixToDate(item.updated).toISOString(),
+                    "PriceInRobux": item.itemprice,
+                    "PriceInTickets": null,
+                    "Sales": item.itempurchases,
+                    "IsNew": false,
+                    "IsForSale": item.itempricestatus != "OffSale",
+                    "IsPublicDomain": false,
+                    "IsLimited": item.itemoffsafedeadline != null,
+                    "IsLimitedUnique": item.unitsAvailableForConsumption <= 100,
+                    "Remaining": item.itemoffsafedeadline != null ? item.unitsAvailableForConsumption - item.itempurchases : null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (gamepass && (typeof assettype === "undefined" || assettype === "gamepass")) {
+                const creator = await db.getUser(gamepass.creatorid);
+                res.json({
+                    "TargetId": gamepass.id,
+                    "ProductType": "User Product",
+                    "AssetId": gamepass.id,
+                    "ProductId": gamepass.id,
+                    "Name": gamepass.name,
+                    "Description": gamepass.description,
+                    "AssetTypeId": 34,
+                    "Creator": {
+                        "Id": creator.userid,
+                        "Name": creator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": creator.userid
+                    },
+                    "IconImageAssetId": gamepass.id,
+                    "Created": db.unixToDate(gamepass.created).toISOString(),
+                    "Updated": db.unixToDate(gamepass.updated).toISOString(),
+                    "PriceInRobux": gamepass.price,
+                    "PriceInTickets": null,
+                    "Sales": gamepass.sold,
+                    "IsNew": false,
+                    "IsForSale": gamepass.onSale,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (devProduct && (typeof assettype === "undefined" || assettype === "devproduct")) {
+                const creator = await db.getUser(devProduct.creatorid);
+                res.json({
+                    "TargetId": devProduct.id,
+                    "ProductType": "User Product",
+                    "AssetId": devProduct.id,
+                    "ProductId": devProduct.id,
+                    "Name": devProduct.name,
+                    "Description": devProduct.description,
+                    "AssetTypeId": 0,
+                    "Creator": {
+                        "Id": creator.userid,
+                        "Name": creator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": creator.userid
+                    },
+                    "IconImageAssetId": devProduct.id,
+                    "Created": db.unixToDate(devProduct.created).toISOString(),
+                    "Updated": db.unixToDate(devProduct.updated).toISOString(),
+                    "PriceInRobux": devProduct.price,
+                    "PriceInTickets": null,
+                    "Sales": devProduct.sold,
+                    "IsNew": false,
+                    "IsForSale": devProduct.onSale,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            } else if (game && (typeof assettype === "undefined" || assettype === "game")) {
+                const gamecreator = await db.getUser(game.creatorid);
+                if (!gamecreator || gamecreator.banned || game.deleted) {
+                    res.status(404).json({})
+                    return;
+                }
+                res.json({
+                    "TargetId": game.gameid,
+                    "ProductType": "User Product",
+                    "AssetId": game.gameid,
+                    "ProductId": game.gameid,
+                    "Name": game.gamename,
+                    "Description": game.description,
+                    "AssetTypeId": 9,
+                    "Creator": {
+                        "Id": gamecreator.userid,
+                        "Name": gamecreator.username,
+                        "CreatorType": "User",
+                        "CreatorTargetId": gamecreator.userid
+                    },
+                    "IconImageAssetId": game.gameid,
+                    "Created": db.unixToDate(game.created).toISOString(),
+                    "Updated": db.unixToDate(game.updated).toISOString(),
+                    "PriceInRobux": game.price ? game.price : null,
+                    "PriceInTickets": null,
+                    "Sales": 0,
+                    "IsNew": false,
+                    "IsForSale": false,
+                    "IsPublicDomain": false,
+                    "IsLimited": false,
+                    "IsLimitedUnique": false,
+                    "Remaining": null,
+                    "MinimumMembershipLevel": 0,
+                    "ContentRatingTypeId": 0
+                });
+                return;
+            }
+            res.json({});
+        });
+
+        app.get("/v1.1/game-start-info", (req, res) => {
+            const universeId = parseInt(req.query.universeId);
+            res.json({
+                "gameAvatarType": "MorphToR6",
+                "allowCustomAnimations": "True",
+                "universeAvatarCollisionType": "OuterBox",
+                "universeAvatarBodyType": "Standard",
+                "jointPositioningType": "ArtistIntent",
+                "message": "",
+                "universeAvatarMinScales": {
+                    "height": 0.90,
+                    "width": 0.70,
+                    "head": 0.95,
+                    "depth": 0.0,
+                    "proportion": 0.00,
+                    "bodyType": 0.00
+                },
+                "universeAvatarMaxScales": {
+                    "height": 1.05,
+                    "width": 1.00,
+                    "head": 1.00,
+                    "depth": 0.0,
+                    "proportion": 0.00,
+                    "bodyType": 0.00
+                },
+                "universeAvatarAssetOverrides": [],
+                "moderationStatus": null
+            });
+        });
+
+        app.post("/signup/v1", async (req, res) => {
+            const isEligibleForHideAdsAbTest = req.body.isEligibleForHideAdsAbTest;
+            if (db.getSiteConfig().shared.allowSignup == false) {
+                res.status(401).render("sitetest/401", await db.getBlankTemplateData());
+                return;
+            }
+            const data = req.body;
+            try {
+                const birthday = new Date(data.birthday);
+            } catch {
+                res.status(400).send("Invalid birthday");
+                return;
+            }
+            const birthday = new Date(Date.parse(data.birthday));
+            const context = req.body.context; // RollerCoasterSignupForm
+            const gender = db.getSiteConfig().shared.users.gendersEnabled ? parseInt(data.gender) : 1; // 1 = none, 2 = Boy, 3 = Girl
+            if (gender < 1 || gender > 3) {
+                res.status(400).send("Invalid gender");
+                return;
+            }
+            const password = data.password;
+            const referralData = data.referralData;
+            const username = data.username;
+
+            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
+            if (isBadUsername) {
+                res.status(400).send("Bad username.");
+                return;
+            }
+            if (await db.userExists(username)) {
+                res.status(400).send("Username already taken.");
+                return;
+            }
+
+            if (db.getSiteConfig().shared.users.canBeUnder13 == false && new Date() - birthday < 13 * 365 * 24 * 60 * 60 * 1000) {
+                res.status(400).send("You must be 13 years or older to create an account.");
+                return;
+            }
+
+            const ip = get_ip(req).clientIp;
+            if (ip != "127.0.0.1" && ip != "::1" && await db.accountsByIP(ip).length >= db.getSiteConfig().backend.maxAccountsPerIP) {
+                res.status(401).send("Too many accounts.");
+                return;
+            }
+            if (typeof username != "string") {
+                return res.status(400).send();
+            }
+            if (username.length > 25) {
+                return res.status(400).send();
+            }
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.nl",
+                httpOnly: true
+            });
+            res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
+                maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
+                path: "/",
+                domain: "rbx2016.nl",
+                httpOnly: true
+            });
+
+            res.send();
         });
 
         app.get("/ide/welcome", db.requireAuth2, async (req, res) => {
@@ -799,6 +1384,203 @@ module.exports = {
                 "rightLegColor": avatarColors[4],
                 "torsoColor": avatarColors[5]
             });
+        });
+
+        app.get("/My/Character/Wearing", db.requireAuth, async (req, res) => {
+            const equippedItems = await db.getEquippedCatalogItems(req.user.userid);
+            let html = ``;
+            for (let i = 0; i < equippedItems.length; i++) {
+                const item = await db.getCatalogItem(equippedItems[i]);
+                if (!item) continue;
+                html += `<div class="col-3 mt-4" id="item${item.itemid}">
+                <div class="image-0-2-92">
+                    <div class="thumbWrapper-0-2-98"><img class="image-0-2-102 "
+                            src="https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}">
+                    </div>
+                    <div class="wearButtonWrapper-0-2-94" style="bottom: 6.25em;">
+                        <div><button class="btn-0-2-99 wearButton-0-2-93 cancelButton-0-2-61" id="remove${item.itemid}"
+                                title="">Remove</button></div>
+                    </div>
+                </div>
+                <p class="itemName-0-2-91"><a href="/catalog/${item.itemid}/${db.filterText2(item.itemname).replaceAll(" ", "-")}">${item.itemname}</a></p>
+                <div class="assetTypeWrapper-0-2-97"><span class="assetTypeLabel-0-2-95">Type:
+                    </span> <span class="assetType-0-2-96">${item.itemtype == "TShirt" ? "T-Shirt" : item.itemtype}</span></div>
+                <script>
+                    const btn = document.getElementById("remove${item.itemid}");
+                    btn.addEventListener("click", () => {
+                        fetch("/My/Character/Remove", {
+                            method: "POST",
+                            credentials: "include",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                "itemid": ${item.itemid}
+                            })
+                        }).then(res => {
+                            if (res.status == 200) {
+                                const item = document.getElementById("item${item.itemid}");
+                                item.parentNode.removeChild(item);
+                                const item2 = document.getElementById("wear${item.itemid}");
+                                if (item2) {
+                                    item2.disabled = false;
+                                    item2.innerHTML = "Wear";
+                                }
+                            }
+                        });
+                    });
+                </script>
+            </div>`;
+            }
+
+            res.send(html);
+        });
+
+        app.get("/My/Character/Items/:type", db.requireAuth, async (req, res) => {
+            const types = ["Heads", "Faces", "TShirts", "Shirts", "Pants", "Gear", "Accessories", "Hats", "Hair", "Face", "Neck", "Shoulder", "Front", "Back", "Waist", "Torsos", "LArms", "RArms", "LLegs", "RLegs", "Packages"];
+            let type = req.params.type;
+            if (!types.includes(type)) {
+                res.status(404).send("");
+                return;
+            }
+            switch (type) {
+                case "Accessories":
+                    type = "Accessory";
+                    break;
+                case "Heads":
+                    type = "Head";
+                    break;
+                case "Faces":
+                    type = "Face";
+                    break;
+                case "TShirts":
+                    type = "TShirt";
+                    break;
+                case "Shirts":
+                    type = "Shirt";
+                    break;
+                case "Torsos":
+                    type = "Torso";
+                    break;
+                case "LArms":
+                    type = "LArm";
+                    break;
+                case "RArms":
+                    type = "RArm";
+                    break;
+                case "LLegs":
+                    type = "LLeg";
+                    break;
+                case "RLegs":
+                    type = "RLeg";
+                    break;
+                case "Packages":
+                    type = "Package";
+                    break;
+            }
+
+            const items = await db.getOwnedCatalogItems(req.user.userid, type);
+            let itemsHtml = "";
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
+                itemsHtml += `<div class="col-3 mt-4">
+                <div class="image-0-2-92">
+                    <div class="thumbWrapper-0-2-98"><img class="image-0-2-102 "
+                            src="https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}">
+                    </div>
+                    <div class="wearButtonWrapper-0-2-94" style="bottom: 6.25em;">
+                        <div><button
+                                class="btn-0-2-99 wearButton-0-2-93 continueButton-0-2-62" id="wear${item.itemid}"
+                                title="" ${wearing ? "disabled" : ""}>${wearing ? "Wearing" : "Wear"}</button></div>
+                    </div>
+                </div>
+                <p class="itemName-0-2-91"><a
+                        href="/catalog/${item.itemid}/${db.filterText2(item.itemname).replaceAll(" ", "-")}">${item.itemname}</a></p>
+                <script>
+                    const btn = document.getElementById("wear${item.itemid}");
+                    btn.addEventListener("click", () => {
+                        fetch("/My/Character/Wear", {
+                            method: "POST",
+                            credentials: "include",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                "itemid": ${item.itemid}
+                            })
+                        }).then(res => {
+                            if (res.status == 200) {
+                                btn.innerText = "Wearing";
+                                btn.disabled = true;
+                                fetchCurrentlyWearing();
+                            }
+                        });
+                    });
+                </script>
+            </div>`;
+            }
+
+            res.send(itemsHtml);
+        });
+
+        app.post("/My/Character/Wear", db.requireAuth, async (req, res) => {
+            const itemid = parseInt(req.body.itemid);
+            const item = await db.getCatalogItem(itemid);
+            if (!item) {
+                res.status(404).json({
+                    "success": false
+                });
+                return;
+            }
+            if (!(await db.userOwnsAsset(req.user.userid, itemid))) {
+                res.status(403).json({
+                    "success": false
+                });
+                return;
+            }
+            const equipped = await db.equipCatalogItem(req.user.userid, itemid);
+            if (equipped) {
+                res.json({
+                    "success": true
+                });
+            } else {
+                res.status(500).json({
+                    "success": false
+                });
+            }
+        });
+
+        app.post("/My/Character/Remove", db.requireAuth, async (req, res) => {
+            const itemid = parseInt(req.body.itemid);
+            const item = await db.getCatalogItem(itemid);
+            if (!item) {
+                res.status(404).json({
+                    "success": false
+                });
+                return;
+            }
+            if (!(await db.userOwnsAsset(req.user.userid, itemid))) {
+                res.status(403).json({
+                    "success": false
+                });
+            }
+            if (!(await db.isCatalogItemEquipped(req.user.userid, itemid))) {
+                res.status(400).json({
+                    "success": false
+                });
+            }
+            const equipped = await db.unequipCatalogItem(req.user.userid, itemid);
+            if (equipped) {
+                res.json({
+                    "success": true
+                });
+            } else {
+                res.status(500).json({
+                    "success": false
+                });
+            }
         });
 
         app.get("/users/:userid/profile", db.requireAuth, async (req, res) => {
@@ -2521,7 +3303,7 @@ module.exports = {
             if (Page) {
                 Page = Page.toLowerCase();
             }
-            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts") || View != null) {
+            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts" && Page != "pants" && Page != "tshirts") || View != null) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
@@ -2536,7 +3318,7 @@ module.exports = {
             for (let i = 0; i < games.length; i++) {
                 if (i > 50) break;
                 const game = games[i];
-                games_html += game_template.toString().replaceAll("<%= gameid %>", game.gameid).replaceAll("<%= gamename %>", game.gamename).replaceAll("<%= gamename2 %>", db.filterText2(game.gamename).replaceAll(" ", "-")).replaceAll("<%= gameiconthumbnail %>", `https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`).replaceAll("<%= placeActive %>", game.isPublic ? "place-active" : "place-inactive").replaceAll("<%= pubtext %>", game.isPublic ? "Public" : "Private");
+                games_html += game_template.toString().replaceAll("<%= gameid %>", game.gameid).replaceAll("<%= gamename %>", game.gamename).replaceAll("<%= gamename2 %>", db.filterText2(game.gamename).replaceAll(" ", "-")).replaceAll("<%= gameiconthumbnail %>", `https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`).replaceAll("<%= placeActive %>", game.isPublic ? "place-active" : "place-inactive").replaceAll("<%= pubtext %>", game.isPublic ? "Public" : "Private");
             }
 
             let game = null;
@@ -2804,6 +3586,106 @@ module.exports = {
                 }
             }
 
+            let pantsHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "pants") {
+                let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "Pants");
+                assets = assets.reverse();
+                for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
+                    const asset = assets[i];
+                    // if (asset.deleted) continue;
+                    const created = db.unixToDate(asset.created);
+                    const updated = db.unixToDate(asset.updated);
+                    pantsHtml += `<table class="item-table" data-item-id="${asset.itemid}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://sitetest.rbx2016.nl/library/${asset.itemid}"
+                                    class="item-image"><img class=""
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://sitetest.rbx2016.nl/catalog/${asset.itemid}">${asset.itemname}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${asset.itemowners.length}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
+            let tshirtHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "tshirts") {
+                let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "TShirt");
+                assets = assets.reverse();
+                for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
+                    const asset = assets[i];
+                    // if (asset.deleted) continue;
+                    const created = db.unixToDate(asset.created);
+                    const updated = db.unixToDate(asset.updated);
+                    tshirtHtml += `<table class="item-table" data-item-id="${asset.itemid}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://sitetest.rbx2016.nl/library/${asset.itemid}"
+                                    class="item-image"><img class=""
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://sitetest.rbx2016.nl/catalog/${asset.itemid}">${asset.itemname}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${asset.itemowners.length}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
             res.render("sitetest/develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
@@ -2813,6 +3695,8 @@ module.exports = {
                 audios: audiosHtml,
                 meshes: meshesHtml,
                 shirts: shirtsHtml,
+                pants: pantsHtml,
+                tshirts: tshirtHtml,
                 tab: Page,
                 assetTypeId: Page == "game-passes" ? 34 : Page == "decals" ? 13 : Page == "audios" ? 3 : Page == "meshes" ? 4 : null,
                 gameid: Page == "game-passes" ? game != null ? game.gameid : null : null
@@ -2941,6 +3825,77 @@ module.exports = {
                     await db.createCatalogItem(name, desc, 0, "Shirt", req.user.userid, id);
                     req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.ShirtUploadCost);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
+            } else if (assetTypeId == 2) {
+                if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
+                    if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                            res.status(401).send("You have reached the daily asset upload limit");
+                            return;
+                        }
+                    } else {
+                        await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                    }
+                } else if (req.user.firstDailyAssetUpload == 0) {
+                    await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                }
+
+                if (!req.files || Object.keys(req.files).length == 0) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                const file = req.files.file;
+                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
+                    id = await db.createAsset(req.user.userid, name + "-TSHIRT", desc, "TShirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    await db.createCatalogItem(name, desc, 0, "TShirt", req.user.userid, id);
+                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
+            } else if (assetTypeId == 12) {
+                if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
+                    if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                            res.status(401).send("You have reached the daily asset upload limit");
+                            return;
+                        }
+                    } else {
+                        await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                    }
+                } else if (req.user.firstDailyAssetUpload == 0) {
+                    await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                }
+
+                if (!req.files || Object.keys(req.files).length == 0) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                if (db.getSiteConfig().shared.PantsUploadCost < 0) {
+                    res.status(400).send("Pants are disabled");
+                    return;
+                }
+                if (req.user.robux < db.getSiteConfig().shared.ShirtUploadCost) {
+                    res.status(401).send("You do not have enough Robux to upload pants");
+                    return;
+                }
+                const file = req.files.file;
+                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
+                    id = await db.createAsset(req.user.userid, name + "-PANTS", desc, "Pants", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    await db.createCatalogItem(name, desc, 0, "Pants", req.user.userid, id);
+                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.PantsUploadCost);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -3090,7 +4045,7 @@ module.exports = {
                     <div><a id="upload-fee-confirmation-link" target="_top">Audio</a> successfully created!</div>
                 </div>
             </div>`;
-            } else if (assetTypeId == 4) {
+            } else if (assetTypeId == 40) {
                 formData = `<div class="form-row">
                 <label for="file">Find your mesh:</label>
                 <input id="file" type="file" accept="model/obj" name="file" tabindex="1">
@@ -3146,6 +4101,45 @@ module.exports = {
                 <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
                 <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                     <div><a id="upload-fee-confirmation-link" target="_top">Shirt</a> successfully created!</div>
+                </div>
+                </div>`
+            } else if (assetTypeId == 2) {
+                formData = `<div class="form-row">
+                <label for="file">Find your image:</label>
+                <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
+                <span id="file-error" class="error"></span>
+            </div>
+                    <div class="form-row">
+                <label for="name">T-Shirt Name:</label>
+                <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
+                <span id="name-error" class="error"></span>
+            </div>
+                <div class="form-row submit-buttons">
+                            <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload<span class=""></span></a>
+                                    <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+            <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+            <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
+                <div><a id="upload-fee-confirmation-link" target="_top">T-Shirt</a> successfully created!</div>
+            </div>
+            </div>`
+            } else if (assetTypeId == 12) {
+                formData = `<div class="form-row">Did you use the template? If not, <a target="_blank" href="https://static.rbx2016.nl/images/pantstemplate.png">download it here</a>.</div>
+                <div class="form-row">
+                    <label for="file">Find your image:</label>
+                    <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
+                    <span id="file-error" class="error"></span>
+                </div>
+                        <div class="form-row">
+                    <label for="name">Pants Name:</label>
+                    <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
+                    <span id="name-error" class="error"></span>
+                </div>
+                    <div class="form-row submit-buttons">
+                                <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload for ${db.getSiteConfig().shared.PantsUploadCost} Robux<span class=""></span></a>
+                                        <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+                <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
+                    <div><a id="upload-fee-confirmation-link" target="_top">Pants</a> successfully created!</div>
                 </div>
                 </div>`
             } else {
@@ -3545,7 +4539,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": `https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`,
+                            "Url": `https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`,
                             "RetryUrl": "",
                             "IsApproved": true
                         },
@@ -4204,7 +5198,7 @@ module.exports = {
                 "name": db.filterText2(item.itemname).replaceAll(" ", "-"),
                 "url": "https://sitetest.rbx2016.nl/catalog/" + item.itemid.toString() + "/" + db.filterText2(item.itemname).replaceAll(" ", "-"),
                 "thumbnailFinal": true,
-                "thumbnailUrl": item.itemimage,
+                "thumbnailUrl": `https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}`,
                 "bcOverlayUrl": null,
                 "limitedOverlayUrl": null,
                 "deadlineOverlayUrl": null,
@@ -4269,7 +5263,7 @@ module.exports = {
                 <div class="game-card-container">
                 <a href="https://sitetest.rbx2016.nl/games/${game.gameid}" class="game-card-link">
                     <div class="game-card-thumb-container">
-                        <img class="game-card-thumb" src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
+                        <img class="game-card-thumb" src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
                     </div>
                     <div class="text-overflow game-card-name" title="${game.gamename}" ng-non-bindable="">
                     ${game.gamename}
@@ -4337,7 +5331,7 @@ module.exports = {
                 <div class="game-card-container">
                 <a href="https://sitetest.rbx2016.nl/games/${game.gameid}" class="game-card-link">
                     <div class="game-card-thumb-container">
-                        <img class="game-card-thumb" src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
+                        <img class="game-card-thumb" src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}" thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}&quot;,&quot;RetryUrl&quot;:null}" image-retry="">
                     </div>
                     <div class="text-overflow game-card-name" title="${game.gamename}" ng-non-bindable="">
                     ${game.gamename}
@@ -4438,7 +5432,7 @@ module.exports = {
                             <div class="roblox-item-image image-small" data-item-id="${item.id}" data-image-size="small">
                                 <div class="item-image-wrapper">
                                     <a href="https://sitetest.rbx2016.nl/catalog/${item.itemid}">
-                                        <img title="${item.itemname}" alt="${item.itemname}" class="original-image " src="${item.itemimage}">
+                                        <img title="${item.itemname}" alt="${item.itemname}" class="original-image " src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}`}">
                                                                 ${limitedHtml}
                                                                                     ${db.getUnixTimestamp() - item.created > 86400 ? `<img src="https://static.rbx2016.nl/b84cdb8c0e7c6cbe58e91397f91b8be8.png" alt="New">` : ``}
                                     </a>
@@ -4521,6 +5515,13 @@ module.exports = {
             res.redirect("/catalog/" + asset.itemid.toString() + "/" + db.filterText(asset.itemname).replaceAll(" ", "-"));
         });
 
+        app.get("/api/v1/avatar/redraw", db.requireAuth, async (req, res) => {
+            // TODO: Implment API endpoint request limit!
+            const job = await db.newJob(0, false, true);
+            await job.render(req.user.userid, true);
+            res.redirect('back');
+        });
+
         app.post("/api/v1/thumbnail/upload", async (req, res) => {
             if (db.getSiteConfig().backend.thumbnailServiceEnabled == false) {
                 res.status(400).send();
@@ -4599,12 +5600,12 @@ module.exports = {
                 ],
                 "animationAssetIds": {},
                 "bodyColors": {
-                    "headColorId": 194,
-                    "torsoColorId": 194,
-                    "rightArmColorId": 194,
-                    "leftArmColorId": 194,
-                    "rightLegColorId": 194,
-                    "leftLegColorId": 194
+                    "headColorId": user.avatarColors ? parseInt(user.avatarColors[0]) : 194,
+                    "torsoColorId": user.avatarColors ? parseInt(user.avatarColors[1]) : 194,
+                    "rightArmColorId": user.avatarColors ? parseInt(user.avatarColors[2]) : 194,
+                    "leftArmColorId": user.avatarColors ? parseInt(user.avatarColors[3]) : 194,
+                    "rightLegColorId": user.avatarColors ? parseInt(user.avatarColors[4]) : 194,
+                    "leftLegColorId": user.avatarColors ? parseInt(user.avatarColors[5]) : 194
                 },
                 "scales": {
                     "height": 1.0000,
@@ -4872,7 +5873,7 @@ module.exports = {
             </ul>
         </nav>`;
 
-            app.get(admiPath, db.requireAuth, db.requireMod, async (req, res) => {
+            app.get(admiPath, db.requireAuth, db.requireApprover, async (req, res) => {
                 res.render("sitetest/admin/index", {
                     ...await db.getRenderObject(req.user),
                     cpuUsage: await db.getCpuUsage(),
@@ -4882,12 +5883,16 @@ module.exports = {
                 });
             });
 
-            app.get(admiPath + "/:page", db.requireAuth, db.requireMod, async (req, res) => {
+            app.get(admiPath + "/:page", db.requireAuth, db.requireApprover, async (req, res) => {
                 const page = req.params.page;
                 const bp = path.resolve(`${__dirname}/../views/admin/`) + path.sep;
                 const fp = path.resolve(bp + page + ".ejs");
                 if (!fp.startsWith(bp)) {
                     res.status(400).render("sitetest/400", await db.getRenderObject(req.user));
+                }
+                if (req.user.role == "approver" && !db.getSiteConfig().shared.APPROVER_ACCESS.includes(page)) {
+                    res.status(403).render("sitetest/403", await db.getRenderObject(req.user));
+                    return;
                 }
                 if (req.user.role != "owner" && req.user.role != "admin" && !db.getSiteConfig().shared.MODS_ACCESS.includes(page)) {
                     res.status(403).render("sitetest/403", await db.getRenderObject(req.user));
@@ -5091,8 +6096,8 @@ module.exports = {
                     <a href="https://sitetest.rbx2016.nl/games/${game.gameid}" class="game-card-link">
                         <div class="game-card-thumb-container">
                             <img class="game-card-thumb"
-                                src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`}"
-                                thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`}&quot;,&quot;RetryUrl&quot;:null}"
+                                src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}"
+                                thumbnail="{&quot;Final&quot;:true,&quot;Url&quot;:&quot;${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}&quot;,&quot;RetryUrl&quot;:null}"
                                 image-retry />
                         </div>
                         <div class="text-overflow game-card-name" title="${game.gamename}" ng-non-bindable>
@@ -5216,109 +6221,6 @@ module.exports = {
             res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
         });
 
-        app.get("/asset/configure", db.requireAuth, async (req, res) => {
-            if (db.getSiteConfig().shared.assetsEnabled == false) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const id = parseInt(req.query.id);
-            const asset = await db.getAsset(id);
-            if (!asset) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            if (asset.creatorid != req.user.userid) {
-                res.status(401).send("Unauthorized");
-                return;
-            }
-            const created = db.unixToDate(asset.created);
-            const updated = db.unixToDate(asset.updated);
-            res.render("sitetest/assetconfigure", {
-                ...(await db.getRenderObject(req.user)),
-                id: asset.id,
-                icon: `https://thumbnails.rbx2016.nl/v1/thumb?id=${asset.id}`,
-                price: asset.price,
-                name: asset.name,
-                name2: asset.name.replaceAll(" ", "-"),
-                desc: asset.description,
-                likes: asset.likes.length,
-                dislikes: asset.dislikes.length,
-                userVoted: await db.userLikeStatus(req.user.userid, asset.id),
-                favorites: asset.favorites.length,
-                userFavorited: await db.userHasFavorited(req.user.userid, asset.id),
-                creatorname: req.user.username,
-                creatorid: asset.creatorid,
-                sold: asset.sold,
-                owned: asset.owners.includes(req.user.userid),
-                likeratio: asset.likes.length == 0 && asset.dislikes.length == 0 ? 50 : asset.likes.length / (asset.likes.length + asset.dislikes.length),
-                created: `${created.getDate()}/${created.getMonth()}/${created.getFullYear()}`,
-                updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
-                onSale: asset.onSale,
-            });
-        });
-
-        app.get("/game-pass/configure", db.requireAuth, async (req, res) => {
-            if (db.getSiteConfig().shared.gamepassesEnabled == false) {
-                if (req.user) {
-                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const id = parseInt(req.query.id);
-            const gamepass = await db.getGamepass(id);
-            if (!gamepass) {
-                if (req.user) {
-                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            if (gamepass.creatorid != req.user.userid) {
-                res.status(401).send("Unauthorized");
-                return;
-            }
-            const game = await db.getGame(gamepass.gameid);
-            const created = db.unixToDate(gamepass.created);
-            const updated = db.unixToDate(gamepass.updated);
-            res.render("sitetest/gamepassconfigure", {
-                ...(await db.getRenderObject(req.user)),
-                id: gamepass.id,
-                icon: `https://thumbnails.rbx2016.nl/v1/thumb?id=${gamepass.id}`,
-                gameid: game.gameid,
-                gamename: game.gamename,
-                gamegenre: game.genre,
-                gamethumb: `https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`,
-                price: gamepass.price,
-                name: gamepass.name,
-                name2: gamepass.name.replaceAll(" ", "-"),
-                desc: gamepass.description,
-                likes: gamepass.likes.length,
-                dislikes: gamepass.dislikes.length,
-                userVoted: await db.userLikeStatus(req.user.userid, gamepass.id),
-                favorites: gamepass.favorites.length,
-                userFavorited: await db.userHasFavorited(req.user.userid, gamepass.id),
-                creatorname: req.user.username,
-                creatorid: gamepass.creatorid,
-                sold: gamepass.sold,
-                owned: gamepass.owners.includes(req.user.userid),
-                likeratio: gamepass.likes.length == 0 && gamepass.dislikes.length == 0 ? 50 : gamepass.likes.length / (gamepass.likes.length + gamepass.dislikes.length),
-                created: `${created.getDate()}/${created.getMonth()}/${created.getFullYear()}`,
-                updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
-                onSale: gamepass.onSale,
-            });
-        });
-
         app.get("/game-pass/:id", db.requireAuth, async (req, res) => {
             const id = parseInt(req.params.id);
             const gamepass = await db.getGamepass(id);
@@ -5360,7 +6262,7 @@ module.exports = {
                 <tr>
                     <td class="image-col">
                         <a href="https://sitetest.rbx2016.nl/games/{game.gameid}/${gamename2}" class="game-image">
-                            <img src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`}"
+                            <img src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}"
                                 alt="${game.gamename}" />
                         </a>
                     </td>
@@ -5402,7 +6304,7 @@ module.exports = {
                 out += `<div class="asset model" id="newasset"
                 onclick="document.location.href ='http://sitetest.rbx2016.nl/ide/publish/editplace?placeId=${game.gameid}&t=${user.cookie}';">
                 <a class="model-image">
-                    <img id="newModelImage" class="modelThumbnail" src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`}" alt="${game.gamename}" />
+                    <img id="newModelImage" class="modelThumbnail" src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`}" alt="${game.gamename}" />
                 </a>
                 <p class="item-name-container ellipsis-overflow">${game.gamename}</p>
             </div>`;
@@ -5482,591 +6384,6 @@ module.exports = {
             });
         });
 
-        app.get("/universes/get-universe-containing-place", (req, res) => {
-            const placeId = parseInt(req.query.placeId);
-            res.json({
-                "UniverseId": placeId
-            });
-        });
-
-        app.get("/users/:userid/canmanage/:gameid", async (req, res) => {
-            const userid = parseInt(req.params.userid);
-            const gameid = parseInt(req.params.gameid);
-            const user = await db.getUser(userid);
-            const game = await db.getGame(gameid);
-            if ((!user || user.banned || user.inviteKey == "") || !game || db.getSiteConfig().shared.games.canManageGames == false) {
-                res.status(404).json({
-                    "Success": false,
-                    "CanManage": false
-                })
-                return;
-            }
-            if (game.creatorid == user.userid || user.role == "owner") {
-                res.json({
-                    "Success": true,
-                    "CanManage": true
-                });
-            } else {
-                res.json({
-                    "Success": true,
-                    "CanManage": false
-                });
-            }
-        });
-
-        app.post("/universes/:universeid/enablecloudedit", db.requireAuth2, async (req, res) => {
-            const ip = get_ip(req).clientIp;
-            let user = req.user;
-            if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
-                while (db.pendingStudioAuthentications[ip].length > 0 && !user){
-                    const cookieObject = db.pendingStudioAuthentications[ip].shift();
-                    if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
-                        // return res.sendStatus(403);
-                    } else {
-                        user = await db.findUserByCookie(cookieObject[1]);
-                    }
-                }
-            }
-            if (!user) {
-                res.status(401).send();
-                return;
-            }
-            if (typeof db.pendingStudioAuthentications[ip] == "object") {
-                if (!db.pendingStudioAuthentications[ip].includes(ip)) {
-                    db.pendingStudioAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
-                }
-            } else {
-                db.pendingStudioAuthentications[ip] = [
-                    [db.getUnixTimestamp(), user.cookie]
-                ];
-            }
-            const universeid = parseInt(req.params.universeid);
-            const game = await db.getGame(universeid);
-            if (!game) {
-                res.status(404).send();
-                return;
-            }
-            if (game.creatorid != user.userid) {
-                res.status(403).send();
-                return;
-            }
-            if (game.teamCreateEnabled) {
-                res.status(400).send();
-                return;
-            }
-            await db.setGameProperty(universeid, "teamCreateEnabled", true);
-            res.json({});
-        });
-
-        app.get("/universes/:universeid/cloudeditenabled", async (req, res) => {
-            const universeid = parseInt(req.params.universeid);
-            const game = await db.getGame(universeid);
-            if (!game) {
-                res.json({
-                    "enabled": false
-                });
-                return;
-            }
-            res.json({
-                "enabled": game.teamCreateEnabled && db.getSiteConfig().backend.hostingTeamCreateEnabled == true
-            });
-        });
-
-        app.get("/universes/get-universe-places", db.requireAuth2, async (req, res) => {
-            if (!req.user) {
-                res.status(403).json({});
-                return;
-            }
-            const universeId = parseInt(req.query.universeId);
-            const page = parseInt(req.query.page);
-            const game = await db.getGame(universeId);
-            if (!game) {
-                res.status(404).json({});
-                return;
-            }
-            if (req.user.userid != game.creatorid) {
-                res.status(401).json({});
-                return;
-            }
-            res.json({
-                "FinalPage": true,
-                "RootPlace": game.gameid,
-                "Places": [{
-                    "PlaceId": game.gameid,
-                    "Name": game.gamename
-                }],
-                "PageSize": 50
-            });
-        });
-
-        app.get("/universes/get-aliases", (req, res) => {
-            const universeId = parseInt(req.query.universeId);
-            const page = parseInt(req.query.page);
-            res.json({
-                "FinalPage": true,
-                "Aliases": [],
-                "PageSize": 50
-            });
-        });
-
-        app.get("/marketplace/productDetails", async (req, res) => {
-            if (db.getSiteConfig().backend.productInfoEnabled == false) {
-                res.status(404).render("404", await db.getBlankRenderObject());
-                return;
-            }
-            const assetid = parseInt(req.query.productId);
-            const assettype = req.query.assetType;
-            const item = await db.getCatalogItem(assetid);
-            const game = await db.getGame(assetid);
-            const gamepass = await db.getGamepass(assetid);
-            const devProduct = await db.getDevProduct(assetid);
-            if (!item && !game && !gamepass && !devProduct) {
-                res.json({
-                    "error": true,
-                    "message": "Item not found",
-                    "TargetId": assetid,
-                    "ProductType": "User Product",
-                    "AssetId": assetid,
-                    "ProductId": assetid,
-                    "Name": "?UNKNOWN?",
-                    "Description": "?UNKNOWN?",
-                    "AssetTypeId": 0,
-                    "Creator": {
-                        "Id": 0,
-                        "Name": "?UNKNOWN?",
-                        "CreatorType": "User",
-                        "CreatorTargetId": 0
-                    },
-                    "IconImageAssetId": assetid,
-                    "Created": db.unixToDate(0).toISOString(),
-                    "Updated": db.unixToDate(0).toISOString(),
-                    "PriceInRobux": 0,
-                    "PriceInTickets": null,
-                    "Sales": 0,
-                    "IsNew": false,
-                    "IsForSale": false,
-                    "IsPublicDomain": false,
-                    "IsLimited": false,
-                    "IsLimitedUnique": false,
-                    "Remaining": false,
-                    "MinimumMembershipLevel": 0,
-                    "ContentRatingTypeId": 0
-                });
-                return;
-            }
-            if (item && !item.deleted && (typeof assettype === "undefined" || assettype === "item")) {
-                const itemcreator = await db.getUser(item.itemcreatorid);
-                res.json({
-                    "TargetId": item.itemid,
-                    "ProductType": "User Product",
-                    "AssetId": item.itemid,
-                    "ProductId": item.itemid,
-                    "Name": item.itemname,
-                    "Description": item.itemdescription,
-                    "AssetTypeId": item.itemtype,
-                    "Creator": {
-                        "Id": itemcreator.userid,
-                        "Name": itemcreator.username,
-                        "CreatorType": "User",
-                        "CreatorTargetId": itemcreator.userid
-                    },
-                    "IconImageAssetId": item.itemid,
-                    "Created": db.unixToDate(item.created).toISOString(),
-                    "Updated": db.unixToDate(item.updated).toISOString(),
-                    "PriceInRobux": item.itemprice,
-                    "PriceInTickets": null,
-                    "Sales": item.itempurchases,
-                    "IsNew": false,
-                    "IsForSale": item.itempricestatus != "OffSale",
-                    "IsPublicDomain": false,
-                    "IsLimited": item.itemoffsafedeadline != null,
-                    "IsLimitedUnique": item.unitsAvailableForConsumption <= 100,
-                    "Remaining": item.itemoffsafedeadline != null ? item.unitsAvailableForConsumption - item.itempurchases : null,
-                    "MinimumMembershipLevel": 0,
-                    "ContentRatingTypeId": 0
-                });
-                return;
-            } else if (gamepass && (typeof assettype === "undefined" || assettype === "gamepass")) {
-                const creator = await db.getUser(gamepass.creatorid);
-                res.json({
-                    "TargetId": gamepass.id,
-                    "ProductType": "User Product",
-                    "AssetId": gamepass.id,
-                    "ProductId": gamepass.id,
-                    "Name": gamepass.name,
-                    "Description": gamepass.description,
-                    "AssetTypeId": 34,
-                    "Creator": {
-                        "Id": creator.userid,
-                        "Name": creator.username,
-                        "CreatorType": "User",
-                        "CreatorTargetId": creator.userid
-                    },
-                    "IconImageAssetId": gamepass.id,
-                    "Created": db.unixToDate(gamepass.created).toISOString(),
-                    "Updated": db.unixToDate(gamepass.updated).toISOString(),
-                    "PriceInRobux": gamepass.price,
-                    "PriceInTickets": null,
-                    "Sales": gamepass.sold,
-                    "IsNew": false,
-                    "IsForSale": gamepass.onSale,
-                    "IsPublicDomain": false,
-                    "IsLimited": false,
-                    "IsLimitedUnique": false,
-                    "Remaining": null,
-                    "MinimumMembershipLevel": 0,
-                    "ContentRatingTypeId": 0
-                });
-                return;
-            } else if (devProduct && (typeof assettype === "undefined" || assettype === "devproduct")) {
-                const creator = await db.getUser(devProduct.creatorid);
-                res.json({
-                    "TargetId": devProduct.id,
-                    "ProductType": "User Product",
-                    "AssetId": devProduct.id,
-                    "ProductId": devProduct.id,
-                    "Name": devProduct.name,
-                    "Description": devProduct.description,
-                    "AssetTypeId": 0,
-                    "Creator": {
-                        "Id": creator.userid,
-                        "Name": creator.username,
-                        "CreatorType": "User",
-                        "CreatorTargetId": creator.userid
-                    },
-                    "IconImageAssetId": devProduct.id,
-                    "Created": db.unixToDate(devProduct.created).toISOString(),
-                    "Updated": db.unixToDate(devProduct.updated).toISOString(),
-                    "PriceInRobux": devProduct.price,
-                    "PriceInTickets": null,
-                    "Sales": devProduct.sold,
-                    "IsNew": false,
-                    "IsForSale": devProduct.onSale,
-                    "IsPublicDomain": false,
-                    "IsLimited": false,
-                    "IsLimitedUnique": false,
-                    "Remaining": null,
-                    "MinimumMembershipLevel": 0,
-                    "ContentRatingTypeId": 0
-                });
-                return;
-            } else if (game && (typeof assettype === "undefined" || assettype === "game")) {
-                const gamecreator = await db.getUser(game.creatorid);
-                if (!gamecreator || gamecreator.banned || game.deleted) {
-                    res.status(404).json({})
-                    return;
-                }
-                res.json({
-                    "TargetId": game.gameid,
-                    "ProductType": "User Product",
-                    "AssetId": game.gameid,
-                    "ProductId": game.gameid,
-                    "Name": game.gamename,
-                    "Description": game.description,
-                    "AssetTypeId": 9,
-                    "Creator": {
-                        "Id": gamecreator.userid,
-                        "Name": gamecreator.username,
-                        "CreatorType": "User",
-                        "CreatorTargetId": gamecreator.userid
-                    },
-                    "IconImageAssetId": game.gameid,
-                    "Created": db.unixToDate(game.created).toISOString(),
-                    "Updated": db.unixToDate(game.updated).toISOString(),
-                    "PriceInRobux": game.price ? game.price : null,
-                    "PriceInTickets": null,
-                    "Sales": 0,
-                    "IsNew": false,
-                    "IsForSale": false,
-                    "IsPublicDomain": false,
-                    "IsLimited": false,
-                    "IsLimitedUnique": false,
-                    "Remaining": null,
-                    "MinimumMembershipLevel": 0,
-                    "ContentRatingTypeId": 0
-                });
-                return;
-            }
-            res.json({});
-        });
-
-        app.get("/marketplace/productinfo", async (req, res) => {
-            if (db.getSiteConfig().backend.productInfoEnabled == false) {
-                res.status(404).render("404", await db.getBlankRenderObject());
-                return;
-            }
-            const assetid = parseInt(req.query.assetId);
-            const assettype = req.query.assetType;
-            const item = await db.getCatalogItem(assetid);
-            const game = await db.getGame(assetid);
-            const gamepass = await db.getGamepass(assetid);
-            const devProduct = await db.getDevProduct(assetid);
-            if (!item && !game && !gamepass && !devProduct) {
-                res.json({
-                    "error": true,
-                    "message": "Item not found",
-                    "TargetId": assetid,
-                    "ProductType": "User Product",
-                    "AssetId": assetid,
-                    "ProductId": assetid,
-                    "Name": "?UNKNOWN?",
-                    "Description": "?UNKNOWN?",
-                    "AssetTypeId": 0,
-                    "Creator": {
-                        "Id": 0,
-                        "Name": "?UNKNOWN?",
-                        "CreatorType": "User",
-                        "CreatorTargetId": 0
-                    },
-                    "IconImageAssetId": assetid,
-                    "Created": db.unixToDate(0).toISOString(),
-                    "Updated": db.unixToDate(0).toISOString(),
-                    "PriceInRobux": 0,
-                    "PriceInTickets": null,
-                    "Sales": 0,
-                    "IsNew": false,
-                    "IsForSale": false,
-                    "IsPublicDomain": false,
-                    "IsLimited": false,
-                    "IsLimitedUnique": false,
-                    "Remaining": false,
-                    "MinimumMembershipLevel": 0,
-                    "ContentRatingTypeId": 0
-                });
-                return;
-            }
-            if (item && !item.deleted && (typeof assettype === "undefined" || assettype === "item")) {
-                const itemcreator = await db.getUser(item.itemcreatorid);
-                res.json({
-                    "TargetId": item.itemid,
-                    "ProductType": "User Product",
-                    "AssetId": item.itemid,
-                    "ProductId": item.itemid,
-                    "Name": item.itemname,
-                    "Description": item.itemdescription,
-                    "AssetTypeId": item.itemtype,
-                    "Creator": {
-                        "Id": itemcreator.userid,
-                        "Name": itemcreator.username,
-                        "CreatorType": "User",
-                        "CreatorTargetId": itemcreator.userid
-                    },
-                    "IconImageAssetId": item.itemid,
-                    "Created": db.unixToDate(item.created).toISOString(),
-                    "Updated": db.unixToDate(item.updated).toISOString(),
-                    "PriceInRobux": item.itemprice,
-                    "PriceInTickets": null,
-                    "Sales": item.itempurchases,
-                    "IsNew": false,
-                    "IsForSale": item.itempricestatus != "OffSale",
-                    "IsPublicDomain": false,
-                    "IsLimited": item.itemoffsafedeadline != null,
-                    "IsLimitedUnique": item.unitsAvailableForConsumption <= 100,
-                    "Remaining": item.itemoffsafedeadline != null ? item.unitsAvailableForConsumption - item.itempurchases : null,
-                    "MinimumMembershipLevel": 0,
-                    "ContentRatingTypeId": 0
-                });
-                return;
-            } else if (gamepass && (typeof assettype === "undefined" || assettype === "gamepass")) {
-                const creator = await db.getUser(gamepass.creatorid);
-                res.json({
-                    "TargetId": gamepass.id,
-                    "ProductType": "User Product",
-                    "AssetId": gamepass.id,
-                    "ProductId": gamepass.id,
-                    "Name": gamepass.name,
-                    "Description": gamepass.description,
-                    "AssetTypeId": 34,
-                    "Creator": {
-                        "Id": creator.userid,
-                        "Name": creator.username,
-                        "CreatorType": "User",
-                        "CreatorTargetId": creator.userid
-                    },
-                    "IconImageAssetId": gamepass.id,
-                    "Created": db.unixToDate(gamepass.created).toISOString(),
-                    "Updated": db.unixToDate(gamepass.updated).toISOString(),
-                    "PriceInRobux": gamepass.price,
-                    "PriceInTickets": null,
-                    "Sales": gamepass.sold,
-                    "IsNew": false,
-                    "IsForSale": gamepass.onSale,
-                    "IsPublicDomain": false,
-                    "IsLimited": false,
-                    "IsLimitedUnique": false,
-                    "Remaining": null,
-                    "MinimumMembershipLevel": 0,
-                    "ContentRatingTypeId": 0
-                });
-                return;
-            } else if (devProduct && (typeof assettype === "undefined" || assettype === "devproduct")) {
-                const creator = await db.getUser(devProduct.creatorid);
-                res.json({
-                    "TargetId": devProduct.id,
-                    "ProductType": "User Product",
-                    "AssetId": devProduct.id,
-                    "ProductId": devProduct.id,
-                    "Name": devProduct.name,
-                    "Description": devProduct.description,
-                    "AssetTypeId": 0,
-                    "Creator": {
-                        "Id": creator.userid,
-                        "Name": creator.username,
-                        "CreatorType": "User",
-                        "CreatorTargetId": creator.userid
-                    },
-                    "IconImageAssetId": devProduct.id,
-                    "Created": db.unixToDate(devProduct.created).toISOString(),
-                    "Updated": db.unixToDate(devProduct.updated).toISOString(),
-                    "PriceInRobux": devProduct.price,
-                    "PriceInTickets": null,
-                    "Sales": devProduct.sold,
-                    "IsNew": false,
-                    "IsForSale": devProduct.onSale,
-                    "IsPublicDomain": false,
-                    "IsLimited": false,
-                    "IsLimitedUnique": false,
-                    "Remaining": null,
-                    "MinimumMembershipLevel": 0,
-                    "ContentRatingTypeId": 0
-                });
-                return;
-            } else if (game && (typeof assettype === "undefined" || assettype === "game")) {
-                const gamecreator = await db.getUser(game.creatorid);
-                if (!gamecreator || gamecreator.banned || game.deleted) {
-                    res.status(404).json({})
-                    return;
-                }
-                res.json({
-                    "TargetId": game.gameid,
-                    "ProductType": "User Product",
-                    "AssetId": game.gameid,
-                    "ProductId": game.gameid,
-                    "Name": game.gamename,
-                    "Description": game.description,
-                    "AssetTypeId": 9,
-                    "Creator": {
-                        "Id": gamecreator.userid,
-                        "Name": gamecreator.username,
-                        "CreatorType": "User",
-                        "CreatorTargetId": gamecreator.userid
-                    },
-                    "IconImageAssetId": game.gameid,
-                    "Created": db.unixToDate(game.created).toISOString(),
-                    "Updated": db.unixToDate(game.updated).toISOString(),
-                    "PriceInRobux": game.price ? game.price : null,
-                    "PriceInTickets": null,
-                    "Sales": 0,
-                    "IsNew": false,
-                    "IsForSale": false,
-                    "IsPublicDomain": false,
-                    "IsLimited": false,
-                    "IsLimitedUnique": false,
-                    "Remaining": null,
-                    "MinimumMembershipLevel": 0,
-                    "ContentRatingTypeId": 0
-                });
-                return;
-            }
-            res.json({});
-        });
-
-        app.get("/v1.1/game-start-info", (req, res) => {
-            const universeId = parseInt(req.query.universeId);
-            res.json({
-                "gameAvatarType": "MorphToR6",
-                "allowCustomAnimations": "True",
-                "universeAvatarCollisionType": "OuterBox",
-                "universeAvatarBodyType": "Standard",
-                "jointPositioningType": "ArtistIntent",
-                "message": "",
-                "universeAvatarMinScales": {
-                    "height": 0.90,
-                    "width": 0.70,
-                    "head": 0.95,
-                    "depth": 0.0,
-                    "proportion": 0.00,
-                    "bodyType": 0.00
-                },
-                "universeAvatarMaxScales": {
-                    "height": 1.05,
-                    "width": 1.00,
-                    "head": 1.00,
-                    "depth": 0.0,
-                    "proportion": 0.00,
-                    "bodyType": 0.00
-                },
-                "universeAvatarAssetOverrides": [],
-                "moderationStatus": null
-            });
-        });
-
-        app.post("/signup/v1", async (req, res) => {
-            const isEligibleForHideAdsAbTest = req.body.isEligibleForHideAdsAbTest;
-            if (db.getSiteConfig().shared.allowSignup == false) {
-                res.status(401).render("401", await db.getBlankTemplateData());
-                return;
-            }
-            const data = req.body;
-            try {
-                const birthday = new Date(data.birthday);
-            } catch {
-                res.status(400).send("Invalid birthday");
-                return;
-            }
-            const birthday = new Date(Date.parse(data.birthday));
-            const context = req.body.context; // RollerCoasterSignupForm
-            const gender = db.getSiteConfig().shared.users.gendersEnabled ? parseInt(data.gender) : 1; // 1 = none, 2 = Boy, 3 = Girl
-            if (gender < 1 || gender > 3) {
-                res.status(400).send("Invalid gender");
-                return;
-            }
-            const password = data.password;
-            const referralData = data.referralData;
-            const username = data.username;
-
-            const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
-            if (isBadUsername) {
-                res.status(400).send("Bad username.");
-                return;
-            }
-            if (await db.userExists(username)) {
-                res.status(400).send("Username already taken.");
-                return;
-            }
-
-            if (db.getSiteConfig().shared.users.canBeUnder13 == false && new Date() - birthday < 13 * 365 * 24 * 60 * 60 * 1000) {
-                res.status(400).send("You must be 13 years or older to create an account.");
-                return;
-            }
-
-            const ip = get_ip(req).clientIp;
-            if (ip != "127.0.0.1" && ip != "::1" && await db.accountsByIP(ip).length >= db.getSiteConfig().backend.maxAccountsPerIP) {
-                res.status(401).send("Too many accounts.");
-                return;
-            }
-            if (typeof username != "string") {
-                return res.status(400).send();
-            }
-            if (username.length > 25) {
-                return res.status(400).send();
-            }
-            res.cookie('.ROBLOSECURITY', "delete", {
-                maxAge: -1,
-                path: "/",
-                domain: "rbx2016.nl",
-                httpOnly: true
-            });
-            res.cookie('.ROBLOSECURITY', `<pending>|${username}|${password}|${birthday}|${gender}`, {
-                maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
-                path: "/",
-                domain: "rbx2016.nl",
-                httpOnly: true
-            });
-
-            res.send();
-        });
-
         app.post("/ide/publish/newplace", db.requireAuth2, async (req, res) => {
             if (db.getSiteConfig().shared.games.canCreateGames == false) {
                 res.status(403).send("Creating games is currently disabled.")
@@ -6100,6 +6417,7 @@ module.exports = {
         app.post("/gametransactions/settransactionstatuscomplete", (req, res) => {
             const receipt = req.body.receipt;
             console.log("GOT RECEIPT: " + receipt);
+            res.send();
         });
 
         app.get("/gametransactions/getpendingtransactions", async (req, res) => {
@@ -6484,11 +6802,11 @@ module.exports = {
             res.render("sitetest/gamepass", {
                 ...(await db.getRenderObject(req.user)),
                 id: gamepass.id,
-                icon: `https://thumbnails.rbx2016.nl/v1/thumb?id=${gamepass.id}`,
+                icon: `https://thumbnails.rbx2016.nl/v1/icon?id=${gamepass.id}`,
                 gameid: game.gameid,
                 gamename: game.gamename,
                 gamegenre: game.genre,
-                gamethumb: `https://thumbnails.rbx2016.nl/v1/icon?id=${game.id}`,
+                gamethumb: `https://thumbnails.rbx2016.nl/v1/thumb?id=${game.gameid}`,
                 price: gamepass.price,
                 name: gamepass.name,
                 name2: gamepass.name.replaceAll(" ", "-"),
@@ -6819,7 +7137,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     return;
                 }
                 await db.setCatalogItemProperty(itemId, "price", price);
-                res.redirect(`/catalog/${itemId}/${db.filterText2(item.name).replaceAll(" ", "-")}`);
+                res.redirect(`/catalog/${itemId}/${db.filterText2(item.itemname).replaceAll(" ", "-")}`);
                 return;
             }
             if (gamepass.creatorid != req.user.userid) {
@@ -6869,7 +7187,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.json({});
         });
 
-        app.get("/places/:placeid/settings", async (req, res) => {
+        app.get("/places/:placeid/settings", db.requireAuth, async (req, res) => {
             if (db.getSiteConfig().shared.games.canManageGames == false) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
@@ -7353,7 +7671,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
             });
         });
-        
+
         app.post("/api/moderation/v2/filtertext", (req, res) => {
             const text = req.body.text;
             const userid = req.body.userId;
@@ -7367,7 +7685,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
             });
         });
-        
+
         app.get("/setup/domain.pem", (req, res) => {
             const file = `${__dirname}/../certs/domain.pem`
             const content = fs.readFileSync(file);
@@ -8789,9 +9107,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const apiKey = req.query.apiKey;
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
                 }
                 return;
             }
@@ -9077,12 +9395,12 @@ publicIp = "${ip}"`
             }
             const user = await db.getUser(userid);
             if (action == "HasPass") {
-                if (user != null && await db.userOwnsAsset(user.userid, passid)){
+                if (user != null && await db.userOwnsAsset(user.userid, passid)) {
                     res.send("<Value Type=\"boolean\">true</Value>");
-                }else{
+                } else {
                     res.send("<Value Type=\"boolean\">false</Value>");
                 }
-            }else{
+            } else {
                 res.stauts(404).send("Unknown Action");
             }
         });

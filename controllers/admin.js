@@ -48,9 +48,13 @@ module.exports = {
                 return;
             }
             const assetid = parseInt(req.body.assetid);
-            db.log(`User ${req.user.userid} has approved asset ${assetid}.`);
-            await db.approveAsset(req.user.userid, assetid);
-            res.send("Asset Approved!");
+            const approved = await db.approveAsset(req.user.userid, assetid);
+            if (approved){
+                db.log(`User ${req.user.userid} has approved asset ${assetid}.`);
+                res.send("Asset Approved!");
+            }else{
+                res.send("Failed to approve asset. (Does it exist?)");
+            }
         });
 
         app.post("/v1/admin/settix", db.requireAuth, db.requireOwner, async (req, res) => {
@@ -209,9 +213,13 @@ module.exports = {
                 return;
             }
             const assetid = parseInt(req.body.assetid);
-            db.log(`User ${req.user.userid} deleting asset ${assetid}.`);
-            await db.deleteAsset(assetid);
-            res.send("Asset Deleted!");
+            const deleted = await db.deleteAsset(assetid);
+            if (deleted){
+                db.log(`User ${req.user.userid} deleting asset ${assetid}.`);
+                res.send("Asset Deleted!");
+            }else{
+                res.send("Failed to delete asset. (does it exist?)");
+            }
         });
 
         app.post("/v1/admin/unban", db.requireAuth, db.requireMod, async (req, res) => {
