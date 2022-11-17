@@ -132,7 +132,7 @@ module.exports = {
 
             const item1 = await db.getCatalogItem(id);
             if (item1){
-                id = item1.itemdecalid;
+                id = item1.internalAssetId;
             }
 
             const asset = await db.getAsset(id);

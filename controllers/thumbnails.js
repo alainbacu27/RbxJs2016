@@ -74,7 +74,7 @@ module.exports = {
                 return;
             }
             const id = parseInt(req.query.id);
-            const bp = path.resolve(__dirname + "/../thumbnails/") + path.sep;
+            const bp = path.resolve(__dirname + "/../thumbnails/thumbs/") + path.sep;
             const fp = path.resolve(bp + id.toString() + ".asset");
             if (!fp.startsWith(bp)) {
                 res.status(403).send("Forbidden");
@@ -99,28 +99,6 @@ module.exports = {
                 "state": "Completed",
                 "imageUrl": "https://thumbnails.rbx2016.nl/v1/v1/assets-thumbnail-3d2?assetid=" + assetid,
             });
-        });
-
-        app.get("/v1/games/icons", async (req, res) => {
-            if (db.getSiteConfig().backend.thumbnailServiceEnabled == false) {
-                res.status(403).send("Forbidden");
-                return;
-            }
-            const universeIds = req.query.universeIds.split(",");
-            const size = req.query.size;
-            let data = []
-            for (let i = 0; i < universeIds.length; i++) {
-                const universeId = parseInt(universeIds[i]);
-                const game = await db.getGame(universeId);
-                data.push({
-                    "targetId": 1,
-                    "state": "Completed", // Pending
-                    "imageUrl": `https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}`
-                })
-            }
-            res.json({
-                "data": data
-            })
         });
 
         app.get("/v1/assets-thumbnail-3d2", (req, res) => {

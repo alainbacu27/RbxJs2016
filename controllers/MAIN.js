@@ -1430,6 +1430,9 @@ module.exports = {
                 case "Heads":
                     type = "Head";
                     break;
+                case "Hats":
+                    type = "Hat";
+                    break;
                 case "Faces":
                     type = "Face";
                     break;
@@ -1459,13 +1462,62 @@ module.exports = {
                     break;
             }
 
-            const items = await db.getOwnedCatalogItems(req.user.userid, type);
-            let itemsHtml = "";
+            if (type == "Accessory") {
+                const items = await db.getOwnedCatalogItems(req.user.userid);
+                let itemsHtml = "";
 
-            for (let i = 0; i < items.length; i++) {
-                const item = items[i];
-                const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
-                itemsHtml += `<div class="col-3 mt-4">
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+
+                    if (item.itemtype == "TShirt" || item.itemtype == "Shirt" || item.itemtype == "Pants" || item.itemtype == "TShirt" || item.itemtype == "Face") continue;
+                    
+                    const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
+                    itemsHtml += `<div class="col-3 mt-4">
+                    <div class="image-0-2-92">
+                        <div class="thumbWrapper-0-2-98"><img class="image-0-2-102 "
+                                src="https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}">
+                        </div>
+                        <div class="wearButtonWrapper-0-2-94" style="bottom: 6.25em;">
+                            <div><button
+                                    class="btn-0-2-99 wearButton-0-2-93 continueButton-0-2-62" id="wear${item.itemid}"
+                                    title="" ${wearing ? "disabled" : ""}>${wearing ? "Wearing" : "Wear"}</button></div>
+                        </div>
+                    </div>
+                    <p class="itemName-0-2-91"><a
+                            href="/catalog/${item.itemid}/${db.filterText2(item.itemname).replaceAll(" ", "-")}">${item.itemname}</a></p>
+                    <script>
+                        const btn = document.getElementById("wear${item.itemid}");
+                        btn.addEventListener("click", () => {
+                            fetch("/My/Character/Wear", {
+                                method: "POST",
+                                credentials: "include",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "itemid": ${item.itemid}
+                                })
+                            }).then(res => {
+                                if (res.status == 200) {
+                                    btn.innerText = "Wearing";
+                                    btn.disabled = true;
+                                    fetchCurrentlyWearing();
+                                }
+                            });
+                        });
+                    </script>
+                </div>`;
+                }
+
+                res.send(itemsHtml);
+            } else {
+                const items = await db.getOwnedCatalogItems(req.user.userid, type);
+                let itemsHtml = "";
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
+                    itemsHtml += `<div class="col-3 mt-4">
                 <div class="image-0-2-92">
                     <div class="thumbWrapper-0-2-98"><img class="image-0-2-102 "
                             src="https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}">
@@ -1500,9 +1552,10 @@ module.exports = {
                     });
                 </script>
             </div>`;
-            }
+                }
 
-            res.send(itemsHtml);
+                res.send(itemsHtml);
+            }
         });
 
         app.post("/My/Character/Wear", db.requireAuth, async (req, res) => {
@@ -1525,21 +1578,25 @@ module.exports = {
             let otherItems = 0;
             const equippedItems = await db.getEquippedCatalogItems(req.user.userid);
             for (let i = 0; i < equippedItems.length; i++) {
-                const item = await db.getCatalogItem(equippedItems[i]);
-                switch (item.itemtype) {
+                const item2 = await db.getCatalogItem(equippedItems[i]);
+                if (!item2) continue;
+                switch (item2.itemtype) {
                     case "TShirt":
-                        returnPromise(false);
-                        return;
                     case "Shirt":
-                        returnPromise(false);
-                        return;
                     case "Pants":
-                        returnPromise(false);
-                        return;
+                        if (item.itemtype == item2.itemtype) {
+                            res.status(400).json({
+                                "success": false
+                            });
+                            return;
+                        }
+                        break;
                     default:
                         otherItems++;
                         if (otherItems >= db.getSiteConfig().backend.MaxUserOtherItemsEquipped) {
-                            returnPromise(false);
+                            res.status(400).json({
+                                "success": false
+                            });
                             return;
                         }
                         break;
@@ -3309,7 +3366,7 @@ module.exports = {
             if (Page) {
                 Page = Page.toLowerCase();
             }
-            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts" && Page != "pants" && Page != "tshirts") || View != null) {
+            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts" && Page != "pants" && Page != "tshirts" && Page != "hats") || View != null) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -3409,7 +3466,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://www.rbx2016.nl/library/${asset.id}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.nl/asset?id=${asset.id}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -3559,7 +3616,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://www.rbx2016.nl/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -3609,7 +3666,57 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://www.rbx2016.nl/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://www.rbx2016.nl/catalog/${asset.itemid}">${asset.itemname}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${asset.itemowners.length}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
+            let hatsHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "hats") {
+                let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "Hat");
+                assets = assets.reverse();
+                for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
+                    const asset = assets[i];
+                    // if (asset.deleted) continue;
+                    const created = db.unixToDate(asset.created);
+                    const updated = db.unixToDate(asset.updated);
+                    hatsHtml += `<table class="item-table" data-item-id="${asset.itemid}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://www.rbx2016.nl/library/${asset.itemid}"
+                                    class="item-image"><img class=""
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -3659,7 +3766,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://www.rbx2016.nl/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -3702,6 +3809,7 @@ module.exports = {
                 meshes: meshesHtml,
                 shirts: shirtsHtml,
                 pants: pantsHtml,
+                hats: hatsHtml,
                 tshirts: tshirtHtml,
                 tab: Page,
                 assetTypeId: Page == "game-passes" ? 34 : Page == "decals" ? 13 : Page == "audios" ? 3 : Page == "meshes" ? 4 : null,
@@ -3845,9 +3953,8 @@ module.exports = {
                       </Properties>
                     </Item>
                   </roblox>`;
-                  fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
-                  await db.createCatalogItem(name, desc, 0, "Shirt", req.user.userid, internalId);
-                  await db.setCatalogItemProperty(id, "internalAssetId", internalId);
+                    fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
+                    await db.createCatalogItem(name, desc, 0, "Shirt", req.user.userid, internalId, id);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -3893,9 +4000,8 @@ module.exports = {
                       </Properties>
                     </Item>
                   </roblox>`;
-                  fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
-                  await db.createCatalogItem(name, desc, 0, "TShirt", req.user.userid, internalId);
-                  await db.setCatalogItemProperty(id, "internalAssetId", internalId);
+                    fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
+                    await db.createCatalogItem(name, desc, 0, "TShirt", req.user.userid, internalId, id);
 
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
@@ -3951,9 +4057,53 @@ module.exports = {
                       </Properties>
                     </Item>
                   </roblox>`;
-                  fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
-                  await db.createCatalogItem(name, desc, 0, "Pants", req.user.userid, internalId);
-                  await db.setCatalogItemProperty(id, "internalAssetId", internalId);
+                    fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
+                    await db.createCatalogItem(name, desc, 0, "Pants", req.user.userid, internalId, id);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
+            } else if (assetTypeId == 8) {
+                if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
+                    if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                            res.status(401).send("You have reached the daily asset upload limit");
+                            return;
+                        }
+                    } else {
+                        await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                    }
+                } else if (req.user.firstDailyAssetUpload == 0) {
+                    await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                }
+
+                if (!(req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner")) {
+                    res.status(401).send("You do not have permission to upload a hat");
+                    return;
+                }
+
+                if (!req.files || Object.keys(req.files).length == 0) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                if (db.getSiteConfig().shared.PantsUploadCost < 0) {
+                    res.status(400).send("Hats are disabled");
+                    return;
+                }
+                if (req.user.robux < db.getSiteConfig().shared.ShirtUploadCost) {
+                    res.status(401).send("You do not have enough Robux to upload a hat");
+                    return;
+                }
+                const file = req.files.file;
+                if (file.mimetype == "application/xml" || file.mimetype == "text/plain" || file.mimetype == "application/octet-stream" && db.isXmlFile(file.data)) {
+                    id = await db.createAsset(req.user.userid, name + "-HAT", desc, "Hat", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.HatUploadCost);
+                    await db.createCatalogItem(name, desc, 0, "Hat", req.user.userid, id, id);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -4198,6 +4348,26 @@ module.exports = {
                 <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
                 <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                     <div><a id="upload-fee-confirmation-link" target="_top">Pants</a> successfully created!</div>
+                </div>
+                </div>`
+            } else if (assetTypeId == 8) {
+                formData = `<div class="form-row">Did you use the template? If not, <a target="_blank" href="https://static.rbx2016.nl/templates/hattemplate.rbxl">download it here</a>.</div>
+                <div class="form-row">
+                    <label for="file">Find your image:</label>
+                    <input id="file" type="file" accept=".rbxmx" name="file" tabindex="1">
+                    <span id="file-error" class="error"></span>
+                </div>
+                        <div class="form-row">
+                    <label for="name">Hat Name:</label>
+                    <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
+                    <span id="name-error" class="error"></span>
+                </div>
+                    <div class="form-row submit-buttons">
+                                <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload for ${db.getSiteConfig().shared.HatUploadCost} Robux<span class=""></span></a>
+                                        <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+                <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
+                    <div><a id="upload-fee-confirmation-link" target="_top">Hat</a> successfully created!</div>
                 </div>
                 </div>`
             } else {
@@ -4887,7 +5057,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.nl/asset?id=${asset.id}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -5039,7 +5209,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://www.rbx2016.nl/asset?id=${asset.itemid}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -5510,6 +5680,7 @@ module.exports = {
                             </div>
                     </div>
                     </div>	
+                    </div>
                     </div>`;
                 }
                 returnPromise(out);
@@ -5562,6 +5733,24 @@ module.exports = {
         app.get("/catalog/:id", db.requireAuth, async (req, res) => {
             const id = parseInt(req.params.id);
             const asset = await db.getCatalogItem(id);
+
+            if (!asset) {
+                const item = await db.getAsset(id);
+                if (item) {
+                    return res.redirect("/library/" + item.id.toString() + "/" + db.filterText(item.name).replaceAll(" ", "-"));
+                } else {
+                    const gamepass = await db.getGamepass(id);
+                    if (gamepass) {
+                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!asset || (asset.deleted && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -5688,6 +5877,24 @@ module.exports = {
             }
             const id = parseInt(req.params.id);
             let asset = await db.getCatalogItem(id);
+
+            if (!asset) {
+                const item = await db.getAsset(id);
+                if (item) {
+                    return res.redirect("/library/" + item.id.toString() + "/" + db.filterText(item.name).replaceAll(" ", "-"));
+                } else {
+                    const gamepass = await db.getGamepass(id);
+                    if (gamepass) {
+                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!asset || asset.deleted) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -5740,7 +5947,7 @@ module.exports = {
                 res.render("catalogitem", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.itemid,
-                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.nl/asset/?id=${asset.itemid}`,
+                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -5768,7 +5975,7 @@ module.exports = {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.itemid,
                 genre: asset.itemgenre,
-                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.nl/asset/?id=${asset.itemid}`,
+                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
                 price: asset.price || 0,
                 name: asset.itemname,
                 name2: asset.itemname.replaceAll(" ", "-"),
@@ -6268,6 +6475,24 @@ module.exports = {
         app.get("/games/:gameid", db.requireAuth, async (req, res) => {
             const gameid = parseInt(req.params.gameid);
             const game = await db.getGame(gameid);
+
+            if (!game) {
+                const item = await db.getCatalogItem(gameid);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const asset = await db.getAsset(gameid);
+                    if (asset) {
+                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    } else {
+                        const gamepass = await db.getGamepass(gameid);
+                        if (gamepass) {
+                            return res.redirect("/game-pass/" + gamepass.gameid.toString() + "/" + db.filterText(gamepass.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!game) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -6282,6 +6507,24 @@ module.exports = {
         app.get("/game-pass/:id", db.requireAuth, async (req, res) => {
             const id = parseInt(req.params.id);
             const gamepass = await db.getGamepass(id);
+
+            if (!gamepass) {
+                const item = await db.getCatalogItem(id);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const asset = await db.getAsset(id);
+                    if (asset) {
+                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!gamepass) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -6296,6 +6539,22 @@ module.exports = {
         app.get("/library/:id", db.requireAuth, async (req, res) => {
             const id = parseInt(req.params.id);
             const asset = await db.getAsset(id);
+            if (!asset) {
+                const item = await db.getCatalogItem(id);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const gamepass = await db.getGamepass(id);
+                    if (gamepass) {
+                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
             if (!asset || (asset.deleted && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -6537,6 +6796,24 @@ module.exports = {
             }
             const gameid = parseInt(req.params.gameid);
             const game = await db.getGame(gameid);
+
+            if (!game) {
+                const item = await db.getCatalogItem(gameid);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const asset = await db.getAsset(gameid);
+                    if (asset) {
+                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    } else {
+                        const gamepass = await db.getGamepass(gameid);
+                        if (gamepass) {
+                            return res.redirect("/game-pass/" + gamepass.gameid.toString() + "/" + db.filterText(gamepass.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!game) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -6831,6 +7108,24 @@ module.exports = {
             }
             const id = parseInt(req.params.id);
             const gamepass = await db.getGamepass(id);
+
+            if (!gamepass) {
+                const item = await db.getCatalogItem(id);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const asset = await db.getAsset(id);
+                    if (asset) {
+                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!gamepass) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -7102,8 +7397,27 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
                 return;
             }
+
             const id = parseInt(req.params.id);
             const asset = await db.getAsset(id);
+
+            if (!asset) {
+                const item = await db.getCatalogItem(id);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const gamepass = await db.getGamepass(id);
+                    if (gamepass) {
+                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!asset || ((asset.deleted || asset.approvedBy == 0) && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -7124,7 +7438,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 res.render("asset", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.id,
-                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.nl/asset/?id=${asset.id}`,
+                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -7153,7 +7467,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.render("asset", {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.id,
-                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://www.rbx2016.nl/asset/?id=${asset.id}`,
+                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`,
                 price: asset.price || 0,
                 name: asset.name,
                 name2: asset.name.replaceAll(" ", "-"),

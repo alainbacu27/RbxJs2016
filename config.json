@@ -116,6 +116,7 @@
         "CLIENT_DOWNLOAD_AVAIlABLE": true,
         "ShirtUploadCost": 4,
         "PantsUploadCost": 4,
+        "HatUploadCost": 5,
         "jobsEnabled": true
     },
     "backend": {

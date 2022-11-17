@@ -5023,8 +5023,7 @@ module.exports = {
             data = data.toString();
         }
         if (data.startsWith("MZ�������ÿÿ��") || data.startsWith("ÐÏà¡±á��������")) {
-            res.status(400).send("Only listed formats are allowed!");
-            return;
+            return false;
         }
         // Check if data matches a .obj file
         const lines = data.split("\n");
@@ -5036,6 +5035,16 @@ module.exports = {
             }
         }
         return false;
+    },
+
+    isXmlFile: function (data) {
+        if ((data instanceof Buffer)) {
+            data = data.toString();
+        }
+        if (data.startsWith("MZ�������ÿÿ��") || data.startsWith("ÐÏà¡±á��������")) {
+            return false;
+        }
+        return data.startsWith("<?xml") || data.startsWith("<xml") || data.startsWith("<roblox ");
     },
 
     getCatalogItemsByCreatorId: async function (creatorid) {
@@ -5082,7 +5091,7 @@ module.exports = {
         });
     },
 
-    createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, decalId = 0, meshId = 0, amount = -1) {
+    createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, internalAssetId = 0, decalId = 0, meshId = 0, amount = -1) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -5122,6 +5131,7 @@ module.exports = {
                             itemmeshid: meshId,
                             itempricestatus: itemprice == 0 ? "Free" : null, // OffSale, NoResellers
                             unitsAvailableForConsumption: amount,
+                            internalAssetId: internalAssetId,
                             // lowestPrice: itemprice,
                             created: getUnixTimestamp(),
                             updated: getUnixTimestamp(),

@@ -19,7 +19,7 @@ module.exports = {
                 res.status(403).send("You are not allowed to access this endpoint OR an error occured.");
             }
         });
-        
+
         app.post("/v1/update/backend", async (req, res) => {
             const ip = get_ip(req).clientIp;
             const updated = await db.internalSiteUpdate("backend", req);
@@ -29,7 +29,7 @@ module.exports = {
                 res.status(403).send("You are not allowed to access this endpoint OR an error occured.");
             }
         });
-        
+
         app.get("/", db.requireNonAuth, async (req, res) => {
             let years = ``;
             const year = new Date().getFullYear();
@@ -3403,7 +3403,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://sitetest.rbx2016.nl/library/${asset.id}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.id}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -3553,7 +3553,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://sitetest.rbx2016.nl/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -3603,7 +3603,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://sitetest.rbx2016.nl/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -3653,7 +3653,7 @@ module.exports = {
                             <td class="image-col">
                                 <a href="https://sitetest.rbx2016.nl/library/${asset.itemid}"
                                     class="item-image"><img class=""
-                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.itemid}`}"></a>
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`}"></a>
                             </td>
                             <td class="name-col">
                                 <a class="title"
@@ -4829,7 +4829,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.id}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -4981,7 +4981,7 @@ module.exports = {
                         "PrivateServer": null,
                         "Thumbnail": {
                             "Final": true,
-                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://sitetest.rbx2016.nl/asset?id=${asset.itemid}`,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -5504,6 +5504,24 @@ module.exports = {
         app.get("/catalog/:id", db.requireAuth, async (req, res) => {
             const id = parseInt(req.params.id);
             const asset = await db.getCatalogItem(id);
+
+            if (!asset) {
+                const item = await db.getAsset(id);
+                if (item) {
+                    return res.redirect("/library/" + item.id.toString() + "/" + db.filterText(item.name).replaceAll(" ", "-"));
+                } else {
+                    const gamepass = await db.getGamepass(id);
+                    if (gamepass) {
+                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!asset || (asset.deleted && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
@@ -5630,6 +5648,24 @@ module.exports = {
             }
             const id = parseInt(req.params.id);
             let asset = await db.getCatalogItem(id);
+
+            if (!asset) {
+                const item = await db.getAsset(id);
+                if (item) {
+                    return res.redirect("/library/" + item.id.toString() + "/" + db.filterText(item.name).replaceAll(" ", "-"));
+                } else {
+                    const gamepass = await db.getGamepass(id);
+                    if (gamepass) {
+                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!asset || asset.deleted) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
@@ -5682,7 +5718,7 @@ module.exports = {
                 res.render("sitetest/catalogitem", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.itemid,
-                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.nl/asset/?id=${asset.itemid}`,
+                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -5710,7 +5746,7 @@ module.exports = {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.itemid,
                 genre: asset.itemgenre,
-                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://assetdelivery.rbx2016.nl/asset/?id=${asset.itemid}`,
+                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
                 price: asset.price || 0,
                 name: asset.itemname,
                 name2: asset.itemname.replaceAll(" ", "-"),
@@ -6210,6 +6246,24 @@ module.exports = {
         app.get("/games/:gameid", db.requireAuth, async (req, res) => {
             const gameid = parseInt(req.params.gameid);
             const game = await db.getGame(gameid);
+
+            if (!game) {
+                const item = await db.getCatalogItem(gameid);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const asset = await db.getAsset(gameid);
+                    if (asset) {
+                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    } else {
+                        const gamepass = await db.getGamepass(gameid);
+                        if (gamepass) {
+                            return res.redirect("/game-pass/" + gamepass.gameid.toString() + "/" + db.filterText(gamepass.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!game) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
@@ -6224,6 +6278,24 @@ module.exports = {
         app.get("/game-pass/:id", db.requireAuth, async (req, res) => {
             const id = parseInt(req.params.id);
             const gamepass = await db.getGamepass(id);
+
+            if (!gamepass) {
+                const item = await db.getCatalogItem(id);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const asset = await db.getAsset(id);
+                    if (asset) {
+                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!gamepass) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
@@ -6238,6 +6310,24 @@ module.exports = {
         app.get("/library/:id", db.requireAuth, async (req, res) => {
             const id = parseInt(req.params.id);
             const asset = await db.getAsset(id);
+
+            if (!asset) {
+                const item = await db.getCatalogItem(id);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const gamepass = await db.getGamepass(id);
+                    if (gamepass) {
+                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!asset || (asset.deleted && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
@@ -6479,6 +6569,24 @@ module.exports = {
             }
             const gameid = parseInt(req.params.gameid);
             const game = await db.getGame(gameid);
+
+            if (!game) {
+                const item = await db.getCatalogItem(gameid);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const asset = await db.getAsset(gameid);
+                    if (asset) {
+                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    } else {
+                        const gamepass = await db.getGamepass(gameid);
+                        if (gamepass) {
+                            return res.redirect("/game-pass/" + gamepass.gameid.toString() + "/" + db.filterText(gamepass.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!game) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
@@ -6773,6 +6881,24 @@ module.exports = {
             }
             const id = parseInt(req.params.id);
             const gamepass = await db.getGamepass(id);
+
+            if (!gamepass) {
+                const item = await db.getCatalogItem(id);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const asset = await db.getAsset(id);
+                    if (asset) {
+                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!gamepass) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
@@ -7046,6 +7172,24 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             }
             const id = parseInt(req.params.id);
             const asset = await db.getAsset(id);
+
+            if (!asset) {
+                const item = await db.getCatalogItem(id);
+                if (item) {
+                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                } else {
+                    const gamepass = await db.getGamepass(id);
+                    if (gamepass) {
+                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    } else {
+                        const game = await db.getGame(id);
+                        if (game) {
+                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        }
+                    }
+                }
+            }
+
             if (!asset || ((asset.deleted || asset.approvedBy == 0) && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
@@ -7066,7 +7210,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 res.render("sitetest/asset", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.id,
-                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://sitetest.rbx2016.nl/asset/?id=${asset.id}`,
+                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -7095,7 +7239,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.render("sitetest/asset", {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.id,
-                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://sitetest.rbx2016.nl/asset/?id=${asset.id}`,
+                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`,
                 price: asset.price || 0,
                 name: asset.name,
                 name2: asset.name.replaceAll(" ", "-"),
