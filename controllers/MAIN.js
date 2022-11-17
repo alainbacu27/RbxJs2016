@@ -6575,7 +6575,7 @@ module.exports = {
                 const created = db.unixToDate(game.created);
                 const updated = db.unixToDate(game.updated);
                 out += `<table class="item-table" data-item-id="${game.gameid}" data-type="game" data-universeid="{game.gameid}"
-                data-developerstats-url="https://create.rbx2016.nl/creations/experiences/{game.gameid}/stats">
+                data-developerstats-url="https://create.rbx2016.nl/creations/game/{game.gameid}/stats">
                 <tr>
                     <td class="image-col">
                         <a href="https://www.rbx2016.nl/games/{game.gameid}/${gamename2}" class="game-image">
@@ -7602,7 +7602,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         "HeadingRecommendedGamesMetadata": {
                             "IsTranslated": true
                         },
-                        "HeadingRecommendedGames": "Recommended Experiences",
+                        "HeadingRecommendedGames": "Recommended Games",
                         "LabelAboutMetadata": {
                             "IsTranslated": true
                         },
@@ -7644,7 +7644,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         "LabelGameCopyLockedMetadata": {
                             "IsTranslated": true
                         },
-                        "LabelGameCopyLocked": "This experience is copylocked",
+                        "LabelGameCopyLocked": "This game is copylocked",
                         "LabelGameDoesNotSellMetadata": {
                             "IsTranslated": true
                         },
@@ -7652,7 +7652,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         "LabelGameRequiresBuildersClubMetadata": {
                             "IsTranslated": true
                         },
-                        "LabelGameRequiresBuildersClub": "This Experience requires Builders Club",
+                        "LabelGameRequiresBuildersClub": "This Game requires Builders Club",
                         "LabelGenreMetadata": {
                             "IsTranslated": true
                         },
@@ -7672,11 +7672,11 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         "LabelNoRunningGamesMetadata": {
                             "IsTranslated": true
                         },
-                        "LabelNoRunningGames": "There are currently no running experiences.",
+                        "LabelNoRunningGames": "There are currently no running games.",
                         "LabelPlaceCopyingAllowedMetadata": {
                             "IsTranslated": true
                         },
-                        "LabelPlaceCopyingAllowed": "This experience\u0027s source can be copied.",
+                        "LabelPlaceCopyingAllowed": "This game\u0027s source can be copied.",
                         "LabelPlayingMetadata": {
                             "IsTranslated": true
                         },
@@ -7688,7 +7688,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         "LabelPrivateSourceDescriptionMetadata": {
                             "IsTranslated": true
                         },
-                        "LabelPrivateSourceDescription": "This experience\u0027s source is private",
+                        "LabelPrivateSourceDescription": "This game\u0027s source is private",
                         "LabelPublicPrivateSourceCheckBoxMetadata": {
                             "IsTranslated": true
                         },
@@ -7700,7 +7700,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         "LabelPublicSourceDescriptionMetadata": {
                             "IsTranslated": true
                         },
-                        "LabelPublicSourceDescription": "This experience\u0027s source is public",
+                        "LabelPublicSourceDescription": "This game\u0027s source is public",
                         "LabelReportAbuseMetadata": {
                             "IsTranslated": true
                         },
@@ -7841,7 +7841,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }],
                 "FinalPublishStep": 4,
                 "VersionHistoryOnConfigurePageEnabled": true,
-                "DefaultDevelopTabName": "Experience",
+                "DefaultDevelopTabName": "Game",
                 "PortraitModeEnabled": false,
                 "IsEngagementPayoutEnabled": true,
                 "EngagementPayoutUrl": "https://www.rbx2016.nl/develop/premium-payout?ctx=gameDetail",
@@ -8474,7 +8474,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             }
 
             res.json({
-                "Title": "Experiences",
+                "Title": "Games",
                 "Games": [],
                 "ModalAssetViewType": 4,
                 "ProfileLangResources": {
@@ -8648,11 +8648,11 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     "HeadingGamesMetadata": {
                         "IsTranslated": true
                     },
-                    "HeadingGames": "Experiences",
+                    "HeadingGames": "Games",
                     "HeadingGameTitleMetadata": {
                         "IsTranslated": true
                     },
-                    "HeadingGameTitle": "Experiences",
+                    "HeadingGameTitle": "Games",
                     "HeadingGroupsMetadata": {
                         "IsTranslated": true
                     },
@@ -8889,7 +8889,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     "HeadingExperimentalModeMetadata": {
                         "IsTranslated": true
                     },
-                    "HeadingExperimentalMode": "Experimental Mode Experiences",
+                    "HeadingExperimentalMode": "Games Mode Games",
                     "LabelFilterExperimentalMetadata": {
                         "IsTranslated": true
                     },
@@ -8940,7 +8940,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     "LabelExperimentalResultsMetadata": {
                         "IsTranslated": true
                     },
-                    "LabelExperimentalResults": "These results contain Experimental Mode experiences.",
+                    "LabelExperimentalResults": "These results contain Experimental Mode games.",
                     "LabelFilterAllTimeMetadata": {
                         "IsTranslated": true
                     },

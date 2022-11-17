@@ -21,17 +21,17 @@ module.exports = {
             }, {
                 "id": 3,
                 "name": "Combat Initiation",
-                "description": "This badge was granted when a user scored 10 victories in experiences that use classic combat scripts. It was retired Summer 2015 and is no longer attainable.",
+                "description": "This badge was granted when a user scored 10 victories in games that use classic combat scripts. It was retired Summer 2015 and is no longer attainable.",
                 "imageUrl": "https://images.rbx2016.nl/8d77254fc1e6d904fd3ded29dfca28cb.png"
             }, {
                 "id": 12,
                 "name": "Veteran",
-                "description": "This badge recognizes members who have visited Roblox for one year or more. They are stalwart community members who have stuck with us over countless releases, and have helped shape Roblox into the experience that it is today. These medalists are the true steel, the core of the Robloxian history ... and its future.",
+                "description": "This badge recognizes members who have visited Roblox for one year or more. They are stalwart community members who have stuck with us over countless releases, and have helped shape Roblox into the game that it is today. These medalists are the true steel, the core of the Robloxian history ... and its future.",
                 "imageUrl": "https://images.rbx2016.nl/b7e6cabb5a1600d813f5843f37181fa3.png"
             }, {
                 "id": 4,
                 "name": "Warrior",
-                "description": "This badge was granted when a user scored 100 or more victories in experiences that use classic combat scripts. It was retired Summer 2015 and is no longer attainable.",
+                "description": "This badge was granted when a user scored 100 or more victories in games that use classic combat scripts. It was retired Summer 2015 and is no longer attainable.",
                 "imageUrl": "https://images.rbx2016.nl/0a010c31a8b482731114810590553be3.png"
             }, {
                 "id": 2,
@@ -41,7 +41,7 @@ module.exports = {
             }, {
                 "id": 5,
                 "name": "Bloxxer",
-                "description": "This badge was granted when a user scored at least 250 victories, and fewer than 250 wipeouts, in experiences that use classic combat scripts. It was retired Summer 2015 and is no longer attainable.",
+                "description": "This badge was granted when a user scored at least 250 victories, and fewer than 250 wipeouts, in games that use classic combat scripts. It was retired Summer 2015 and is no longer attainable.",
                 "imageUrl": "https://images.rbx2016.nl/139a7b3acfeb0b881b93a40134766048.png"
             }, {
                 "id": 8,
