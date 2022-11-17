@@ -634,12 +634,34 @@ module.exports = {
             res.send();
         });
 
+        async function getGamesT7(userid){
+            const games = await db.getGamesByCreatorId(userid);
+            let out = ``;
+            for (const game of games) {
+                if (!game || game.deleted) continue;
+                out += `<div class="template" placeid="${game.gameid}">
+                <a class="game-image">
+                    <img class="inner-game-image" src="http://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}">
+                </a>
+                <p>${game.gamename}
+                </p>
+            </div>`;
+            }
+            return out;
+        }
+        
         app.get("/ide/welcome", db.requireAuth2, async (req, res) => {
             if (!req.user) {
                 res.redirect("/My/Places.aspx&showlogin=True");
                 return;
             }
-            res.render("idewelcome", await db.getRenderObject(req.user));
+
+            const games = await getGamesT7(req.user.userid);
+
+            res.render("idewelcome", {
+                ...(await db.getRenderObject(req.user)),
+                MyGames: games
+            });
         });
 
         app.get("/account/signupredir", (req, res) => {
@@ -1470,7 +1492,7 @@ module.exports = {
                     const item = items[i];
 
                     if (item.itemtype == "TShirt" || item.itemtype == "Shirt" || item.itemtype == "Pants" || item.itemtype == "TShirt" || item.itemtype == "Face") continue;
-                    
+
                     const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
                     itemsHtml += `<div class="col-3 mt-4">
                     <div class="image-0-2-92">
@@ -2189,28 +2211,46 @@ module.exports = {
             res.json({});
         });
 
+        /*
+        app.get("/IDE/logout", db.requireAuth, async (req, res) => {
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.nl",
+                httpOnly: true
+            });
+            await db.setUserProperty(req.user.userid, "cookie", "");
+            await db.setUserProperty(req.user.userid, "xcsrftoken", "");
+            res.redirect('back');
+        });
+        */
+
         app.post("/authentication/logout", db.requireAuth2, async (req, res) => {
+            if ((await db.getConfig()).maintenance && db.getSiteConfig().backend.disableLogoutOnMaintenance) {
+                res.status(503).send("Maintenance");
+                return;
+            }
             if (req.user) {
-                if ((await db.getConfig()).maintenance && db.getSiteConfig().backend.disableLogoutOnMaintenance) {
-                    res.status(503).send("Maintenance");
-                    return;
-                }
-                res.cookie('.ROBLOSECURITY', "delete", {
-                    maxAge: -1,
-                    path: "/",
-                    domain: "rbx2016.nl",
-                    httpOnly: true
-                });
+                await db.setUserProperty(req.user.userid, "cookie", "");
+                await db.setUserProperty(req.user.userid, "xcsrftoken", "");
+            }else{
                 if (typeof req.headers["x-csrf-token"] !== "undefined") {
                     if (req.headers["x-csrf-token"].length == 128) {
                         const user = await db.getUserByCsrfToken(req.headers["x-csrf-token"]);
                         if (user) {
                             await db.setUserProperty(user.userid, "cookie", "");
+                            await db.setUserProperty(user.userid, "xcsrftoken", "");
                         }
                     }
                 }
-                res.redirect("/");
             }
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.nl",
+                httpOnly: true
+            });
+            res.redirect("/");
         });
 
         function getAssetHTML(name, id) {
@@ -2221,6 +2261,14 @@ module.exports = {
 
         app.get("/IDE/ClientToolbox.aspx", async (req, res) => {
             const assets = "";
+            const topAssets = await db.getTopModels();
+
+            for (const asset of topAssets) {
+                assets += `<span ondragstart="dragRBX(${asset.id})" style="margin-left: 5px; margin-top: 5px; color: #fff; text-decoration: none; text-align: center; border: 1px solid #000; background-color: #cccccc; width: 80px; height: 80px;">
+                <a href="javascript:insertContent(${asset.id})">${asset.name}</a>
+                </span>`;
+            }
+
             res.render("ClientToolbox", {
                 ...await db.getBlankRenderObject(),
                 assets: assets

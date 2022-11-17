@@ -654,12 +654,34 @@ module.exports = {
             res.send();
         });
 
+        async function getGamesT7(userid){
+            const games = await db.getGamesByCreatorId(userid);
+            let out = ``;
+            for (const game of games) {
+                if (!game || game.deleted) continue;
+                out += `<div class="template" placeid="${game.gameid}">
+                <a class="game-image">
+                    <img class="inner-game-image" src="http://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}">
+                </a>
+                <p>${game.gamename}
+                </p>
+            </div>`;
+            }
+            return out;
+        }
+        
         app.get("/ide/welcome", db.requireAuth2, async (req, res) => {
             if (!req.user) {
                 res.redirect("/My/Places.aspx&showlogin=True");
                 return;
             }
-            res.render("sitetest/idewelcome", await db.getRenderObject(req.user));
+
+            const games = await getGamesT7(req.user.userid);
+
+            res.render("idewelcome", {
+                ...(await db.getRenderObject(req.user)),
+                MyGames: games
+            });
         });
 
         app.get("/account/signupredir", (req, res) => {

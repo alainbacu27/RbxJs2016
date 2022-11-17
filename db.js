@@ -7246,7 +7246,7 @@ module.exports = {
                     approvedBy: 0,
                     deleted: false
                 }).sort({
-                    created: 1
+                    created: -1
                 }).limit(x).toArray(function (err, result) {
                     if (err) {
                         db.close();
@@ -7466,6 +7466,32 @@ module.exports = {
                 });
             });
         });
+    },
+
+    getTopModels: async function (x = 15) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("assets").find({
+                    approvedBy: {
+                        $ne: 0
+                    }, 
+                    deleted: false,
+                    type: "Model"
+                }).sort({
+                    favorites: -1
+                }).limit(x).toArray(function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });  
     },
 
     userLeftTeamCreate: async function (userid, gameid) {
@@ -8147,11 +8173,11 @@ module.exports = {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                
+
                 if (fs.existsSync(`../games/${assetid}.asset`)) {
                     fs.unlinkSync(`../games/${assetid}.asset`);
                 }
-                
+
                 dbo.collection("games").updateOne({
                     gameid: gameid
                 }, {
