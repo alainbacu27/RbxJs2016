@@ -3947,7 +3947,7 @@ module.exports = {
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
                     id = await db.createAsset(req.user.userid, name, desc, "Decal", (req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
                     file.mv(`${__dirname}/../assets/${id}.asset`);
-                    if (await db.isNsfw(file.buffer)){
+                    if (await db.isNsfw(file.data)){
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
                         db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
@@ -3993,7 +3993,7 @@ module.exports = {
                     id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
 
-                    if (await db.isNsfw(file.buffer)){
+                    if (await db.isNsfw(file.data)){
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
                         db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
@@ -4050,7 +4050,7 @@ module.exports = {
                     id = await db.createAsset(req.user.userid, name + "-TSHIRT", desc, "TShirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`); // TODO: CHECK WHY NOT UPLOADING?!
 
-                    if (await db.isNsfw(file.buffer)){
+                    if (await db.isNsfw(file.data)){
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
                         db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
@@ -4115,7 +4115,7 @@ module.exports = {
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.PantsUploadCost);
 
-                    if (await db.isNsfw(file.buffer)){
+                    if (await db.isNsfw(file.data)){
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
                         db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
