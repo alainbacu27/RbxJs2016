@@ -5,7 +5,7 @@ const fetch = require('node-fetch');
 const querystring = require('querystring');
 const AdmZip = require('adm-zip');
 const mime = require('mime');
-const detectContentType = require('detect-content-type')
+const detectContentType = require('detect-content-type');
 const get_ip = require('ipware')().get_ip;
 
 module.exports = {

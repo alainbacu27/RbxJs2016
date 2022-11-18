@@ -188,7 +188,25 @@ module.exports = {
             res.send();
         });
 
-        app.post("/v2/logout", async (req, res) => {
+        app.post("/v2/account/reactivate", db.requireAuth2, async (req, res) => {
+            if (!req.user){
+                return res.status(401).send();
+            }
+            if (!req.user.banned) {
+                return res.redirect("/");
+            }
+            const body = req.body;
+            if (!body.tos_agreed) {
+                return res.status(403).send("You must agree to the Terms of Service.");
+            }
+            const banLiftTime = req.user.bannedDate + (req.user.bannedType == "1Day" ? 86400 : req.user.bannedType == "3Days" ? 259200 : req.user.bannedType == "1Week" ? 604800 : -req.user.bannedDate);
+            if (req.user.bannedType != "Permanent" && banLiftTime - db.getUnixTimestamp() <= 0 || req.user.bannedType == "Warning") {
+                await db.unbanUser(req.user.userid);
+            }
+            res.redirect("/");
+        });
+
+        app.post("/v2/logout", db.requireAuth2, async (req, res) => {
             if ((await db.getConfig()).maintenance && db.backend.disableLogoutOnMaintenance) {
                 res.status(503).send("Maintenance");
                 return;
@@ -199,6 +217,9 @@ module.exports = {
                 domain: "rbx2016.nl",
                 httpOnly: true
             });
+            if (req.user) {
+                await db.setUserProperty(req.user.userid, "cookie", "");
+            }
             if (typeof req.headers["x-csrf-token"] !== "undefined") {
                 if (req.headers["x-csrf-token"].length == 128) {
                     const user = await db.getUserByCsrfToken(req.headers["x-csrf-token"]);
@@ -209,7 +230,7 @@ module.exports = {
             }
             res.redirect("/");
         });
-        
+
         app.post("/sign-out/v1", async (req, res) => {
             if ((await db.getConfig()).maintenance && db.backend.disableLogoutOnMaintenance) {
                 res.status(503).send("Maintenance");

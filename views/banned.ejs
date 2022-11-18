@@ -490,10 +490,10 @@
 
 
             <div class="not-approved-page-content">
-                <div class="not-approved-page">
+                <div class="not-approved-page" <% if (bannedType == "Warning" || bannedCanReactivate == "true") { %>style="height: 75%;"<% } %>>
                     <div class="message-container">
 
-                        <h3 class="error-title">Account Deleted</h3>
+                        <h3 class="error-title"><% if (bannedType == "Warning"){ %>Warning<% } else if (bannedType == "1Day"){ %>Banned for 1 Day<% } else if (bannedType == "3Days"){ %>Banned for 3 Days<% } else if (bannedType == "1Week"){ %>Banned for 1 Week<% } else if (bannedType == "Permanent"){ %>Account Deleted<% } %></h3>
                         <p class="message-section">Our content monitors have determined that your behavior at Roblox has
                             been in violation of our <a href="https://www.rbx2016.nl/info/terms" target="_blank">Terms
                                 of Use</a>.</p>
@@ -506,7 +506,7 @@
                         </div>
 
 
-                        <p class="message-section" id="punishment-description">Your account has been terminated.</p>
+                        <p class="message-section" id="punishment-description"><% if (bannedType == "Warning" || bannedCanReactivate == "true") { %>You may re-activate your account by agreeing to our Terms of Service.<% } else if (bannedType == "Permanent"){ %>Your account has been terminated.<% } else { %>Your account has been disabled. You may re-activate it after <%= bannedLiftDate %> <% } %></p>
 
 
                         <p class="message-section">If you wish to appeal, please contact us via the <a
@@ -514,10 +514,67 @@
 
                     </div>
                     <div class="action-buttons">
+                        <% if (bannedCanReactivate == "true") { %>
                         <div>
-                            <button type="button" class="btn-control-md btn-min-width" id="logout-button"
+                            <style>
+                                .checkBox1 {
+                                    position: absolute;
+                                    top: 75%;
+                                    left: 46%;
+                                }
+                                .checkBox2 {
+                                    position: absolute;
+                                    top: 74.25%;
+                                    left: 49%;
+                                }
+                                .randomShitIDontKnowWhatIAmDoingAnymore1 {
+                                    position: absolute;
+                                    top: 80%;
+                                    left: 38.5%;
+                                }
+                                .randomShitIDontKnowWhatIAmDoingAnymore2 {
+                                    position: absolute;
+                                    top: 90%;
+                                    left: 45%;
+                                }
+                            </style>
+                            <div>
+                                <input type="checkbox" class="checkBox1" id="agreeCheckbox" name="checkbox" value="1">
+                                <label for="agreeCheckbox" class="checkBox2"> I Agree</label>
+                            </div>
+                            <button type="button" class="btn-control-md btn-min-width randomShitIDontKnowWhatIAmDoingAnymore1" id="reactivate-button"
+                                data-bind="https://auth.rbx2016.nl/v2/account/reactivate">Reactivate My Account</button>
+                        </div>
+                        <script>
+                            const agreeCheckbox = document.getElementById('agreeCheckbox');
+                            const reactivateButton = document.getElementById('reactivate-button');
+                            reactivateButton.disabled = true;
+                            agreeCheckbox.addEventListener('change', (event) => {
+                                reactivateButton.disabled = !event.target.checked;
+                            });
+                            reactivateButton.addEventListener('click', () => {
+                                fetch(reactivateButton.dataset.bind, {
+                                    method: 'POST',
+                                    credentials: 'include',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        'tos_agreed': agreeCheckbox.checked
+                                    })
+                                }).then((response) => {
+                                    window.location.href = '/';
+                                });
+                            });
+                        </script>
+                        <div>
+                            <button type="button" class="btn-control-md btn-min-width randomShitIDontKnowWhatIAmDoingAnymore2" id="logout-button"
                                 data-bind="https://auth.rbx2016.nl/v2/logout">Logout</button>
                         </div>
+                        <% } else { %><div>
+                            <button type="button" class="btn-control-md btn-min-width" id="logout-button"
+                                data-bind="https://auth.rbx2016.nl/v2/logout">Logout</button>
+                        </div><% } %>
                     </div>
                 </div>
             </div>
@@ -1068,6 +1125,13 @@
 
     <script type="text/javascript" src="https://js.rbx2016.nl/b1a389c995e5a832c76249e69701d023.js.gzip"></script>
 
-    <audio autoplay="true" style="display: none;" src="/banned.mp3">
+    <% if (bannedType == "Permanent") { %>
+        <audio id="banAudio" style="display: none;" src="/banned.mp3"></audio>
+        <script>
+            document.addEventListener("click", function () {
+                document.getElementById("banAudio").play();
+            });
+        </script>
+    <% } %>
     
 </html>

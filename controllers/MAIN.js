@@ -3946,7 +3946,14 @@ module.exports = {
                 const file = req.files.file;
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
                     id = await db.createAsset(req.user.userid, name, desc, "Decal", (req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
+                    if (await db.isNsfw(file.buffer)){
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -3984,7 +3991,16 @@ module.exports = {
                 const file = req.files.file;
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
                     id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
+
+                    if (await db.isNsfw(file.buffer)){
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
+                    
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.ShirtUploadCost);
 
                     const internalId = await db.createAsset(req.user.userid, name + "-SHIRT-INTERNAL", desc, "Shirt", req.user.userid, true);
@@ -4032,7 +4048,15 @@ module.exports = {
                 const file = req.files.file;
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
                     id = await db.createAsset(req.user.userid, name + "-TSHIRT", desc, "TShirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`); // TODO: CHECK WHY NOT UPLOADING?!
+                    file.mv(`${__dirname}/../assets/${id}.asset`); // TODO: CHECK WHY NOT UPLOADING?!
+
+                    if (await db.isNsfw(file.buffer)){
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
 
                     const internalId = await db.createAsset(req.user.userid, name + "-TSHIRT-INTERNAL", desc, "TShirt", req.user.userid, true);
                     const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
@@ -4088,8 +4112,16 @@ module.exports = {
                 const file = req.files.file;
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
                     id = await db.createAsset(req.user.userid, name + "-PANTS", desc, "Pants", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.PantsUploadCost);
+
+                    if (await db.isNsfw(file.buffer)){
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
 
                     const internalId = await db.createAsset(req.user.userid, name + "-PANTS-INTERNAL", desc, "Pants", req.user.userid, true);
                     const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
@@ -4149,7 +4181,7 @@ module.exports = {
                 const file = req.files.file;
                 if (file.mimetype == "application/xml" || file.mimetype == "text/plain" || file.mimetype == "application/octet-stream" && db.isXmlFile(file.data)) {
                     id = await db.createAsset(req.user.userid, name + "-HAT", desc, "Hat", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.HatUploadCost);
                     await db.createCatalogItem(name, desc, 0, "Hat", req.user.userid, id, id);
                 } else {
@@ -4187,7 +4219,7 @@ module.exports = {
                         return;
                     }
                     id = await db.createAsset(req.user.userid, name, desc, "Audio", req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -4216,7 +4248,7 @@ module.exports = {
                 const file = req.files.file;
                 if (file.mimetype == "application/octet-stream" && db.isObjFile(file.data)) {
                     const fp0 = `${__dirname}/../temp/${db.uuidv4()}.asset`;
-                    await req.files.file.mv(fp0);
+                    await file.mv(fp0);
                     const s = await db.convertMesh(fp0);
                     if (s) {
                         id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");

@@ -23,6 +23,10 @@ const utf8 = require('utf8');
 const kill = require('tree-kill');
 const Profanity = require('profanity-js');
 // const NodeGit = require("nodegit");
+const jpeg = require('jpeg-js');
+const detectContentType = require('detect-content-type');
+const pngToJpeg = require('png-to-jpeg');
+
 
 function maskIp(ip) {
     const isIpv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
@@ -1135,6 +1139,7 @@ async function getConfig() {
 
 async function getRenderObject(user, banned = false) {
     const config = await getConfig();
+    const banLiftTime = user.bannedDate + (user.bannedType == "1Day" ? 86400 : user.bannedType == "3Days" ? 259200 : user.bannedType == "1Week" ? 604800 : -user.bannedDate);
     return {
         userid: user.userid,
         username: user.username,
@@ -1144,9 +1149,12 @@ async function getRenderObject(user, banned = false) {
         role: user.role,
         banned: toString(user.banned),
         bannedDate: timeToString(user.bannedDate),
+        bannedLiftDate: timeToString(banLiftTime),
+        bannedCanReactivate: toString(banLiftTime - getUnixTimestamp() <= 0),
         bannedModNote: user.bannedModNote,
         bannedReason: user.bannedReason,
         bannedReasonItem: user.bannedReasonItem,
+        bannedType: user.bannedType,
         xcsrftoken: banned ? "" : encodeURIComponent(user.xcsrftoken),
         robux: banned ? "?" : user.robux,
         robux2: banned ? "?" : formatNumberS(user.robux),
@@ -1173,10 +1181,13 @@ async function getBlankRenderObject() {
         accountCreated: timeToString(0, true),
         role: "none",
         banned: toString(false),
-        bannedDate: 0,
+        bannedDate: "",
+        bannedLiftDate: "",
+        bannedCanReactivate: toString(false),
         bannedModNote: "",
         bannedReason: "",
         bannedReasonItem: "",
+        bannedType: "",
         xcsrftoken: "",
         robux: "?",
         robux2: "?",
@@ -3495,6 +3506,55 @@ function shouldCensorText(text) {
     return profanity.isProfane(text);
 }
 
+const tf = require('@tensorflow/tfjs-node');
+const nsfw = require('nsfwjs');
+
+const convert2TF = async (img) => {
+    // Decoded image in UInt8 Byte array
+    const image = await jpeg.decode(img, {
+        useTArray: true
+    })
+
+    const numChannels = 3
+    const numPixels = image.width * image.height
+    const values = new Int32Array(numPixels * numChannels)
+
+    for (let i = 0; i < numPixels; i++)
+        for (let c = 0; c < numChannels; ++c)
+            values[i * numChannels + c] = image.data[i * 4 + c]
+
+    return tf.tensor3d(values, [image.height, image.width, numChannels], 'int32')
+}
+
+let nsfwImageModel = null;
+
+setTimeout(async () => {
+    nsfwImageModel = await nsfw.load(`http://localhost:${siteConfig.shared.httpPort}/recognition/images/model/`, {size: 299});
+}, 1000);
+
+async function isNsfw(content) {
+    return new Promise(async returnPromise => {
+        const mime = detectContentType(Buffer.from(content));
+        if (mime.startsWith("image/")) {
+            if (!mime.includes("jpeg") && !mime.includes("jpg")){
+                if (mime.includes("png")){
+                    content = await pngToJpeg({quality: 90})(Buffer.from(content));
+                }
+            }
+            while (nsfwImageModel == null){
+                await sleep(500);
+            }
+            const image = await convert2TF(content);
+            const predictions = await nsfwImageModel.classify(image);
+            image.dispose();
+            const name = predictions[0].className;
+            returnPromise(name != "Neutral" && name != "Drawing");
+        } else if (mime.startsWith("audio/")) {
+            returnPromise(null);
+        }
+    });
+}
+
 if (siteConfig.backend.PRODUCTION) {
     process.stdin.resume(); //so the program will not close instantly
 
@@ -3768,6 +3828,7 @@ module.exports = {
                         bannedModNote: "",
                         bannedReason: "",
                         bannedReasonItem: "",
+                        bannedType: "",
                         token: "",
                         xcsrftoken: generateCSRF(),
                         cookie: COOKIE,
@@ -3830,6 +3891,7 @@ module.exports = {
                     bannedModNote: "",
                     bannedReason: "",
                     bannedReasonItem: "",
+                    bannedType: "",
                     token: "",
                     xcsrftoken: generateCSRF(),
                     cookie: COOKIE,
@@ -4246,7 +4308,8 @@ module.exports = {
         });
     },
 
-    banUser: async function (userid, note = "Repeatedly breaking rules will not be tolerated.", banReason = "Inappropriate", banReasonItem = "[ Content Deleted ]") {
+    // BanTypes: "Warning", "1Day", "3Days", "1Week", "Permanent"
+    banUser: async function (userid, type = "Permanent", note = "Repeatedly breaking rules will not be tolerated.", banReason = "Inappropriate", banReasonItem = "[ Content Deleted ]") {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -4259,7 +4322,8 @@ module.exports = {
                         bannedModNote: note,
                         bannedDate: getUnixTimestamp(),
                         bannedReason: banReason,
-                        bannedReasonItem: banReasonItem
+                        bannedReasonItem: banReasonItem,
+                        bannedType: type
                     }
                 }, function (err, res) {
                     if (err) throw err;
@@ -4283,7 +4347,8 @@ module.exports = {
                         bannedModNote: "",
                         bannedDate: 0,
                         bannedReason: "",
-                        bannedReasonItem: ""
+                        bannedReasonItem: "",
+                        bannedType: ""
                     }
                 }, function (err, res) {
                     if (err) throw err;
@@ -7476,7 +7541,7 @@ module.exports = {
                 dbo.collection("assets").find({
                     approvedBy: {
                         $ne: 0
-                    }, 
+                    },
                     deleted: false,
                     type: "Model"
                 }).sort({
@@ -7491,7 +7556,7 @@ module.exports = {
                     returnPromise(result);
                 });
             });
-        });  
+        });
     },
 
     userLeftTeamCreate: async function (userid, gameid) {
@@ -8837,6 +8902,7 @@ module.exports = {
 
     isCatalogItemEquipped: isCatalogItemEquipped,
 
+    isNsfw: isNsfw,
 
     getCpuUsage: getCpuUsage,
 

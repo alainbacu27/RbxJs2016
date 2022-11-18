@@ -6,6 +6,7 @@ const querystring = require('querystring');
 
 module.exports = {
     init: (app, db) => {
+        const validBanTypes = ["Warning", "1Day", "3Days", "1Week", "Permanent"];
         app.post("/v1/admin/ban", db.requireAuth, db.requireMod, async (req, res) => {
             if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == false) {
                 res.status(400).send();
@@ -17,7 +18,7 @@ module.exports = {
             const item = req.body.item;
             const todo = req.body.todo;
             const user = await db.getUser(userid);
-            if (req.user.role = "mod") {
+            if (req.user.role == "mod") {
                 if (user && (user.role == "mod" || user.role == "admin" || user.role == "owner")) {
                     res.status(401).send("You cannot ban that person. Lacking sufficient permissions.");
                     return;
@@ -29,7 +30,7 @@ module.exports = {
                     return;
                 }
             }
-            if (user && user.role == "owner") {
+            if (user && user.role == "owner" && req.user.userid != 1) {
                 res.status(401).send("You cannot ban that person. Lacking sufficient permissions.");
                 return;
             }
@@ -37,8 +38,13 @@ module.exports = {
                 res.status(400).send("User not found or already banned.");
                 return;
             }
-            db.log(`user ${req.user.userid} has banned ${user.username} (${user.userid}) for the reason: ${reason}`);
-            await db.banUser(userid, modnote, reason, item);
+            const banType = req.body.type || "Permanent";
+            if (!validBanTypes.includes(banType)) {
+                res.status(400).send("Invalid ban type.");
+                return;
+            }
+            db.log(`user ${req.user.userid} has been ${banType} banned ${user.username} (${user.userid}) for the reason: ${reason}`);
+            await db.banUser(userid, banType, modnote, reason, item);
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });
 

@@ -21,9 +21,21 @@ if (!fs.existsSync("./logs/admin.log")) {
 
 const exludedRedirects = ["/ide", "/api/", "/api/moderation/v2/filtertext/", "//api/moderation/v2/filtertext/", "/moderation/filtertext/", "//moderation/filtertext/"]
 
-const bypassedIps = ["::1", "127.0.0.1"]
+const bypassedIps = ["::1", "127.0.0.1"];
 
 const exludedBlocks = ["/ide/", "/My/", "/api/game/players/", "/api//game/players/", "/api/moderation/v2/filtertext/", "//api/moderation/v2/filtertext/", "/moderation/filtertext", "/api/moderation/filtertext"]
+
+// Loop thru the files in the ./recognition/images/model/ folder
+fs.readdirSync("./recognition/images/model/").forEach(file => {
+    template.app.get(`/recognition/images/model/${file}`, (req, res) => {
+        const ip = get_ip(req).clientIp;
+        if (!db.getHostPublicIps().includes(ip)) {
+            res.sendStatus(403);
+            return;
+        }
+        res.sendFile(path.join(__dirname, `recognition`, `images`, `model`, file));
+    });
+});
 
 template.app.use(async (req, res, next) => {
     const ip = get_ip(req).clientIp;
