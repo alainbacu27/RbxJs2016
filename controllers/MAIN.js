@@ -3950,7 +3950,7 @@ module.exports = {
                     if (await db.isNsfw(file.data)){
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
-                        db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
                         res.redirect("/");
                         return;
                     }
@@ -3996,7 +3996,7 @@ module.exports = {
                     if (await db.isNsfw(file.data)){
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
-                        db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
                         res.redirect("/");
                         return;
                     }
@@ -4053,7 +4053,7 @@ module.exports = {
                     if (await db.isNsfw(file.data)){
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
-                        db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
                         res.redirect("/");
                         return;
                     }
@@ -4118,7 +4118,7 @@ module.exports = {
                     if (await db.isNsfw(file.data)){
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
-                        db.log(`user ${req.user.userid} has been 3Days banned SYSTEM (?) for the reason: Inappropriate Asset`);
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
                         res.redirect("/");
                         return;
                     }

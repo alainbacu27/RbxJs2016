@@ -43,7 +43,7 @@ module.exports = {
                 res.status(400).send("Invalid ban type.");
                 return;
             }
-            db.log(`user ${req.user.userid} has been ${banType} banned ${user.username} (${user.userid}) for the reason: ${reason}`);
+            db.log(`user ${req.user.userid} has been ${banType} banned by ${user.username} (${user.userid}) for the reason: ${reason}`);
             await db.banUser(userid, banType, modnote, reason, item);
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute)
         });
