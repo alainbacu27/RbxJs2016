@@ -3534,7 +3534,7 @@ setTimeout(async () => {
 
 async function isNsfw(content) {
     return new Promise(async returnPromise => {
-        const mime = detectContentType(Buffer.from(content));
+        const mime = detectContentType(content);
         if (mime.startsWith("image/")) {
             if (!mime.includes("jpeg") && !mime.includes("jpg")){
                 if (mime.includes("png")){
