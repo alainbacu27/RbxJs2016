@@ -95,6 +95,7 @@ fs.watchFile(siteConfigFP, (curr, prev) => {
 
 const isWin = process.platform === "win32";
 const rccPath = path.resolve(__dirname + "/internal/RCCService/RCCService.exe");
+const rccPath2 = path.resolve(__dirname + "/internal/RCCService-Renderer/RCCService.exe");
 
 const formatBytes = (bytes, decimals = 2) => {
     if (bytes === 0) {
@@ -626,7 +627,8 @@ MongoClient.connect(mongourl, async function (err, db) {
                     maintenance: false,
                     maintenanceBypassCode: "",
                     maintenance_finishtime: 0,
-                    roblox_message: ""
+                    roblox_message: "",
+                    renderQueue: []
                 }).next((err, result) => {
                     if (err) throw err;
                     db.close();
@@ -639,7 +641,8 @@ MongoClient.connect(mongourl, async function (err, db) {
                     maintenance: false,
                     maintenance_finishtime: 0,
                     maintenanceBypassCode: "",
-                    roblox_message: ""
+                    roblox_message: "",
+                    renderQueue: []
                 }).next((err, result) => {
                     if (err) throw err;
                     db.close();
@@ -1202,6 +1205,149 @@ async function getBlankRenderObject() {
 
         robloxMessage: config.roblox_message
     };
+}
+
+async function isRenderPending(itemid, isUserRender = false) {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, async function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("config").findOne({}, function (err, result) {
+                if (err) {
+                    db.close();
+                    returnPromise(false);
+                    return;
+                }
+                let didExist = false;
+                if (result.renderQueue.length > 0) {
+                    for (let i = 0; i < result.renderQueue.length; i++) {
+                        if (result.renderQueue[i].itemid == itemid && result.renderQueue[i].isUserRender == isUserRender) {
+                            didExist = true;
+                            return;
+                        }
+                    }
+                }
+                db.close();
+                returnPromise(didExist);
+                return;
+            });
+        });
+    });
+}
+
+async function enqueueRender(itemid, isUserRender = true) {
+    return new Promise(async returnPromise => {
+        const isPending = await isRenderPending(itemid, isUserRender);
+        if (isPending) {
+            returnPromise(false);
+            return;
+        }
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("config").updateOne({}, {
+                $push: {
+                    renderQueue: {
+                        itemid: itemid,
+                        isUserRender: isUserRender
+                    }
+                }
+            }, function (err, result) {
+                if (err) {
+                    db.close();
+                    returnPromise(false);
+                    return;
+                }
+                db.close();
+                returnPromise(true);
+            });
+        });
+    });
+}
+
+async function removeRender(itemid, isUserRender = true) {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("config").updateOne({}, {
+                $pull: {
+                    renderQueue: {
+                        itemid: itemid,
+                        isUserRender: isUserRender
+                    }
+                }
+            }, function (err, result) {
+                if (err) {
+                    db.close();
+                    returnPromise(false);
+                    return;
+                }
+                db.close();
+                returnPromise(true);
+            });
+        });
+    });
+}
+
+async function clearRenderQueue() {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("config").updateOne({}, {
+                $set: {
+                    renderQueue: []
+                }
+            }, function (err, result) {
+                if (err) {
+                    db.close();
+                    returnPromise(false);
+                    return;
+                }
+                db.close();
+                returnPromise(true);
+            });
+        });
+    });
+}
+
+async function dequeueRender() {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("config").findOne({}, function (err, result) {
+                if (err) {
+                    db.close();
+                    returnPromise(null);
+                    return;
+                }
+                if (result.renderQueue.length == 0) {
+                    db.close();
+                    returnPromise(null);
+                    return;
+                }
+                const item = result.renderQueue[0];
+                dbo.collection("config").updateOne({}, {
+                    $pull: {
+                        renderQueue: {
+                            itemid: item.itemid,
+                            isUserRender: item.isUserRender
+                        }
+                    }
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(item);
+                });
+            });
+        });
+    });
 }
 
 async function userHasPlayedGame(userid, gameid) {
@@ -1798,39 +1944,25 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
 
     if (isUserRender) {
         script = `local url = "http://www.rbx2016.nl"
+        game:GetService("ContentProvider"):SetBaseUrl(url)
         game:GetService("ScriptContext").ScriptsDisabled = true
         local plr = game.Players:CreateLocalPlayer(0)
-        plr.CharacterAppearance = "http://assetgame.rbx2016.nl/Asset/CharacterFetch.ashx?userId=${itemid}"
+        plr.CharacterAppearance = "https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=${itemid}"
         plr:LoadCharacter(false)
         for i,v in pairs(plr.Character:GetChildren()) do
-           print(v)
-           if v:IsA("Tool") then
-               plr.Character.Torso["Right Shoulder"].CurrentAngle = math.pi / 2
-           end
+            print(v)
+            if v:IsA("Tool") then
+                plr.Character.Torso["Right Shoulder"].CurrentAngle = math.pi / 2
+            end
         end
 
-        spawn(function()
-            while true do
-                wait(25)
-                loadfile(url .. "/Game/api/v1/close?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. game.JobId .. "|${itemid}")
-                game:FinishShutdown(false)
-            end
-        end)
-
-        local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
+        local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), isUserRender = ${isUserRender ? "true" : "false"}, itemid = ${itemid}, jobid = "${jobid}"}
         local https = game:GetService("HttpService")
         local url = "https://www.rbx2016.nl/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
 
-        local data = ""
-        for k, v in pairs(result) do
-            data = data .. (string.char(38) .. "%s=%s"):format(
-                https:UrlEncode(k),
-                https:UrlEncode(v)
-            )
-        end
-        data = data:sub(2)
+        local data = https:JSONEncode(result)
 
-        local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)
+        game:HttpPostAsync(url, data, "application/json")
         `;
     } else {
         if (isGame) {
@@ -1903,22 +2035,16 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
                 end
             end)
     
-            local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
+            local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 352, 352, true), isUserRender = ${isUserRender ? "true" : "false"}, itemid = ${itemid}, jobid = "${jobid}"}
             local https = game:GetService("HttpService")
             local url = "https://www.rbx2016.nl/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
     
-            local data = ""
-            for k, v in pairs(result) do
-                data = data .. ("&%s=%s"):format(
-                    https:UrlEncode(k),
-                    https:UrlEncode(v)
-                )
-            end
-            data = data:sub(2)
-    
-            local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)`;
+            local data = https:JSONEncode(result)
+
+            game:HttpPostAsync(url, data, "application/json")
+            `;
         } else {
-            const item = getCatalogItem(itemid);
+            const item = await getCatalogItem(itemid);
             if (!item) {
                 throw new Error("Item not found.");
             } else {
@@ -1931,11 +2057,20 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
                     loadCode = `local pants = Instance.new("Pants")
                     pants.PantsTemplate = "rbxassetid://${item.itemdecalid}"
                     pants.Parent = plr.Character`;
+                } else if (item.itemtype == "TShirt") {
+                    loadCode = `local tshirt = Instance.new("ShirtGraphic")
+                    tshirt.Graphic = "rbxassetid://${item.itemdecalid}"
+                    tshirt.Parent = plr.Character`;
+                } else if (item.itemtype == "Hat") {
+                    loadCode = `local thing = game:GetService("InsertService"):LoadAsset(${item.itemid})
+                    thing:GetChildren()[1].Parent = plr.Character`;
                 }
+                console.error("ITEMTYPE:",item.itemtype);
                 script = `local url = "http://www.rbx2016.nl"
+            game:GetService("ContentProvider"):SetBaseUrl(url)
             game:GetService("ScriptContext").ScriptsDisabled = true
             local plr = game.Players:CreateLocalPlayer(0)
-            plr.CharacterAppearance = "http://assetgame.rbx2016.nl/Asset/CharacterFetch.ashx?userId=0"
+            plr.CharacterAppearance = "https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=1"
             plr:LoadCharacter(false)
     
             for i,v in pairs(plr.Character:GetChildren()) do
@@ -1960,23 +2095,29 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
                 end
             end)
     
-            local result = game:GetService("ThumbnailGenerator"):Click("PNG", 5, 5, true)
-            error(result)
-    
-            local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), itemid = ${itemid}}
+            local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 352, 352, true), isUserRender = ${isUserRender ? "true" : "false"}, itemid = ${itemid}}
             local https = game:GetService("HttpService")
             url = url .. "/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
     
-            local data = ""
-            for k, v in pairs(result) do
-                data = data .. ("&" .. "%s" .. "=" .. "%s"):format(
-                    https:UrlEncode(k),
-                    https:UrlEncode(v)
-                )
-            end
-            data = data:sub(2)
+            local data = https:JSONEncode(result)
     
-            local resp = https:PostAsync(url, data, Enum.HttpContentType.ApplicationUrlEncoded, false)
+            game:HttpPostAsync(url, data, "application/json")
+
+            wait(1)
+
+            ${item.itemtype == "Hat" ? `url = "http://www.rbx2016.nl"
+            game.Workspace:ClearAllChildren()
+
+            local thing = game:GetService("InsertService"):LoadAsset(${item.itemid})
+            thing:GetChildren()[1].Parent = game.Workspace
+
+            local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 352, 352, true), isUserRender = ${isUserRender ? "true" : "false"}, itemid = ${itemid}}
+            local https = game:GetService("HttpService")
+            url = url .. "/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+
+            local data = https:JSONEncode(result)
+    
+            game:HttpPostAsync(url, data, "application/json")` : `game:HttpPostAsync(url, data, "application/json")`}
             `;
             }
         }
@@ -2010,7 +2151,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         return;
                     }
 
-                    if (activeGameJobs[gameid]) { // For now..
+                    if (activeGameJobs[gameid] && gameid != 0) { // For now..
                         db.close();
                         returnPromise(null);
                         return;
@@ -2364,7 +2505,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             return;
                         }
 
-                        if (activeGameJobs[gameid]) { // For now..
+                        if (activeGameJobs[gameid] && gameid != 0) { // For now..
                             db.close();
                             returnPromise(null);
                             return;
@@ -2709,7 +2850,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             return;
                         }
 
-                        if (activeGameJobs[gameid]) { // For now..
+                        if (activeGameJobs[gameid] && gameid != 0) { // For now..
                             db.close();
                             returnPromise(null);
                             return;
@@ -2869,7 +3010,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                 myHostPort = availableGamePorts.shift();
                                 jobId = uuidv4();
                                 if (isWin) {
-                                    let rccFolder = rccPath.split(path.sep);
+                                    let rccFolder = rccPath2.split(path.sep);
                                     rccFolder = rccFolder.splice(0, rccFolder.length - 1);
                                     rccFolder = rccFolder.join(path.sep);
 
@@ -2880,7 +3021,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                     activeGameJobs[gameid][jobId] = self;
 
                                     /*
-                                    proc = exec(`${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
+                                    proc = exec(`${rccPath2} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                         cwd: rccFolder
                                     }, (err, stdout, stderr) => {});
 
@@ -2889,7 +3030,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
 
                                     pm2.start({
                                         name: `RCC-|${myPort}|${myHostPort}|${gameid}|${jobId}`,
-                                        script: `${rccPath}`,
+                                        script: `${rccPath2}`,
                                         cron_restart: 0,
                                         autorestart: false,
                                         stop_exit_codes: [0],
@@ -2914,7 +3055,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                     });
                                 } else {
                                     // REQUIRES WINE.
-                                    let rccFolder = rccPath.split(path.sep);
+                                    let rccFolder = rccPath2.split(path.sep);
                                     rccFolder = rccFolder.splice(0, rccFolder.length - 1);
                                     rccFolder = rccFolder.join(path.sep);
 
@@ -2936,7 +3077,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                     activeGameJobs[gameid][jobId] = self;
 
                                     /*
-                                    proc = exec(`${__dirname}/exec.sh ${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
+                                    proc = exec(`${__dirname}/exec.sh ${rccPath2} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`, {
                                         cwd: rccFolder
                                     }, (err, stdout, stderr) => {});
 
@@ -2949,7 +3090,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                         cron_restart: 0,
                                         autorestart: false,
                                         stop_exit_codes: [0],
-                                        args: `${rccPath} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`
+                                        args: `${rccPath2} -Console -Start -Custom -PlaceId:${gameid} ${myPort}`
                                         // out_file: `app.strout.log`,
                                         // error_file: `app.strerr.log`
                                     }, async function (err, apps) {
@@ -2974,10 +3115,9 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
 
                         self = {
                             render: async function (itemid, isUserRender = false) {
-                                await start();
-                                await sleep(1000);
+                                // await start();
+                                // await sleep(1000);
                                 const resp = await execute(await getRCCRenderScript(isUserRender, itemid, myHostPort, jobId, false), 6000000);
-                                console.error(resp); // TODO: Remove after fixing 0x7F error
                                 if (resp.length <= 0) return;
                                 if (resp[resp.length - 1] == "err|Unknown Error") {
                                     await stop();
@@ -3052,7 +3192,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         return;
                     }
 
-                    if (activeGameJobs[gameid]) { // For now..
+                    if (activeGameJobs[gameid] && gameid != 0) { // For now..
                         db.close();
                         returnPromise(null);
                         return;
@@ -3529,19 +3669,23 @@ const convert2TF = async (img) => {
 let nsfwImageModel = null;
 
 setTimeout(async () => {
-    nsfwImageModel = await nsfw.load(`http://localhost:${siteConfig.shared.httpPort}/recognition/images/model/`, {size: 299});
+    nsfwImageModel = await nsfw.load(`http://localhost:${siteConfig.shared.httpPort}/recognition/images/model/`, {
+        size: 299
+    });
 }, 1000);
 
 async function isNsfw(content) {
     return new Promise(async returnPromise => {
         const mime = detectContentType(content);
         if (mime.startsWith("image/")) {
-            if (!mime.includes("jpeg") && !mime.includes("jpg")){
-                if (mime.includes("png")){
-                    content = await pngToJpeg({quality: 90})(Buffer.from(content));
+            if (!mime.includes("jpeg") && !mime.includes("jpg")) {
+                if (mime.includes("png")) {
+                    content = await pngToJpeg({
+                        quality: 90
+                    })(Buffer.from(content));
                 }
             }
-            while (nsfwImageModel == null){
+            while (nsfwImageModel == null) {
                 await sleep(500);
             }
             const image = await convert2TF(content);
@@ -3604,7 +3748,86 @@ if (siteConfig.backend.hostingConnectsToLocalhost == false) {
     });
 }
 
+let renderIdLookup = {};
+let userRenderIdLookup = {};
+let currentRenderJobs = [];
+
+function finishRenderJob(jobId) {
+    if (Object.keys(renderIdLookup).includes(jobId)) {
+        delete renderIdLookup[jobId];
+    }
+    if (Object.keys(userRenderIdLookup).includes(jobId)) {
+        delete userRenderIdLookup[jobId];
+    }
+    currentRenderJobs = currentRenderJobs.filter(job => job.getJobId() != jobId);
+}
+
+async function awaitRender(itemid, isUserRender = true) {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, async function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            await sleep(2500);
+            while (true) {
+                dbo.collection("config").findOne({}, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    let didExist = false;
+                    if (result.renderQueue.length > 0) {
+                        for (let i = 0; i < result.renderQueue.length; i++) {
+                            if (result.renderQueue[i].itemid == itemid && result.renderQueue[i].isUserRender == isUserRender) {
+                                didExist = true;
+                                return;
+                            }
+                        }
+                    }
+                    console.log(didExist, Object.values(userRenderIdLookup).includes(itemid));
+                    if (!didExist && !Object.values(userRenderIdLookup).includes(itemid)) {
+                        db.close();
+                        returnPromise(true);
+                        return;
+                    }
+                });
+                await sleep(1000);
+            }
+        });
+    });
+}
+
+setInterval(async () => {
+    if (siteConfig.backend.renderingEnabled == false || currentRenderJobs.length >= siteConfig.backend.maxRenderJobs) {
+        return;
+    }
+    const item = await dequeueRender();
+    if (!item) {
+        return;
+    }
+    const job = await newJob(0, false, true);
+    if (!job){
+        await enqueueRender(item.itemid, item.isUserRender);
+        return;
+    }
+    currentRenderJobs.push(job);
+    await job.start();
+    await sleep(1000);
+    if (item.isUserRender) {
+        userRenderIdLookup[job.getJobId()] = item.itemid;
+    } else {
+        renderIdLookup[job.getJobId()] = item.itemid;
+    }
+    await job.render(item.itemid, item.isUserRender);
+    if (currentRenderJobs.includes(job)) {
+        currentRenderJobs.splice(currentRenderJobs.indexOf(job), 1);
+    }
+}, 500);
+
 module.exports = {
+    hasRedrawn: [],
+    pendingRenderJobs: [],
+    
     getPRIVATE_PLACE_KEYS: function () {
         return PRIVATE_PLACE_KEYS;
     },
@@ -3717,8 +3940,12 @@ module.exports = {
                 if (err) throw err;
                 const dbo = db.db(dbName);
 
-                if (fs.existsSync(`../assets/${assetid}.asset`)) {
-                    fs.unlinkSync(`../assets/${assetid}.asset`);
+                if (fs.existsSync(`./assets/${assetid}.asset`)) {
+                    fs.unlinkSync(`./assets/${assetid}.asset`);
+                }
+
+                if (fs.existsSync(`./thumbnails/thumbs/${assetid}.asset`)) {
+                    fs.unlinkSync(`./thumbnails/icons/${assetid}.asset`);
                 }
 
                 dbo.collection("assets").updateOne({
@@ -5156,8 +5383,19 @@ module.exports = {
         });
     },
 
+    catalogNameToId: function (name) {
+        const lookup = {
+            "Shirt": 11,
+            "TShirt": 2,
+            "Pants": 12,
+            "Hat": 8
+        }
+        return Object.keys(lookup).includes(name) ? lookup[name] : 0;
+    },
+
     createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, internalAssetId = 0, decalId = 0, meshId = 0, amount = -1) {
         return new Promise(async returnPromise => {
+            censorText(filterText5(name))
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -5205,13 +5443,14 @@ module.exports = {
                             onSale: false,
                             currency: 1,
                             deleted: false
-                        }, function (err, res) {
+                        }, async function (err, res) {
                             if (err) {
                                 db.close();
                                 returnPromise(false);
                                 return;
                             }
                             db.close();
+                            await enqueueRender(lastId, false);
                             returnPromise(true);
                         });
                     });
@@ -6459,7 +6698,7 @@ module.exports = {
 
     createGamepass: async function (creatorid, gameid, name, desc, price) {
         return new Promise(async returnPromise => {
-            name = censorText(filterText(name));
+            name = censorText(filterText5(name));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -6545,7 +6784,7 @@ module.exports = {
 
     createDevProduct(creatorid, gameid, name, desc, price) {
         return new Promise(async returnPromise => {
-            name = censorText(filterText(name));
+            name = censorText(filterText5(name));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -7351,6 +7590,7 @@ module.exports = {
 
     createAsset: async function (userid, name, desc, type, approved) {
         return new Promise(async returnPromise => {
+            name = censorText(filterText5(name));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -8239,8 +8479,12 @@ module.exports = {
                 if (err) throw err;
                 const dbo = db.db(dbName);
 
-                if (fs.existsSync(`../games/${assetid}.asset`)) {
-                    fs.unlinkSync(`../games/${assetid}.asset`);
+                if (fs.existsSync(`./games/${assetid}.asset`)) {
+                    fs.unlinkSync(`./games/${assetid}.asset`);
+                }
+
+                if (fs.existsSync(`./thumbnails/thumbs/${assetid}.asset`)) {
+                    fs.unlinkSync(`./thumbnails/icons/${assetid}.asset`);
                 }
 
                 dbo.collection("games").updateOne({
@@ -8913,6 +9157,14 @@ module.exports = {
     getJobs: getJobs,
 
     getJobsByGameId: getJobsByGameId,
+
+    enqueueRender: enqueueRender,
+    dequeueRender: dequeueRender,
+    awaitRender: awaitRender,
+    isRenderPending: isRenderPending,
+    removeRender: removeRender,
+    clearRenderQueue: clearRenderQueue,
+    finishRenderJob: finishRenderJob,
 
     requireAuth: function (req, res, next) {
         setImmediate(async () => {

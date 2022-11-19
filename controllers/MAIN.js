@@ -634,7 +634,7 @@ module.exports = {
             res.send();
         });
 
-        async function getGamesT7(userid){
+        async function getGamesT7(userid) {
             const games = await db.getGamesByCreatorId(userid);
             let out = ``;
             for (const game of games) {
@@ -649,7 +649,7 @@ module.exports = {
             }
             return out;
         }
-        
+
         app.get("/ide/welcome", db.requireAuth2, async (req, res) => {
             if (!req.user) {
                 res.redirect("/My/Places.aspx&showlogin=True");
@@ -2233,7 +2233,7 @@ module.exports = {
             if (req.user) {
                 await db.setUserProperty(req.user.userid, "cookie", "");
                 await db.setUserProperty(req.user.userid, "xcsrftoken", "");
-            }else{
+            } else {
                 if (typeof req.headers["x-csrf-token"] !== "undefined") {
                     if (req.headers["x-csrf-token"].length == 128) {
                         const user = await db.getUserByCsrfToken(req.headers["x-csrf-token"]);
@@ -3947,7 +3947,7 @@ module.exports = {
                 if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
                     id = await db.createAsset(req.user.userid, name, desc, "Decal", (req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
                     file.mv(`${__dirname}/../assets/${id}.asset`);
-                    if (await db.isNsfw(file.data)){
+                    if (await db.isNsfw(file.data)) {
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
                         db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
@@ -3993,14 +3993,14 @@ module.exports = {
                     id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
 
-                    if (await db.isNsfw(file.data)){
+                    if (await db.isNsfw(file.data)) {
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
                         db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
                         res.redirect("/");
                         return;
                     }
-                    
+
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.ShirtUploadCost);
 
                     const internalId = await db.createAsset(req.user.userid, name + "-SHIRT-INTERNAL", desc, "Shirt", req.user.userid, true);
@@ -4050,7 +4050,7 @@ module.exports = {
                     id = await db.createAsset(req.user.userid, name + "-TSHIRT", desc, "TShirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`); // TODO: CHECK WHY NOT UPLOADING?!
 
-                    if (await db.isNsfw(file.data)){
+                    if (await db.isNsfw(file.data)) {
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
                         db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
@@ -4115,7 +4115,7 @@ module.exports = {
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.PantsUploadCost);
 
-                    if (await db.isNsfw(file.data)){
+                    if (await db.isNsfw(file.data)) {
                         await db.deleteAsset(id);
                         await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
                         db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
@@ -5740,9 +5740,9 @@ module.exports = {
                             <div class="roblox-item-image image-small" data-item-id="${item.id}" data-image-size="small">
                                 <div class="item-image-wrapper">
                                     <a href="https://www.rbx2016.nl/catalog/${item.itemid}">
-                                        <img title="${item.itemname}" alt="${item.itemname}" class="original-image " src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}`}">
+                                        <img title="${item.itemname}" alt="${item.itemname}" class="original-image " style="width: 9.166666666666666em; height: 9.166666666666666em;" src="${`https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}`}">
                                                                 ${limitedHtml}
-                                                                                    ${db.getUnixTimestamp() - item.created > 86400 ? `<img src="https://static.rbx2016.nl/b84cdb8c0e7c6cbe58e91397f91b8be8.png" alt="New">` : ``}
+                                                                                    ${db.getUnixTimestamp() - item.created < 86400 ? `<img src="https://static.rbx2016.nl/b84cdb8c0e7c6cbe58e91397f91b8be8.png" alt="New">` : ``}
                                     </a>
                                 </div>
                             </div>
@@ -5843,9 +5843,16 @@ module.exports = {
         });
 
         app.get("/api/v1/avatar/redraw", db.requireAuth, async (req, res) => {
-            // TODO: Implment API endpoint request limit!
-            const job = await db.newJob(0, false, true);
-            await job.render(req.user.userid, true);
+            if (db.hasRedrawn.includes(req.user.userid)) {
+                res.status(400).send("Please wait before redrawing your avatar again..");
+                return;
+            }
+            db.hasRedrawn.push(req.user.userid);
+            setTimeout(() => {
+                db.hasRedrawn.splice(db.hasRedrawn.indexOf(req.user.userid), 1);
+            }, db.getSiteConfig().backend.avatarCanRedrawEvery);
+            await db.enqueueRender(req.user.userid, true);
+            await db.awaitRender(req.user.userid);
             res.redirect('back');
         });
 
@@ -5854,18 +5861,42 @@ module.exports = {
                 res.status(400).send();
                 return;
             }
-            const apiKey = req.body.apiKey;
-            if (apiKey != db.getSiteConfig().backend.PRIVATE.PRIVATE_API_KEY) {
+            const apiKey = req.query.apiKey;
+            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 res.status(401).send();
                 return;
             }
 
             const data = req.body.data;
-            const itemid = req.body.id;
+            const isUserRender = req.body.isUserRender == "true" || req.body.isUserRender == true;
+            const itemid = req.body.itemid;
+            const jobid = req.body.jobid;
+
+            if (!data || !itemid) {
+                res.status(400).send();
+                return;
+            }
             const base64Data = data.replace(/^data:image\/png;base64,/, "");
 
-            fs.writeFile(`../thumbnails/${itemid}.asset`, base64Data, 'base64', function (err) {
-                console.error(err);
+            fs.writeFile(`${__dirname}/../thumbnails/${isUserRender ? "avatars/thumbs" : db.pendingRenderJobs.includes(itemid) ? "icons" : "thumbs"}/${itemid}.asset`, base64Data, 'base64', async function (err) {
+                res.send("OK");
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                if (!isUserRender) {
+                    if (db.pendingRenderJobs.includes(itemid)) {
+                        db.pendingRenderJobs.splice(db.pendingRenderJobs.indexOf(itemid), 1)
+                    } else {
+                        db.pendingRenderJobs.push(itemid);
+                        return;
+                    }
+                }
+                db.finishRenderJob(jobid);
+                const job = await db.getJob(jobid);
+                if (job) {
+                    job.stop();
+                }
             });
         });
 
@@ -5878,7 +5909,7 @@ module.exports = {
                     "resolvedAvatarType": "R6",
                     "equippedGearVersionIds": [],
                     "backpackGearVersionIds": [],
-                    "assetAndAssetTypeIds": [
+                    "accessoryVersionIds": [
                         /*
                                             {
                                                 "assetId": 0,
@@ -5886,22 +5917,15 @@ module.exports = {
                                             }
                                         */
                     ],
-                    "animationAssetIds": {},
-                    "bodyColors": {
-                        "headColorId": 194,
-                        "torsoColorId": 194,
-                        "rightArmColorId": 194,
-                        "leftArmColorId": 194,
-                        "rightLegColorId": 194,
-                        "leftLegColorId": 194
-                    },
+                    "animations": {},
+                    "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=0`,
                     "scales": {
-                        "height": 1.0000,
-                        "width": 1.0000,
-                        "head": 1.0000,
-                        "depth": 1.00,
-                        "proportion": 0.0000,
-                        "bodyType": 0.0000
+                        "Height": 1.0000,
+                        "Width": 1.0000,
+                        "Head": 1.0000,
+                        "Depth": 1.00,
+                        "Proportion": 0.0000,
+                        "BodyType": 0.0000
                     },
                     "emotes": []
                 });
@@ -5913,34 +5937,27 @@ module.exports = {
                 res.status(404).json({});
                 return;
             }
+
+            let equipCatalogItems = [];
+            const tmp = await db.getEquippedCatalogItems(user.userid);
+            for (const itemid of tmp) {
+                equipCatalogItems.push(itemid);
+            }
+
             res.json({
                 "resolvedAvatarType": "R6",
                 "equippedGearVersionIds": [],
                 "backpackGearVersionIds": [],
-                "assetAndAssetTypeIds": [
-                    /*
-                                    {
-                                        "assetId": 0,
-                                        "assetTypeId": 0
-                                    }
-                                */
-                ],
-                "animationAssetIds": {},
-                "bodyColors": {
-                    "headColorId": user.avatarColors ? parseInt(user.avatarColors[0]) : 194,
-                    "torsoColorId": user.avatarColors ? parseInt(user.avatarColors[1]) : 194,
-                    "rightArmColorId": user.avatarColors ? parseInt(user.avatarColors[2]) : 194,
-                    "leftArmColorId": user.avatarColors ? parseInt(user.avatarColors[3]) : 194,
-                    "rightLegColorId": user.avatarColors ? parseInt(user.avatarColors[4]) : 194,
-                    "leftLegColorId": user.avatarColors ? parseInt(user.avatarColors[5]) : 194
-                },
+                "accessoryVersionIds": equipCatalogItems,
+                "animations": {},
+                "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${user.userid}`,
                 "scales": {
-                    "height": 1.0000,
-                    "width": 1.0000,
-                    "head": 1.0000,
-                    "depth": 1.00,
-                    "proportion": 0.0000,
-                    "bodyType": 0.0000
+                    "Height": 1.0000,
+                    "Width": 1.0000,
+                    "Head": 1.0000,
+                    "Depth": 1.00,
+                    "Proportion": 0.0000,
+                    "BodyType": 0.0000
                 },
                 "emotes": []
             });
@@ -6027,7 +6044,7 @@ module.exports = {
                 res.render("catalogitem", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.itemid,
-                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
+                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/thumb?id=${asset.itemid}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -6055,7 +6072,7 @@ module.exports = {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.itemid,
                 genre: asset.itemgenre,
-                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
+                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/thumb?id=${asset.itemid}`,
                 price: asset.price || 0,
                 name: asset.itemname,
                 name2: asset.itemname.replaceAll(" ", "-"),
@@ -6090,48 +6107,6 @@ module.exports = {
                 return;
             }
             res.redirect(`/catalog/${item.itemid}/${db.filterText2(item.itemname).replaceAll(" ", "-")}`);
-        });
-
-        app.get("/catalog/:itemid/:itemname", db.requireAuth, async (req, res) => {
-            if (db.getSiteConfig().shared.pages.catalogEnabled == false) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const itemid = parseInt(req.params.itemid);
-            const item = await db.getCatalogItem(itemid);
-            if (!item || item.deleted) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
-            }
-            const actualUrl = `/catalog/${item.itemid}/${db.filterText2(item.itemname).replaceAll(" ", "-")}`;
-            if (req.url != actualUrl) {
-                res.redirect(actualUrl);
-                return;
-            }
-            const creator = await db.getUser(item.itemcreatorid);
-            res.render("catalogitem", {
-                ...(await db.getRenderObject(req.user)),
-                itemname: item.itemname,
-                itemname2: db.filterText2(item.itemname).replaceAll(" ", "-"),
-                itemid: item.itemid,
-                itemthumb: item.itemthumb,
-                itemcreatorid: creator.userid,
-                itemcreatorusername: creator.username,
-                itemprice: item.itemprice,
-                itemdesc: item.itemdescription,
-                currenttime: db.formatAMPMFull(new Date()),
-                itemfavorites: item.itemfavorites,
-
-                owned: false, // TODO: Implement this.
-            });
         });
 
         if (db.getSiteConfig().shared.ADMIN_AdminPanelEnabled == true) {
@@ -8402,6 +8377,14 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         }
                     }
                     await db.setUserProperty(req.user.userid, "avatarColors", brickColors);
+                    await db.setUserProperty(req.user.userid, "avatarColors", brickColors);
+                    if (!db.hasRedrawn.includes(req.user.userid)) {
+                        await db.enqueueRender(req.user.userid, true);
+                        db.hasRedrawn.push(req.user.userid);
+                        setTimeout(() => {
+                            db.hasRedrawn.splice(db.hasRedrawn.indexOf(req.user.userid), 1);
+                        }, db.getSiteConfig().backend.avatarCanRedrawEvery);
+                    }
                     res.send();
                 }
             }

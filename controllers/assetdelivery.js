@@ -143,11 +143,11 @@ module.exports = {
                 user = await db.findUserByToken(req.query.t);
             }
 
-            if (!req.query.id) {
+            if (!req.query.id && !req.query.assetversionid) {
                 res.status(404).send();
                 return;
             }
-            const id0 = req.query.id.split("|");
+            const id0 = req.query.id ? req.query.id.split("|") : req.query.assetversionid.split("|");
             let id = parseInt(id0[0]);
             const apiKey = req.query.apiKey || (id0.length > 1 ? id0[1] : "");
 
@@ -259,11 +259,11 @@ module.exports = {
                 user = await db.findUserByToken(req.query.t);
             }
 
-            if (!req.query.id) {
+            if (!req.query.id && !req.query.assetversionid) {
                 res.status(404).send();
                 return;
             }
-            const id0 = req.query.id.split("|");
+            const id0 = req.query.id ? req.query.id.split("|") : req.query.assetversionid.split("|");
             let id = parseInt(id0[0]);
             const apiKey = req.query.apiKey || (id0.length > 1 ? id0[1] : "");
 

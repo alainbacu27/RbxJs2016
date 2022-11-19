@@ -15,11 +15,25 @@ const AdmZip = require('adm-zip');
 // db.createGamepass(1, 3, "Test Gamepass", "A testing gamepass.", 0, "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png");
 // db.sendMessage(1, 2, "Welcome", "Welcome to Rbx2016! Enjoy your stay and have fun! :)");
 
+/*
+setImmediate(async () => {
+    await db.clearRenderQueue();
+});
+setTimeout(async () => {
+    const items = await db.getAllCatalogItems();
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        await db.enqueueRender(item.itemid, false);
+    }
+}, 10000);
+*/
+
+
 if (!fs.existsSync("./logs/admin.log")) {
     fs.writeFileSync("./logs/admin.log", "");
 }
 
-const exludedRedirects = ["/ide", "/api/", "/api/moderation/v2/filtertext/", "//api/moderation/v2/filtertext/", "/moderation/filtertext/", "//moderation/filtertext/"]
+const exludedRedirects = ["/ide", "/api/", "/api/moderation/v2/filtertext/", "//api/moderation/v2/filtertext/", "/moderation/filtertext/", "//moderation/filtertext/", "/v1.1/avatar-fetch/", "//v1.1/avatar-fetch/", "/v1/avatar-fetch/", "//v1/avatar-fetch/"]
 
 const bypassedIps = ["::1", "127.0.0.1"];
 

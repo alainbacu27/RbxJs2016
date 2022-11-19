@@ -203,7 +203,7 @@ module.exports = {
                 const creator = await db.getUser(asset.creatorid);
                 html += `<tr>
                  <td><a href="https://www.rbx2016.nl/users/${creator.userid}/profile">${creator.username}</a></td>
-                 <td><a href="https://www.rbx2016.nl/library/${asset.id}">${asset.name}</a></td>
+                 <td><a href="https://www.rbx2016.nl/library/${asset.id}">${db.censorText(db.filterText5(asset.name))}</a></td>
                  <td id="asset-${asset.id}"><button onclick="approveAsset(${asset.id})">Approve</button> <button onclick="deleteAsset(${asset.id})">Delete</button></td>
                </tr>`;
             }

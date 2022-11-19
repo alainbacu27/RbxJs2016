@@ -140,7 +140,7 @@ module.exports = {
                     "resolvedAvatarType": "R6",
                     "equippedGearVersionIds": [],
                     "backpackGearVersionIds": [],
-                    "assetAndAssetTypeIds": [
+                    "accessoryVersionIds": [
                         /*
                                             {
                                                 "assetId": 0,
@@ -148,22 +148,15 @@ module.exports = {
                                             }
                                         */
                     ],
-                    "animationAssetIds": {},
-                    "bodyColors": {
-                        "headColorId": 194,
-                        "torsoColorId": 194,
-                        "rightArmColorId": 194,
-                        "leftArmColorId": 194,
-                        "rightLegColorId": 194,
-                        "leftLegColorId": 194
-                    },
+                    "animations": {},
+                    "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=0`,
                     "scales": {
-                        "height": 1.0000,
-                        "width": 1.0000,
-                        "head": 1.0000,
-                        "depth": 1.00,
-                        "proportion": 0.0000,
-                        "bodyType": 0.0000
+                        "Height": 1.0000,
+                        "Width": 1.0000,
+                        "Head": 1.0000,
+                        "Depth": 1.00,
+                        "Proportion": 0.0000,
+                        "BodyType": 0.0000
                     },
                     "emotes": []
                 });
@@ -175,34 +168,27 @@ module.exports = {
                 res.status(404).json({});
                 return;
             }
+
+            let equipCatalogItems = [];
+            const tmp = await db.getEquippedCatalogItems(user.userid);
+            for (const itemid of tmp) {
+                equipCatalogItems.push(itemid);
+            }
+
             res.json({
                 "resolvedAvatarType": "R6",
                 "equippedGearVersionIds": [],
                 "backpackGearVersionIds": [],
-                "assetAndAssetTypeIds": [
-                    /*
-                                    {
-                                        "assetId": 0,
-                                        "assetTypeId": 0
-                                    }
-                                */
-                ],
-                "animationAssetIds": {},
-                "bodyColors": {
-                    "headColorId": user.avatarColors ? parseInt(user.avatarColors[0]) : 194,
-                    "torsoColorId": user.avatarColors ? parseInt(user.avatarColors[1]) : 194,
-                    "rightArmColorId": user.avatarColors ? parseInt(user.avatarColors[2]) : 194,
-                    "leftArmColorId": user.avatarColors ? parseInt(user.avatarColors[3]) : 194,
-                    "rightLegColorId": user.avatarColors ? parseInt(user.avatarColors[4]) : 194,
-                    "leftLegColorId": user.avatarColors ? parseInt(user.avatarColors[5]) : 194
-                },
+                "accessoryVersionIds": equipCatalogItems,
+                "animations": {},    
+                "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${user.userid}`,
                 "scales": {
-                    "height": 1.0000,
-                    "width": 1.0000,
-                    "head": 1.0000,
-                    "depth": 1.00,
-                    "proportion": 0.0000,
-                    "bodyType": 0.0000
+                    "Height": 1.0000,
+                    "Width": 1.0000,
+                    "Head": 1.0000,
+                    "Depth": 1.00,
+                    "Proportion": 0.0000,
+                    "BodyType": 0.0000
                 },
                 "emotes": []
             });
@@ -217,7 +203,7 @@ module.exports = {
                     "resolvedAvatarType": "R6",
                     "equippedGearVersionIds": [],
                     "backpackGearVersionIds": [],
-                    "assetAndAssetTypeIds": [
+                    "accessoryVersionIds": [
                         /*
                                             {
                                                 "assetId": 0,
@@ -225,22 +211,15 @@ module.exports = {
                                             }
                                         */
                     ],
-                    "animationAssetIds": {},
-                    "bodyColors": {
-                        "headColorId": 194,
-                        "torsoColorId": 194,
-                        "rightArmColorId": 194,
-                        "leftArmColorId": 194,
-                        "rightLegColorId": 194,
-                        "leftLegColorId": 194
-                    },
+                    "animations": {},
+                    "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=0`,
                     "scales": {
-                        "height": 1.0000,
-                        "width": 1.0000,
-                        "head": 1.0000,
-                        "depth": 1.00,
-                        "proportion": 0.0000,
-                        "bodyType": 0.0000
+                        "Height": 1.0000,
+                        "Width": 1.0000,
+                        "Head": 1.0000,
+                        "Depth": 1.00,
+                        "Proportion": 0.0000,
+                        "BodyType": 0.0000
                     },
                     "emotes": []
                 });
@@ -252,34 +231,27 @@ module.exports = {
                 res.status(404).json({});
                 return;
             }
+
+            let equipCatalogItems = [];
+            const tmp = await db.getEquippedCatalogItems(user.userid);
+            for (const itemid of tmp) {
+                equipCatalogItems.push(itemid);
+            }
+
             res.json({
                 "resolvedAvatarType": "R6",
                 "equippedGearVersionIds": [],
                 "backpackGearVersionIds": [],
-                "assetAndAssetTypeIds": [
-                    /*
-                                    {
-                                        "assetId": 0,
-                                        "assetTypeId": 0
-                                    }
-                                */
-                ],
-                "animationAssetIds": {},
-                "bodyColors": {
-                    "headColorId": user.avatarColors ? parseInt(user.avatarColors[0]) : 194,
-                    "torsoColorId": user.avatarColors ? parseInt(user.avatarColors[1]) : 194,
-                    "rightArmColorId": user.avatarColors ? parseInt(user.avatarColors[2]) : 194,
-                    "leftArmColorId": user.avatarColors ? parseInt(user.avatarColors[3]) : 194,
-                    "rightLegColorId": user.avatarColors ? parseInt(user.avatarColors[4]) : 194,
-                    "leftLegColorId": user.avatarColors ? parseInt(user.avatarColors[5]) : 194
-                },
+                "accessoryVersionIds": equipCatalogItems,
+                "animations": {},    
+                "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${user.userid}`,
                 "scales": {
-                    "height": 1.0000,
-                    "width": 1.0000,
-                    "head": 1.0000,
-                    "depth": 1.00,
-                    "proportion": 0.0000,
-                    "bodyType": 0.0000
+                    "Height": 1.0000,
+                    "Width": 1.0000,
+                    "Head": 1.0000,
+                    "Depth": 1.00,
+                    "Proportion": 0.0000,
+                    "BodyType": 0.0000
                 },
                 "emotes": []
             });

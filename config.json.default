@@ -144,6 +144,9 @@
             "ip": "localhost",
             "port": 27017
         },
+        "renderingEnabled": true,
+        "maxRenderJobs": 4,
+        "avatarCanRedrawEvery": 7500,
         "MaxUserOtherItemsEquipped": 3,
         "badUsernames": ["roblox", "builderman", "ugc", "games", "system", "unknown"],
         "starterItems": {
