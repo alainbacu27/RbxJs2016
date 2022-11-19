@@ -1237,6 +1237,10 @@ async function isRenderPending(itemid, isUserRender = false) {
 
 async function enqueueRender(itemid, isUserRender = true) {
     return new Promise(async returnPromise => {
+        if (siteConfig.backend.renderingEnabled == false){
+            returnPromise(false);
+            return;
+        }
         const isPending = await isRenderPending(itemid, isUserRender);
         if (isPending) {
             returnPromise(false);
@@ -2065,7 +2069,6 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
                     loadCode = `local thing = game:GetService("InsertService"):LoadAsset(${item.itemid})
                     thing:GetChildren()[1].Parent = plr.Character`;
                 }
-                console.error("ITEMTYPE:",item.itemtype);
                 script = `local url = "http://www.rbx2016.nl"
             game:GetService("ContentProvider"):SetBaseUrl(url)
             game:GetService("ScriptContext").ScriptsDisabled = true
