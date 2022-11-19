@@ -133,3 +133,7 @@ games/*
 assets/*
 temp/*
 NodeModulesLINUX.zip
+thumbnails/icons/*
+thumbnails/thumbs/*
+thumbnails/avatars/icons/*
+thumbnails/avatars/thumbs/*
