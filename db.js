@@ -6872,7 +6872,7 @@ module.exports = {
         });
     },
 
-    getBadges: async function (gameid, playerid = 0) {
+    getBadges: async function (gameid, playerid = 0, includeOffsale = true) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -6886,6 +6886,9 @@ module.exports = {
                         return;
                     }
                     result = result.reverse();
+                    if (!includeOffsale){
+                        result = result.filter(badge => badge.onSale == true);
+                    }
                     if (playerid > 0) {
                         db.close();
                         returnPromise(result.filter(badge => badge.owners.includes(playerid)));

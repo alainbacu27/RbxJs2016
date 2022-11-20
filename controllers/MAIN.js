@@ -7548,7 +7548,7 @@ module.exports = {
             }
 
             let badgesHtml = ``
-            const badges = await db.getBadges(gameid);
+            const badges = await db.getBadges(gameid, 0, false);
             for (let i = 0; i < badges.length; i++) {
                 const badge = badges[i];
                 badgesHtml += `<li class="stack-row badge-row ${i > 3 ? "badge-see-more-row" : ""}" ${(await db.userOwnsAsset(req.user.userid, badge.id)) ? `style="filter: brightness(1.35);"` : ``}>
