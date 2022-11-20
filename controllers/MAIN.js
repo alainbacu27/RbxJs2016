@@ -8294,7 +8294,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     res.status(400).send("Invalid price");
                     return;
                 }
-                await db.setCatalogItemProperty(itemId, "price", price);
+                await db.setCatalogItemProperty(itemId, "itemprice", price);
                 res.redirect(`/catalog/${itemId}/${db.filterText2(item.itemname).replaceAll(" ", "-")}`);
                 return;
             }
