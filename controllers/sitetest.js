@@ -7,6 +7,7 @@ const get_ip = require('ipware')().get_ip;
 const mm = require('music-metadata');
 let exec = require('child_process').exec;
 const bcrypt = require("bcryptjs");
+const detectContentType = require('detect-content-type');
 
 module.exports = {
     init: (app, db) => {
@@ -2495,7 +2496,7 @@ module.exports = {
             const rbxsig = db.sign(script);
             res.send(`%${rbxsig}%${script}`);
         });
-        
+
         app.get("//Game/LoadPlaceInfo.ashx", async (req, res) => {
             const PlaceId = parseInt(req.query.PlaceId);
             const game = await db.getGame(PlaceId);
@@ -2506,12 +2507,12 @@ module.exports = {
             const script = `-- Loaded by StartGameSharedScript --
             pcall(function() game:SetCreatorID(${game.creatorid}, Enum.CreatorType.User) end)
             
-            pcall(function() game:GetService("SocialService"):SetFriendUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
-            pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://www.rbx2016.nl/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
+            pcall(function() game:GetService("SocialService"):SetFriendUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://sitetest.rbx2016.nl/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
             `;
             const rbxsig = db.sign(script);
             res.send(`%${rbxsig}%${script}`);
@@ -4000,6 +4001,17 @@ module.exports = {
                     return;
                 }
             }
+            let fileB64 = "";
+            
+            if (req.files && Object.keys(req.files).length > 0) {
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                const file = req.files.file;
+                fileB64 = file.data.toString("base64");
+            }
+
             res.render("sitetest/buildverifyupload", {
                 ...(await db.getRenderObject(req.user)),
                 name: req.body.name,
@@ -4007,6 +4019,7 @@ module.exports = {
                 assetTypeId: parseInt(req.body.assetTypeId),
                 gameid: game != null ? game.gameid : null,
                 gamename: game != null ? game.gamename : null,
+                fileB64: fileB64,
                 forText: parseInt(req.body.assetTypeId) == 21 ? ` for ${db.getSiteConfig().shared.BadgeUploadCost} Robux` : ""
             });
         });
@@ -4044,14 +4057,65 @@ module.exports = {
                     res.status(401).send("Gamepass limit reached");
                     return;
                 }
-                id = await db.createGamepass(req.user.userid, game.gameid, name, desc, 0);
+                const data = req.body.img;
+                if (!data) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                const file = Buffer.from(data, "base64");
+                if (file.length > 5.5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                const mime = detectContentType(file);
+                if (mime == "image/png" || mime == "image/jpg" || mime == "image/jpeg") {
+                    const internalId = await db.createAsset(req.user.userid, name + "-GAMEPASS", "", "Item", (req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
+                    fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, file);
+                    if (await db.isNsfw(file)) {
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
+                    id = await db.createGamepass(req.user.userid, game.gameid, name, desc, 0, internalId);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
             } else if (assetTypeId == 21) {
                 if ((await db.getBadges(game.gameid)).length >= ((req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxBadgesPerGame.admin : db.getSiteConfig().shared.maxBadgesPerGame.user)) {
                     res.status(401).send("Badges limit reached");
                     return;
                 }
-                id = await db.createBadge(req.user.userid, game.gameid, name, desc, 0);
-                await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.BadgeUploadCost);
+
+                const data = req.body.img;
+                if (!data) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                const file = Buffer.from(data, "base64");
+                if (file.length > 5.5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                const mime = detectContentType(file);
+                if (mime == "image/png" || mime == "image/jpg" || mime == "image/jpeg") {
+                    const internalId = await db.createAsset(req.user.userid, name + "-GAMEPASS", "", "Item", (req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
+                    fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, file);
+                    if (await db.isNsfw(file)) {
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
+                    id = await db.createBadge(req.user.userid, game.gameid, name, desc, internalId);
+                    await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.BadgeUploadCost);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
             } else if (assetTypeId == 13) {
                 if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
                     if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
@@ -5462,6 +5526,82 @@ module.exports = {
                         }
                     });
                 }
+            } else if (assetTypeId == 2) {
+                const assets = await await db.getOwnedCatalogItems(userId, "TShirt")
+                for (const asset of assets) {
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.itemid,
+                            "UniverseId": asset.itemid,
+                            "Name": asset.itemname,
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.itemdescription,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": null
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": asset.itemprice > 0 ? asset.itemprice : null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": !asset.onSale,
+                            "NoPriceText": asset.onSale ? (asset.itemprice == 0 ? "Free" : asset.itemprice.toString()) : "Offsale",
+                            "IsFree": asset.itemprice == 0
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
             } else if (assetTypeId == 34) {
                 const assets = await await db.getOwnedGamepasses(userId)
                 for (const asset of assets) {
@@ -5599,6 +5739,234 @@ module.exports = {
                         "Thumbnail": {
                             "Final": true,
                             "Url": "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
+            } else if (assetTypeId == 12) {
+                const assets = await await db.getOwnedCatalogItems(userId, "Pants")
+                for (const asset of assets) {
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.itemid,
+                            "UniverseId": asset.itemid,
+                            "Name": asset.itemname,
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.itemdescription,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": null
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": asset.itemprice > 0 ? asset.itemprice : null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": !asset.onSale,
+                            "NoPriceText": asset.onSale ? (asset.itemprice == 0 ? "Free" : asset.itemprice.toString()) : "Offsale",
+                            "IsFree": asset.itemprice == 0
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
+            } else if (assetTypeId == 8) {
+                const assets = await await db.getOwnedCatalogItems(userId, "Hat")
+                for (const asset of assets) {
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.itemid,
+                            "UniverseId": asset.itemid,
+                            "Name": asset.itemname,
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.itemdescription,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": null
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": asset.itemprice > 0 ? asset.itemprice : null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": !asset.onSale,
+                            "NoPriceText": asset.onSale ? (asset.itemprice == 0 ? "Free" : asset.itemprice.toString()) : "Offsale",
+                            "IsFree": asset.itemprice == 0
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
+            } else if (assetTypeId == 21){
+                const assets = await await db.getOwnedBadges(userId)
+                for (const asset of assets) {
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.id,
+                            "UniverseId": asset.id,
+                            "Name": asset.name,
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/badges/" + asset.id.toString() + "/" + db.filterText2(asset.name).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.description,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": null
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": asset.price > 0 ? asset.price : null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": !asset.onSale,
+                            "NoPriceText": asset.onSale ? (asset.price == 0 ? "Free" : asset.price.toString()) : "Offsale",
+                            "IsFree": asset.price == 0
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png",
                             "RetryUrl": "",
                             "IsApproved": false
                         },
@@ -7179,6 +7547,40 @@ module.exports = {
             </p>`;
             }
 
+            let badgesHtml = ``
+            const badges = await db.getBadges(gameid);
+            for (let i = 0; i < badges.length; i++) {
+                const badge = badges[i];
+                badgesHtml += `<li class="stack-row badge-row ${i > 3 ? "badge-see-more-row" : ""}" ${(await db.userOwnsAsset(req.user.userid, badge.id)) ? `style="filter: brightness(1.35);"` : ``}>
+                <div class="badge-image">
+                    <a href="https://sitetest.rbx2016.nl/badges/${badge.id}/${db.filterText2(badge.name).replaceAll(" ", "-")}"><img src="https://thumbnails.rbx2016.nl/v1/icon?id=${badge.id}" alt="${badge.name}"></a>
+                </div>
+                <div class="badge-content">
+                    <div class="badge-data-container">
+                        <div class="badge-name">${badge.name}</div>
+                        <p class="">
+                            ${badge.description}
+                        </p>
+                    </div>
+                    <ul class="badge-stats-container">
+                        <li>
+                            <div class="text-label">Rarity</div>
+                            <div class="badge-stats-info">???</div>
+                        </li>
+                        <li>
+                            <div class="text-label">Won Yesterday</div>
+                            <div class="badge-stats-info">?</div>
+                        </li>
+                        <li>
+                            <div class="text-label">Won Ever</div>
+                            <div class="badge-stats-info">${badge.sold}</div>
+                        </li>
+                    </ul>
+                </div>
+            </li>`;
+            // <div class="badge-stats-info">0.0% (Impossible)</div>
+            }
+
             const created = db.unixToDate(game.created);
             const updated = db.unixToDate(game.updated);
             res.render("sitetest/game", {
@@ -7186,6 +7588,8 @@ module.exports = {
                 gameid: game.gameid,
                 gamename: game.gamename,
                 gamename2: game.gamename.replaceAll(" ", "-"),
+                badges: badgesHtml,
+                badgesCount: badges.length,
                 desc: game.description,
                 likes: game.likes.length,
                 dislikes: game.dislikes.length,
@@ -7949,8 +8353,8 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 res.status(400).send("Invalid price");
                 return;
             }
-            await db.setGamepassItemProperty(itemId, "name", name);
-            await db.setGamepassItemProperty(itemId, "description", desc);
+            await db.setGamepassProperty(itemId, "name", name);
+            await db.setGamepassProperty(itemId, "description", desc);
             res.redirect(`/game-pass/${itemId}/${db.filterText2(gamepass.name).replaceAll(" ", "-")}`);
         });
 
