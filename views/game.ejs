@@ -1194,8 +1194,20 @@ Build your factory as you develop and mass produce the most successful series of
                                 //<sl:translate>
                             </script>
 
+                            <div class="stack badge-container">
+                            <div class="container-header">
+                                <h3>Game Badges</h3>
+                            </div>
+                            <ul class="stack-list">
+                                    <%- badges %>
+                                <% if (badgesCount > 3) { %>
+                                <li>
+                                    <button type="button" class="btn-full-width btn-control-sm" id="badges-see-more">See More</button>
+                                </li>
+                                <% } %>
+                            </ul>
 
-
+                        </div>
 
 
 

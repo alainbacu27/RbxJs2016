@@ -717,7 +717,7 @@
     <form action="/build/doverifiedupload" enctype="multipart/form-data" id="upload-form" method="post">
         <input name="__RequestVerificationToken" type="hidden"
             value="<%= xcsrftoken %>" />
-        <input id="assetTypeId" name="assetTypeId" type="hidden" value="34" />
+        <input id="assetTypeId" name="assetTypeId" type="hidden" value="<%= assetTypeId %>" />
         <input id="isOggUploadEnabled" name="isOggUploadEnabled" type="hidden" value="True" />
         <input id="groupId" name="groupId" type="hidden" value="" />
         <input id="onVerificationPage" name="onVerificationPage" type="hidden" value="True" />
@@ -734,6 +734,7 @@
                     <h3>Name: </h3><span><%= name %></span>
                 </div>
             </div>
+            <% if (fileB64 != "") { %><input name="img" value="<%= fileB64 %>" hidden/><% } %>
             <% if (gameid != null){ %>
             <div class="form-row">
                 <div class="preview-item">
@@ -764,7 +765,7 @@
             </div>
             <div class="form-row submit-buttons">
                 <a id="upload-button" class="btn-medium btn-primary " data-freeaudio-enabled="true"
-                    tabindex="4">Verify Upload<span class=></span></a>
+                    tabindex="4">Verify Upload<%= forText %><span class=></span></a>
                 <a id="cancel-upload-button"
                     href="https://www.rbx2016.nl/build/upload?assetTypeId=<%= assetTypeId %>&amp;targetPlaceId=<%= gameid %>"
                     class="btn-medium btn-negative" tabindex="4">Cancel</a>
@@ -773,7 +774,7 @@
                 <div id="upload-fee-item-result-error" class="status-error hidden">Insufficient Funds
                 </div>
                 <div id="upload-fee-item-result-success" class="status-confirm hidden">
-                    <div><a id="upload-fee-confirmation-link" target="_top">Pass</a> successfully created!</div>
+                    <div><a id="upload-fee-confirmation-link" target="_top"><% if (assetTypeId == 34){ %>Pass<% } else if (assetTypeId == 21) { %>Badge<% } %></a> successfully created!</div>
                 </div>
             </div>
         </div>

@@ -83,6 +83,12 @@
             "user": 10,
             "admin": 15
         },
+
+        "badgesEnabled": true,
+        "maxBadgesPerGame": {
+            "user": 5,
+            "admin": 6
+        },
         
         "maxFriends": 200,
         "maxBlocked": 100,
@@ -117,6 +123,7 @@
         "ShirtUploadCost": 4,
         "PantsUploadCost": 4,
         "HatUploadCost": 5,
+        "BadgeUploadCost": 1,
         "jobsEnabled": true
     },
     "backend": {

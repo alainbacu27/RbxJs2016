@@ -3,7 +3,6 @@
         "httpPort": 80,
         "httpsEnabled": true,
         "httpsPort": 443,
-
         "allowSignup": true,
         "allowLogin": true,
         "allowQuickLogin": true,
@@ -18,9 +17,6 @@
         "usernameConfiguration": {
             "canChangeUsername": true,
             "changeUsernamePrice": 1
-        },
-        "messages": {
-            "maxMessagesPerDay": 10
         },
         "devex": {
             "enabled": false,
@@ -46,71 +42,64 @@
             "user": 5,
             "admin": 8
         },
-
         "maxAssetsPerDaily": {
             "admin": 20,
             "user": 15
         },
-
+        "messages": {
+            "maxMessagesPerDay": 10
+        },
         "ADMIN_InviteCooldown": 600,
-
         "assetsEnabled": true,
-
         "users": {
             "canViewUsers": true,
             "canViewInventory": true,
             "canViewFavorites": true,
             "canSearchUsers": true,
-
             "canHaveFriends": true,
             "canViewFriends": true,
-
             "gendersEnabled": true,
-
             "canBeUnder13": true
         },
         "votingServiceEnabled": true,
-
         "pages": {
             "disabledRoutes": [],
             "catalogEnabled": true,
-
             "robuxPurchasesVisible": true,
             "robuxPurchasesEnabled": false,
-
             "premiumPurchasesVisible": true,
             "premiumPurchasesEnabled": false
         },
-
         "groups": {
             "groupsEnabled": true,
             "canCreateGroups": true
         },
-
         "giftcardsEnabled": true,
-
         "installerCdns": {
             "setup.rbx2016.nl": 100
         },
-
         "gamepassesEnabled": true,
         "maxGamepassesPerGame": {
             "user": 10,
             "admin": 15
         },
 
+        "badgesEnabled": true,
+        "maxBadgesPerGame": {
+            "user": 5,
+            "admin": 6
+        },
+        
         "maxFriends": 200,
         "maxBlocked": 100,
 
         "adsEnabled": true,
         "maxUserRatingsPerHour": 50,
         "needsToPlayBeforeLikeGame": true,
-
         "ADMIN_AdminPanelEnabled": true,
         "ADMIN_AdminPanelRoute": "/admi",
         "ADMIN_AdminCanExecuteJobScripts": true,
         "ADMIN_AdminCanExecuteNewJobScripts": true,
-
         "APPROVER_ACCESS": [
             "index",
             "assetmoderation",
@@ -130,12 +119,11 @@
             "invitekeys",
             "logs"
         ],
-
         "CLIENT_DOWNLOAD_AVAIlABLE": true,
-
         "ShirtUploadCost": 4,
         "PantsUploadCost": 4,
         "HatUploadCost": 5,
+        "BadgeUploadCost": 1,
         "jobsEnabled": true
     },
     "backend": {
@@ -148,7 +136,14 @@
         "maxRenderJobs": 4,
         "avatarCanRedrawEvery": 7500,
         "MaxUserOtherItemsEquipped": 3,
-        "badUsernames": ["roblox", "builderman", "ugc", "games", "system", "unknown"],
+        "badUsernames": [
+            "roblox",
+            "builderman",
+            "ugc",
+            "games",
+            "system",
+            "unknown"
+        ],
         "starterItems": {
             "starterRobux": 0,
             "starterTix": 0,
@@ -169,33 +164,33 @@
             "bc": 70,
             "admin": 70
         },
-
         "presenceEnabled": true,
-
         "logSignupIP": true,
         "logLastIP": true,
         "maxAccountsPerIP": 1,
-
         "assetdeliveryEnabled": true,
-
         "maxBatchSize": 100,
-
         "disableLogoutOnMaintenance": true,
-        "allowedMaintenanceResources": ["/css/MainCSS___17f21dbd675f4bdb077b6158df213e11_m.css", "/css/page___f8474116137f9f0c643602405074e40b_m.css", "/7aee41db80c1071f60377c3575a0ed87.ico", "/0c76b6335f007581efc1e7446d528283.js", "/10f5b360dc268a5faf9e5620ec27c3d1.js", "/3a6c1b7385d6bf02a4e9b59e5091462c.jpg"],
+        "allowedMaintenanceResources": [
+            "/css/MainCSS___17f21dbd675f4bdb077b6158df213e11_m.css",
+            "/css/page___f8474116137f9f0c643602405074e40b_m.css",
+            "/7aee41db80c1071f60377c3575a0ed87.ico",
+            "/0c76b6335f007581efc1e7446d528283.js",
+            "/10f5b360dc268a5faf9e5620ec27c3d1.js",
+            "/3a6c1b7385d6bf02a4e9b59e5091462c.jpg"
+        ],
         "maxMaintenanceWhitelistAttempts": 2,
         "canBypassMaintenanceScreen": true,
         "datastoresEnabled": true,
-        "datastoresMaxPerPlace": 20,
-
+        "datastoresMaxPerPlace": 400,
         "massAssetUploadEnabled": true,
         "massAssetUploadIsAdminOnly": true,
-
         "fallbackToRobloxAssets": true,
         "robloxAssetsUsingR": true,
-
         "maxGiveTix": 1000,
-
-        "disabledApis": ["template"],
+        "disabledApis": [
+            "template"
+        ],
         "productInfoEnabled": true,
         "productInfoEnabled2": true,
         "robuxServiceEnabled": true,
@@ -206,7 +201,6 @@
         "hostingTeamCreateEnabled": false,
         "hostingConnectsToLocalhost": false,
         "maxGameStartupTime": 45,
-
         "devProducuts": {
             "enabled": true,
             "isAdminOnly": false,
@@ -250,7 +244,6 @@
             "displayPlayerUsername": true,
             "displayGroupFundsAndRobuxIcon": true
         },
-
         "appPolicy": {
             "ChatConversationHeaderGroupDetails": true,
             "ChatHeaderSearch": true,
@@ -319,7 +312,6 @@
             "ProfileShareEnabled": false,
             "CsatSurveyRestrictTextInput": true
         },
-
         "accountSettingsUi": {
             "displayTwoStepVerification": true,
             "displayAccountPIN": true,
@@ -354,89 +346,14 @@
             "displayParentalControlTab": true,
             "displayParentalSpendControl": true
         },
-
-        "themes": ["Light", "Dark"]
+        "themes": [
+            "Light",
+            "Dark"
+        ]
     },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     "PRIVATE": {
         "PRIVATE_API_KEY": "289198jas7ud8792h8s97ada",
-        "DATABASE_PASSWORD": "",
-        "gitUrl": "system:PASSWORD@megagit.localtonet.com"
+        "DATABASE_PASSWORD": "Malte1245",
+        "gitUrl": "system:Malte1621@megagit.localtonet.com"
     }
 }

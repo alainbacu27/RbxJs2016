@@ -3,10 +3,15 @@ const path = require("path");
 const cookieParser = require('cookie-parser');
 const fetch = require('node-fetch');
 const querystring = require('querystring');
+const get_ip = require('ipware')().get_ip;
 
 module.exports = {
     init: (app, db) => {
         app.post("/v2/CreateOrUpdate", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const apikey = req.query.apiKey;
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user){
@@ -33,6 +38,10 @@ module.exports = {
         });
 
         app.post("/v1/Close", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {

@@ -520,6 +520,22 @@ MongoClient.connect(mongourl, function (err, db) {
     if (err) throw err;
     const dbo = db.db(dbName);
     dbo.listCollections({
+        name: "badges"
+    }).next(function (err, collinfo) {
+        if (err) throw err;
+        if (!collinfo) {
+            dbo.createCollection("badges", function (err, res) {
+                if (err) throw err;
+                db.close();
+            });
+        }
+    });
+});
+
+MongoClient.connect(mongourl, function (err, db) {
+    if (err) throw err;
+    const dbo = db.db(dbName);
+    dbo.listCollections({
         name: "devproducts"
     }).next(function (err, collinfo) {
         if (err) throw err;
@@ -1704,6 +1720,10 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
 
         game:GetService("BadgeService"):SetPlaceId(placeId)
 
+        game:GetService("BadgeService"):SetAwardBadgeUrl(url .. "/Game/Badge/AwardBadge.ashx?UserID=%d&BadgeID=%d&PlaceID=%d")
+        game:GetService("BadgeService"):SetHasBadgeUrl(url .. "/Game/Badge/HasBadge.ashx?UserID=%d&BadgeID=%d")
+        game:GetService("BadgeService"):SetIsBadgeDisabledUrl(url .. "/Game/Badge/IsBadgeDisabled.ashx?BadgeID=%d&PlaceID=%d")
+        
         game:GetService("BadgeService"):SetIsBadgeLegalUrl("")
         game:GetService("InsertService"):SetBaseSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
         game:GetService("InsertService"):SetUserSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
@@ -1839,6 +1859,10 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
             pcall(function() game:GetService("Players"):SetChatFilterUrl(url .. "/Game/ChatFilter.ashx") end)
 
             game:GetService("BadgeService"):SetPlaceId(placeId)
+
+            game:GetService("BadgeService"):SetAwardBadgeUrl(url .. "/Game/Badge/AwardBadge.ashx?UserID=%d&BadgeID=%d&PlaceID=%d")
+            game:GetService("BadgeService"):SetHasBadgeUrl(url .. "/Game/Badge/HasBadge.ashx?UserID=%d&BadgeID=%d")
+            game:GetService("BadgeService"):SetIsBadgeDisabledUrl(url .. "/Game/Badge/IsBadgeDisabled.ashx?BadgeID=%d&PlaceID=%d")
 
             game:GetService("BadgeService"):SetIsBadgeLegalUrl("")
             game:GetService("InsertService"):SetBaseSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
@@ -2012,6 +2036,10 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
     
                 game:GetService("BadgeService"):SetPlaceId(placeId)
     
+                game:GetService("BadgeService"):SetAwardBadgeUrl(url .. "/Game/Badge/AwardBadge.ashx?UserID=%d&BadgeID=%d&PlaceID=%d")
+                game:GetService("BadgeService"):SetHasBadgeUrl(url .. "/Game/Badge/HasBadge.ashx?UserID=%d&BadgeID=%d")
+                game:GetService("BadgeService"):SetIsBadgeDisabledUrl(url .. "/Game/Badge/IsBadgeDisabled.ashx?BadgeID=%d&PlaceID=%d")
+
                 game:GetService("BadgeService"):SetIsBadgeLegalUrl("")
                 game:GetService("InsertService"):SetBaseSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=10&type=base")
                 game:GetService("InsertService"):SetUserSetsUrl(url .. "/Game/Tools/InsertAsset.ashx?nsets=20&type=user&userid=%d")
@@ -5290,7 +5318,7 @@ module.exports = {
     },
 
     findGames: async function (gameName) {
-        gameName = filterText5(gameName);
+        gameName = filterText4(gameName);
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -5398,7 +5426,7 @@ module.exports = {
 
     createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, internalAssetId = 0, decalId = 0, meshId = 0, amount = -1) {
         return new Promise(async returnPromise => {
-            censorText(filterText5(name))
+            censorText(filterText4(name))
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -6515,14 +6543,15 @@ module.exports = {
         });
     },
 
-    getAssets: async function (userid, type = "All") {
+    getAssets: async function (userid, type = "All", exludeDeleted = true) {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
                 if (type == "All") {
                     dbo.collection("assets").find({
-                        creatorid: userid
+                        creatorid: userid,
+                        deleted: !exludeDeleted
                     }).toArray(function (err, result) {
                         if (err) {
                             db.close();
@@ -6535,7 +6564,8 @@ module.exports = {
                 } else {
                     dbo.collection("assets").find({
                         creatorid: userid,
-                        type: type
+                        type: type,
+                        deleted: !exludeDeleted
                     }).toArray(function (err, result) {
                         if (err) {
                             db.close();
@@ -6699,9 +6729,9 @@ module.exports = {
         });
     },
 
-    createGamepass: async function (creatorid, gameid, name, desc, price) {
+    createGamepass: async function (creatorid, gameid, name, desc, price, internalId) {
         return new Promise(async returnPromise => {
-            name = censorText(filterText5(name));
+            name = censorText(filterText4(name));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -6741,7 +6771,8 @@ module.exports = {
                             dislikes: [],
                             favorites: [],
                             currency: 1,
-                            onSale: false
+                            onSale: false,
+                            internalId: internalId
                         }, function (err, result) {
                             if (err) {
                                 db.close();
@@ -6783,11 +6814,210 @@ module.exports = {
         });
     },
 
+    createBadge: async function (creatorid, gameid, name, desc, internalId) {
+        return new Promise(async returnPromise => {
+            name = censorText(filterText4(name));
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("config").findOne({}, async (err, config) => {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    let lastId = config.assets + 1;
+                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
+                        lastId++;
+                    }
+                    dbo.collection("config").updateOne({}, {
+                        $set: {
+                            assets: lastId
+                        }
+                    }, function (err, res) {
+                        if (err) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+
+                        dbo.collection("badges").insertOne({
+                            id: lastId,
+                            gameid: gameid,
+                            creatorid: creatorid,
+                            name: name,
+                            description: desc,
+                            owners: [],
+                            sold: 0,
+                            created: getUnixTimestamp(),
+                            updated: getUnixTimestamp(),
+                            likes: [],
+                            dislikes: [],
+                            favorites: [],
+                            currency: 1,
+                            onSale: false,
+                            internalId: internalId
+                        }, function (err, result) {
+                            if (err) {
+                                db.close();
+                                returnPromise(null);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(lastId);
+                        });
+                    });
+                });
+            });
+        });
+    },
+
+    getBadges: async function (gameid, playerid = 0) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("badges").find({
+                    gameid: gameid
+                }).toArray(function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    result = result.reverse();
+                    if (playerid > 0) {
+                        db.close();
+                        returnPromise(result.filter(badge => badge.owners.includes(playerid)));
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
+
+    getOwnedBadges: async function (playerid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("badges").find({
+                    owners: playerid
+                }).toArray(function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
+
+    getBadge: async function (id) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("badges").findOne({
+                    id: id
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
+
+    setBadgeProperty: async function (id, property, value) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("badges").updateOne({
+                    id: id
+                }, {
+                    $set: {
+                        [property]: value
+                    }
+                }, function (err, obj) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(true);
+                });
+            });
+        });
+    },
+
+    awardBadge: async function (user, badgeid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("badges").findOne({
+                    id: badgeid
+                }, function (err, badge) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (badge == null) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (!badge.onSale && user.userid != badge.creatorid) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    if (badge.owners.includes(user.userid)) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    dbo.collection("badges").updateOne({
+                        id: badgeid
+                    }, {
+                        $inc: {
+                            sold: 1
+                        },
+                        $push: {
+                            owners: user.userid
+                        }
+                    }, function (err, res) {
+                        if (err) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(true);
+                    });
+                });
+            });
+        });
+    },
+
     log: log,
 
     createDevProduct(creatorid, gameid, name, desc, price) {
         return new Promise(async returnPromise => {
-            name = censorText(filterText5(name));
+            name = censorText(filterText4(name));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -7176,8 +7406,22 @@ module.exports = {
                                 db.close();
                                 returnPromise(true);
                             } else {
-                                db.close();
-                                returnPromise(false);
+                                dbo.collection("badges").findOne({
+                                    id: assetid
+                                }, function (err, result) {
+                                    if (err) {
+                                        db.close();
+                                        returnPromise(false);
+                                        return;
+                                    }
+                                    if (result && result.owners.includes(userid)) {
+                                        db.close();
+                                        returnPromise(true);
+                                    } else {
+                                        db.close();
+                                        returnPromise(false);
+                                    }
+                                });
                             }
                         });
                     }
@@ -7593,7 +7837,7 @@ module.exports = {
 
     createAsset: async function (userid, name, desc, type, approved) {
         return new Promise(async returnPromise => {
-            name = censorText(filterText5(name));
+            name = censorText(filterText4(name));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
@@ -7703,7 +7947,7 @@ module.exports = {
 
     createGame: async function (gamename, gamedescription, creatorid) {
         return new Promise(async returnPromise => {
-            gamename = censorText(filterText5(gamename));
+            gamename = censorText(filterText4(gamename));
             gamedescription = censorText(filterText4(gamedescription));
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -8871,7 +9115,7 @@ module.exports = {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, async function (err, db) {
                 if (err) throw err;
-                gamename = censorText(filterText5(gamename));
+                gamename = censorText(filterText4(gamename));
                 const dbo = db.db(dbName);
                 if (!isPublic) {
                     const jobs = await getJobsByGameId(gameid);
@@ -8908,7 +9152,7 @@ module.exports = {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, async function (err, db) {
                 if (err) throw err;
-                gamename = censorText(filterText5(gamename));
+                gamename = censorText(filterText4(gamename));
                 description = censorText(filterText4(description));
                 const dbo = db.db(dbName);
                 if (!isPublic) {

@@ -140,8 +140,12 @@ module.exports = {
         });
 
         app.get("/v1/icon", async (req, res) => {
-            const bp = path.resolve(__dirname + "/../thumbnails/icons/") + path.sep;
-            const fp = path.resolve(bp + req.query.id.toString() + ".asset");
+            const id = parseInt(req.query.id);
+            const gamepass = await db.getGamepass(id);
+            const badge = await db.getBadge(id);
+            const internalId = gamepass && gamepass.internalId ? gamepass.internalId : badge && badge.internalId ? badge.internalId : id;
+            const bp = path.resolve(__dirname + (internalId != id ? "/../assets/" : "/../thumbnails/thumbs/")) + path.sep;
+            const fp = path.resolve(bp + internalId.toString() + ".asset");
             if (!fp.startsWith(bp)) {
                 res.status(403).send("Forbidden");
                 return;
@@ -161,8 +165,12 @@ module.exports = {
         });
 
         app.get("/v1/thumb", async (req, res) => {
-            const bp = path.resolve(__dirname + "/../thumbnails/thumbs/") + path.sep;
-            const fp = path.resolve(bp + req.query.id.toString() + ".asset");
+            const id = parseInt(req.query.id);
+            const gamepass = await db.getGamepass(id);
+            const badge = await db.getBadge(id);
+            const internalId = gamepass && gamepass.internalId ? gamepass.internalId : badge && badge.internalId ? badge.internalId : id;
+            const bp = path.resolve(__dirname + (internalId != id ? "/../assets/" : "/../thumbnails/thumbs/")) + path.sep;
+            const fp = path.resolve(bp + internalId.toString() + ".asset");
             if (!fp.startsWith(bp)) {
                 res.status(403).send("Forbidden");
                 return;

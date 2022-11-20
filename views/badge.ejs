@@ -733,7 +733,7 @@ Build your factory as you develop and mass produce the most successful series of
                             </div> -->
 
                             <h3>
-                                ROBLOX Game Pass
+                                ROBLOX Badge
 
                             </h3>
                         </div>
@@ -836,7 +836,7 @@ Build your factory as you develop and mass produce the most successful series of
 
                                         <div id="ctl00_cphRoblox_GamePassPlacesPanel">
 
-                                            Use this Game Pass at:
+                                            Earn this badge at:
 
                                             <div class="AssetThumbnail">
                                                 <a href="https://www.rbx2016.nl/games/<%= gameid %>"
@@ -926,32 +926,12 @@ Build your factory as you develop and mass produce the most successful series of
 
 
 
-                                            <div id="ctl00_cphRoblox_RobuxPurchasePanel">
-                                                <div id="RobuxPurchase">
-                                                    <div class="calloutParent">
-                                                        Price: <span class="robux " data-se="item-priceinrobux">
-                                                            <% if (price > 0){ %><%= price %><% }else{ %>FREE<% } %>
-                                                        </span>
-
-                                                    </div>
-                                                    <div id="BuyWithRobux">
-                                                        <div data-expected-currency="1" data-asset-type="Game Pass"
-                                                            class="btn-primary btn-medium PurchaseButton <% if (owned) { %>btn-disabled-primary<% } %>"
-                                                            data-se="item-buyforrobux" data-item-name="<%= name %>"
-                                                            data-item-id="<%= id %>" data-expected-price="<%= price %>"
-                                                            data-product-id="<%= id %>"
-                                                            data-expected-seller-id="<%= creatorid %>"
-                                                            data-bc-requirement="0"
-                                                            data-seller-name="<%= creatorname %>"
-                                                            <% if (owned) {%>title="You already own this item." <% } %>>
-                                                            <% if (price > 0){ %>Buy with R$<% }else{ %>Take One<% } %>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                            <!-- <div id="ctl00_cphRoblox_RobuxPurchasePanel">
                                                 <div class="clear"></div>
                                             </div>
+                                            
                                             <p>&nbsp;</p>
-                                            <p>&nbsp;</p>
+                                            <p>&nbsp;</p> -->
 
                                             <div class="clear">
                                             </div>
@@ -960,7 +940,7 @@ Build your factory as you develop and mass produce the most successful series of
 
                                                 <div id="ctl00_cphRoblox_Sold">
                                                     (<span data-se="item-numbersold"><%= sold %></span>
-                                                    Sold)
+                                                    Won)
                                                 </div>
                                             </div>
                                         </div>
@@ -969,18 +949,6 @@ Build your factory as you develop and mass produce the most successful series of
                                             <div class="BuyPriceBoxContainer">
                                                 <div class="BuyPriceBox">
                                                     Item Configuration:
-                                                    <div id="visibilityBtn"
-                                                        class="<% if (onSale){ %>btn-danger<%}else{%>btn-primary<%}%> btn-medium">
-                                                        <% if (onSale){ %>Put OffSale<% }else{ %>Put OnSale<% } %>
-                                                    </div>
-                                                    <p>&nbsp;</p>
-                                                    <form action="/v1/update/item" method="post">
-                                                        <input type="hidden" name="itemId" value="<%= id %>">
-                                                        <label for="price">Price:</label>
-                                                        <input type="number" class="navbar-search-input" style="width: 99%;" name="price" placeholder="Price" value="<%= price %>">
-                                                        <input type="submit" value="Update"
-                                                            class="btn-primary btn-medium">
-                                                    </form>
                                                     <form action="/v1/update/item2" method="post">
                                                         <input type="hidden" name="itemId" value="<%= id %>">
                                                         <label for="name">Name:</label>
@@ -996,51 +964,6 @@ Build your factory as you develop and mass produce the most successful series of
                                                         <input type="submit" value="Save"
                                                             class="btn-primary btn-medium">
                                                     </form>
-    
-                                                    <script>
-                                                        const sleep = (milliseconds) => {
-                                                           return new Promise(resolve => setTimeout(resolve, milliseconds))
-                                                        }
-    
-                                                        const visibilityBtn = document.getElementById('visibilityBtn');
-                                                        visibilityBtn.addEventListener('click', async function() {
-                                                            let errored = false;
-                                                            $.ajax({
-                                                                type: "POST",
-                                                                url: "/v1/visibiliy/item/toggle",
-                                                                data: {
-                                                                    itemId: <%= id %>
-                                                                },
-                                                                error: function () {
-                                                                    errored = true;
-                                                                    Roblox.GenericConfirmation
-                                                                        .open({
-                                                                            titleText: Roblox
-                                                                                .BuildPage
-                                                                                .Resources
-                                                                                .errorOccurred,
-                                                                            bodyContent: "Could not change item visibility, please try again later.",
-                                                                            acceptText: Roblox
-                                                                                .BuildPage
-                                                                                .Resources
-                                                                                .ok,
-                                                                            acceptColor: Roblox
-                                                                                .GenericConfirmation
-                                                                                .blue,
-                                                                            declineColor: Roblox
-                                                                                .GenericConfirmation
-                                                                                .none,
-                                                                            allowHtmlContentInBody: true,
-                                                                            dismissable: true
-                                                                        });
-                                                                },
-                                                            });
-                                                            await sleep(100);
-                                                            if (!errored) {
-                                                                window.location.reload();
-                                                            }
-                                                        });
-                                                    </script>
                                                 </div>
                                             </div>
                                             <% } %>

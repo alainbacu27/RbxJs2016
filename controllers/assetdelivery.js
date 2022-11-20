@@ -60,7 +60,7 @@ module.exports = {
                             }
                         }
                         const mimetype = detectContentType(Buffer.from(fd));
-                        if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg" || mimetype == "image/bmp" || mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "application/ogg" || mimetype == "video/webm" || mimetype == "model/obj") {
+                        if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg" || mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "application/ogg" || mimetype == "video/webm" || mimetype == "model/obj") {
                             if (fd.length > 5.5 * 1024 * 1024) {
                                 req.uploadedFiles.push(`?: ${fn} (FAILED: Too big filesize)`);
                                 continue;
@@ -69,7 +69,7 @@ module.exports = {
                                 req.uploadedFiles.push(`?: ${fn} (FAILED: Too long filename)`);
                                 continue;
                             }
-                            let assetId = await db.createAsset(req.user.userid, fn.split(".")[0], "", (mimetype == "image/png" || mimetype == "image/jpeg" || mimetype == "image/bmp") ? "Decal" : (mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "application/ogg") ? "Audio" : mimetype == "video/webm" ? "Video" : mimetype == "model/obj" ? "Mesh" : "Unknown", true);
+                            let assetId = await db.createAsset(req.user.userid, fn.split(".")[0], "", (mimetype == "image/png" || mimetype == "image/jpeg") ? "Decal" : (mimetype == "audio/mpeg" || mimetype == "audio/wav" || mimetype == "application/ogg") ? "Audio" : mimetype == "video/webm" ? "Video" : mimetype == "model/obj" ? "Mesh" : "Unknown", true);
                             if (outputId != 0){
                                 await db.setAssetProperty(assetId, "id", outputId);
                                 assetId = outputId;

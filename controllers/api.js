@@ -860,6 +860,38 @@ module.exports = {
             });
         });
 
+        app.post("/assets/award-badge", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
+            const userId = parseInt(req.query.userId);
+            const badgeId = parseInt(req.query.badgeId);
+            const placeId = parseInt(req.query.placeId);
+            const user = await db.getUser(userId);
+            if (!user) {
+                res.status(404).json({});
+                return;
+            }
+            const badge = await db.getBadge(badgeId);
+            if (!badge) {
+                res.status(404).json({});
+                return;
+            }
+            if (badge.gameid != placeId) {
+                res.status(404).json({});
+                return;
+            }
+            const owned = await db.userOwnsAsset(userId, badgeId);
+            if (owned) {
+                res.status(400).json({});
+                return;
+            }
+            await db.awardBadge(user, badgeId);
+            res.json({});
+        });
+
+
         app.get("//v1.1/avatar-fetch", async (req, res) => {
             const userId = parseInt(req.query.userId);
             const placeId = parseInt(req.query.placeId);

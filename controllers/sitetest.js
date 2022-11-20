@@ -10,26 +10,6 @@ const bcrypt = require("bcryptjs");
 
 module.exports = {
     init: (app, db) => {
-        app.post("/v1/update/frontend", async (req, res) => {
-            const ip = get_ip(req).clientIp;
-            const updated = await db.internalSiteUpdate("sitetest-frontend", req);
-            if (updated) {
-                res.send();
-            } else {
-                res.status(403).send("You are not allowed to access this endpoint OR an error occured.");
-            }
-        });
-
-        app.post("/v1/update/backend", async (req, res) => {
-            const ip = get_ip(req).clientIp;
-            const updated = await db.internalSiteUpdate("backend", req);
-            if (updated) {
-                res.send();
-            } else {
-                res.status(403).send("You are not allowed to access this endpoint OR an error occured.");
-            }
-        });
-
         app.get("/", db.requireNonAuth, async (req, res) => {
             let years = ``;
             const year = new Date().getFullYear();
@@ -654,7 +634,7 @@ module.exports = {
             res.send();
         });
 
-        async function getGamesT7(userid){
+        async function getGamesT7(userid) {
             const games = await db.getGamesByCreatorId(userid);
             let out = ``;
             for (const game of games) {
@@ -669,7 +649,7 @@ module.exports = {
             }
             return out;
         }
-        
+
         app.get("/ide/welcome", db.requireAuth2, async (req, res) => {
             if (!req.user) {
                 res.redirect("/My/Places.aspx&showlogin=True");
@@ -678,7 +658,7 @@ module.exports = {
 
             const games = await getGamesT7(req.user.userid);
 
-            res.render("idewelcome", {
+            res.render("sitetest/idewelcome", {
                 ...(await db.getRenderObject(req.user)),
                 MyGames: games
             });
@@ -1472,6 +1452,9 @@ module.exports = {
                 case "Heads":
                     type = "Head";
                     break;
+                case "Hats":
+                    type = "Hat";
+                    break;
                 case "Faces":
                     type = "Face";
                     break;
@@ -1501,13 +1484,62 @@ module.exports = {
                     break;
             }
 
-            const items = await db.getOwnedCatalogItems(req.user.userid, type);
-            let itemsHtml = "";
+            if (type == "Accessory") {
+                const items = await db.getOwnedCatalogItems(req.user.userid);
+                let itemsHtml = "";
 
-            for (let i = 0; i < items.length; i++) {
-                const item = items[i];
-                const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
-                itemsHtml += `<div class="col-3 mt-4">
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+
+                    if (item.itemtype == "TShirt" || item.itemtype == "Shirt" || item.itemtype == "Pants" || item.itemtype == "TShirt" || item.itemtype == "Face") continue;
+
+                    const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
+                    itemsHtml += `<div class="col-3 mt-4">
+                    <div class="image-0-2-92">
+                        <div class="thumbWrapper-0-2-98"><img class="image-0-2-102 "
+                                src="https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}">
+                        </div>
+                        <div class="wearButtonWrapper-0-2-94" style="bottom: 6.25em;">
+                            <div><button
+                                    class="btn-0-2-99 wearButton-0-2-93 continueButton-0-2-62" id="wear${item.itemid}"
+                                    title="" ${wearing ? "disabled" : ""}>${wearing ? "Wearing" : "Wear"}</button></div>
+                        </div>
+                    </div>
+                    <p class="itemName-0-2-91"><a
+                            href="/catalog/${item.itemid}/${db.filterText2(item.itemname).replaceAll(" ", "-")}">${item.itemname}</a></p>
+                    <script>
+                        const btn = document.getElementById("wear${item.itemid}");
+                        btn.addEventListener("click", () => {
+                            fetch("/My/Character/Wear", {
+                                method: "POST",
+                                credentials: "include",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "itemid": ${item.itemid}
+                                })
+                            }).then(res => {
+                                if (res.status == 200) {
+                                    btn.innerText = "Wearing";
+                                    btn.disabled = true;
+                                    fetchCurrentlyWearing();
+                                }
+                            });
+                        });
+                    </script>
+                </div>`;
+                }
+
+                res.send(itemsHtml);
+            } else {
+                const items = await db.getOwnedCatalogItems(req.user.userid, type);
+                let itemsHtml = "";
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
+                    itemsHtml += `<div class="col-3 mt-4">
                 <div class="image-0-2-92">
                     <div class="thumbWrapper-0-2-98"><img class="image-0-2-102 "
                             src="https://thumbnails.rbx2016.nl/v1/icon?id=${item.itemid}">
@@ -1542,9 +1574,10 @@ module.exports = {
                     });
                 </script>
             </div>`;
-            }
+                }
 
-            res.send(itemsHtml);
+                res.send(itemsHtml);
+            }
         });
 
         app.post("/My/Character/Wear", db.requireAuth, async (req, res) => {
@@ -1562,6 +1595,36 @@ module.exports = {
                 });
                 return;
             }
+
+            // Some items can only be equipped in certain amount of times..
+            let otherItems = 0;
+            const equippedItems = await db.getEquippedCatalogItems(req.user.userid);
+            for (let i = 0; i < equippedItems.length; i++) {
+                const item2 = await db.getCatalogItem(equippedItems[i]);
+                if (!item2) continue;
+                switch (item2.itemtype) {
+                    case "TShirt":
+                    case "Shirt":
+                    case "Pants":
+                        if (item.itemtype == item2.itemtype) {
+                            res.status(400).json({
+                                "success": false
+                            });
+                            return;
+                        }
+                        break;
+                    default:
+                        otherItems++;
+                        if (otherItems >= db.getSiteConfig().backend.MaxUserOtherItemsEquipped) {
+                            res.status(400).json({
+                                "success": false
+                            });
+                            return;
+                        }
+                        break;
+                }
+            }
+
             const equipped = await db.equipCatalogItem(req.user.userid, itemid);
             if (equipped) {
                 res.json({
@@ -2148,28 +2211,46 @@ module.exports = {
             res.json({});
         });
 
+        /*
+        app.get("/IDE/logout", db.requireAuth, async (req, res) => {
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.nl",
+                httpOnly: true
+            });
+            await db.setUserProperty(req.user.userid, "cookie", "");
+            await db.setUserProperty(req.user.userid, "xcsrftoken", "");
+            res.redirect('back');
+        });
+        */
+
         app.post("/authentication/logout", db.requireAuth2, async (req, res) => {
+            if ((await db.getConfig()).maintenance && db.getSiteConfig().backend.disableLogoutOnMaintenance) {
+                res.status(503).send("Maintenance");
+                return;
+            }
             if (req.user) {
-                if ((await db.getConfig()).maintenance && db.getSiteConfig().backend.disableLogoutOnMaintenance) {
-                    res.status(503).send("Maintenance");
-                    return;
-                }
-                res.cookie('.ROBLOSECURITY', "delete", {
-                    maxAge: -1,
-                    path: "/",
-                    domain: "rbx2016.nl",
-                    httpOnly: true
-                });
+                await db.setUserProperty(req.user.userid, "cookie", "");
+                await db.setUserProperty(req.user.userid, "xcsrftoken", "");
+            } else {
                 if (typeof req.headers["x-csrf-token"] !== "undefined") {
                     if (req.headers["x-csrf-token"].length == 128) {
                         const user = await db.getUserByCsrfToken(req.headers["x-csrf-token"]);
                         if (user) {
                             await db.setUserProperty(user.userid, "cookie", "");
+                            await db.setUserProperty(user.userid, "xcsrftoken", "");
                         }
                     }
                 }
-                res.redirect("/");
             }
+            res.cookie('.ROBLOSECURITY', "delete", {
+                maxAge: -1,
+                path: "/",
+                domain: "rbx2016.nl",
+                httpOnly: true
+            });
+            res.redirect("/");
         });
 
         function getAssetHTML(name, id) {
@@ -2180,6 +2261,14 @@ module.exports = {
 
         app.get("/IDE/ClientToolbox.aspx", async (req, res) => {
             const assets = "";
+            const topAssets = await db.getTopModels();
+
+            for (const asset of topAssets) {
+                assets += `<span ondragstart="dragRBX(${asset.id})" style="margin-left: 5px; margin-top: 5px; color: #fff; text-decoration: none; text-align: center; border: 1px solid #000; background-color: #cccccc; width: 80px; height: 80px;">
+                <a href="javascript:insertContent(${asset.id})">${asset.name}</a>
+                </span>`;
+            }
+
             res.render("sitetest/ClientToolbox", {
                 ...await db.getBlankRenderObject(),
                 assets: assets
@@ -2402,6 +2491,27 @@ module.exports = {
             pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
             pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://sitetest.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
             pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://sitetest.rbx2016.nl/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
+            `;
+            const rbxsig = db.sign(script);
+            res.send(`%${rbxsig}%${script}`);
+        });
+        
+        app.get("//Game/LoadPlaceInfo.ashx", async (req, res) => {
+            const PlaceId = parseInt(req.query.PlaceId);
+            const game = await db.getGame(PlaceId);
+            if (!game) {
+                res.status(404).send("Game not found");
+                return;
+            }
+            const script = `-- Loaded by StartGameSharedScript --
+            pcall(function() game:SetCreatorID(${game.creatorid}, Enum.CreatorType.User) end)
+            
+            pcall(function() game:GetService("SocialService"):SetFriendUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsFriendsWith&playerid=%d&userid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetBestFriendUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsBestFriendsWith&playerid=%d&userid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=IsInGroup&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupRankUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRank&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("SocialService"):SetGroupRoleUrl("http://www.rbx2016.nl/Game/LuaWebService/HandleSocialRequest.ashx?method=GetGroupRole&playerid=%d&groupid=%d") end)
+            pcall(function() game:GetService("GamePassService"):SetPlayerHasPassUrl("http://www.rbx2016.nl/Game/GamePass/GamePassHandler.ashx?Action=HasPass&UserID=%d&PassID=%d") end)
             `;
             const rbxsig = db.sign(script);
             res.send(`%${rbxsig}%${script}`);
@@ -3314,6 +3424,57 @@ module.exports = {
                     }
                 }
                 res.send(gamepassesHtml);
+            } else if (assetTypeId == 21) {
+                let badgesHtml = "";
+                if (db.getSiteConfig().shared.badgesEnabled == true) {
+                    const badges = await db.getBadges(game.gameid);
+                    for (let i = 0; i < badges.length; i++) {
+                        if (startId && i < startId) {
+                            continue;
+                        }
+                        const badge = badges[i];
+                        const created = db.unixToDate(badge.created);
+                        const updated = db.unixToDate(badge.updated);
+                        badgesHtml += `<table class="item-table" data-item-id="${badge.id}"
+                        data-type="image" style="">
+                        <tbody>
+                            <tr>
+                                <td class="image-col">
+                                    <a href="https://sitetest.rbx2016.nl/badges/${badge.id}"
+                                        class="item-image"><img class=""
+                                            src="https://thumbnails.rbx2016.nl/v1/thumb?id=${badge.id}"></a>
+                                </td>
+                                <td class="name-col">
+                                    <a class="title"
+                                        href="https://sitetest.rbx2016.nl/badges/${badge.id}">${badge.name}</a>
+                                    <table class="details-table">
+                                        <tbody>
+                                            <tr>
+                                                <td class="item-date">
+                                                    <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td class="stats-col">
+                                    <div class="totals-label">Total Sales:
+                                        <span>${badge.sold}</span></div>
+                                    <div class="totals-label">Last 7 days:
+                                        <span>?</span></div>
+                                </td>
+                                <td class="menu-col">
+                                    <div class="gear-button-wrapper">
+                                        <a href="#" class="gear-button"></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="separator" style=""></div>`;
+                    }
+                }
+                res.send(badgesHtml);
             } else {
                 res.sendStatus(400);
             }
@@ -3325,7 +3486,7 @@ module.exports = {
             if (Page) {
                 Page = Page.toLowerCase();
             }
-            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts" && Page != "pants" && Page != "tshirts") || View != null) {
+            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts" && Page != "pants" && Page != "tshirts" && Page != "hats" && Page != "badges") || View != null) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
@@ -3393,6 +3554,55 @@ module.exports = {
                             <td class="stats-col">
                                 <div class="totals-label">Total Sales:
                                     <span>${gamepass.sold}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
+            let badgesHtml = "";
+            if (game && db.getSiteConfig().shared.badgesEnabled == true && Page == "badges") {
+                let badges = await db.getBadges(game.gameid);
+                badges = badges.reverse();
+                for (let i = 0; i < badges.length; i++) {
+                    if (i > 50) break;
+                    const badge = badges[i];
+                    const created = db.unixToDate(badge.created);
+                    const updated = db.unixToDate(badge.updated);
+                    badgesHtml += `<table class="item-table" data-item-id="${badge.id}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://sitetest.rbx2016.nl/badges/${badge.id}"
+                                    class="item-image"><img class=""
+                                        src="https://thumbnails.rbx2016.nl/v1/thumb?id=${badge.id}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://sitetest.rbx2016.nl/badges/${badge.id}">${badge.name}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${badge.sold}</span></div>
                                 <div class="totals-label">Last 7 days:
                                     <span>?</span></div>
                             </td>
@@ -3658,6 +3868,56 @@ module.exports = {
                 }
             }
 
+            let hatsHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "hats") {
+                let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "Hat");
+                assets = assets.reverse();
+                for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
+                    const asset = assets[i];
+                    // if (asset.deleted) continue;
+                    const created = db.unixToDate(asset.created);
+                    const updated = db.unixToDate(asset.updated);
+                    hatsHtml += `<table class="item-table" data-item-id="${asset.itemid}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://sitetest.rbx2016.nl/library/${asset.itemid}"
+                                    class="item-image"><img class=""
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://sitetest.rbx2016.nl/catalog/${asset.itemid}">${asset.itemname}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${asset.itemowners.length}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
             let tshirtHtml = "";
             if (db.getSiteConfig().shared.assetsEnabled == true && Page == "tshirts") {
                 let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "TShirt");
@@ -3713,15 +3973,17 @@ module.exports = {
                 games: games_html,
                 publicPlaces: publicPlacesHtml,
                 gamepasses: gamepassesHtml,
+                badges: badgesHtml,
                 decals: decalsHtml,
                 audios: audiosHtml,
                 meshes: meshesHtml,
                 shirts: shirtsHtml,
                 pants: pantsHtml,
+                hats: hatsHtml,
                 tshirts: tshirtHtml,
                 tab: Page,
-                assetTypeId: Page == "game-passes" ? 34 : Page == "decals" ? 13 : Page == "audios" ? 3 : Page == "meshes" ? 4 : null,
-                gameid: Page == "game-passes" ? game != null ? game.gameid : null : null
+                assetTypeId: Page == "game-passes" ? 34 : Page == "decals" ? 13 : Page == "audios" ? 3 : Page == "meshes" ? 4 : Page == "badges" ? 21 : null,
+                gameid: (Page == "game-passes" || Page == "badges") ? game != null ? game.gameid : null : null
             });
         });
 
@@ -3744,7 +4006,8 @@ module.exports = {
                 desc: req.body.description,
                 assetTypeId: parseInt(req.body.assetTypeId),
                 gameid: game != null ? game.gameid : null,
-                gamename: game != null ? game.gamename : null
+                gamename: game != null ? game.gamename : null,
+                forText: parseInt(req.body.assetTypeId) == 21 ? ` for ${db.getSiteConfig().shared.BadgeUploadCost} Robux` : ""
             });
         });
 
@@ -3782,6 +4045,13 @@ module.exports = {
                     return;
                 }
                 id = await db.createGamepass(req.user.userid, game.gameid, name, desc, 0);
+            } else if (assetTypeId == 21) {
+                if ((await db.getBadges(game.gameid)).length >= ((req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxBadgesPerGame.admin : db.getSiteConfig().shared.maxBadgesPerGame.user)) {
+                    res.status(401).send("Badges limit reached");
+                    return;
+                }
+                id = await db.createBadge(req.user.userid, game.gameid, name, desc, 0);
+                await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.BadgeUploadCost);
             } else if (assetTypeId == 13) {
                 if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
                     if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
@@ -3804,9 +4074,16 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
+                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
                     id = await db.createAsset(req.user.userid, name, desc, "Decal", (req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
+                    if (await db.isNsfw(file.data)) {
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -3842,11 +4119,36 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
+                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
                     id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
-                    await db.createCatalogItem(name, desc, 0, "Shirt", req.user.userid, id);
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
+
+                    if (await db.isNsfw(file.data)) {
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
+
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.ShirtUploadCost);
+
+                    const internalId = await db.createAsset(req.user.userid, name + "-SHIRT-INTERNAL", desc, "Shirt", req.user.userid, true);
+                    const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+                    <External>null</External>
+                    <External>nil</External>
+                    <Item class="Shirt" referent="RBX0">
+                      <Properties>
+                        <Content name="ShirtTemplate">
+                          <url>http://sitetest.rbx2016.nl/asset/?id=${id}</url>
+                        </Content>
+                        <string name="Name">Shirt</string>
+                        <bool name="archivable">true</bool>
+                      </Properties>
+                    </Item>
+                  </roblox>`;
+                    fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
+                    await db.createCatalogItem(name, desc, 0, "Shirt", req.user.userid, internalId, id);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -3874,10 +4176,35 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
+                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
                     id = await db.createAsset(req.user.userid, name + "-TSHIRT", desc, "TShirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
-                    await db.createCatalogItem(name, desc, 0, "TShirt", req.user.userid, id);
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    file.mv(`${__dirname}/../assets/${id}.asset`); // TODO: CHECK WHY NOT UPLOADING?!
+
+                    if (await db.isNsfw(file.data)) {
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
+
+                    const internalId = await db.createAsset(req.user.userid, name + "-TSHIRT-INTERNAL", desc, "TShirt", req.user.userid, true);
+                    const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+                    <External>null</External>
+                    <External>nil</External>
+                    <Item class="ShirtGraphic" referent="RBX0">
+                      <Properties>
+                        <Content name="Graphic">
+                          <url>http://sitetest.rbx2016.nl/asset/?id=${id}</url>
+                        </Content>
+                        <string name="Name">Shirt Graphic</string>
+                        <bool name="archivable">true</bool>
+                      </Properties>
+                    </Item>
+                  </roblox>`;
+                    fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
+                    await db.createCatalogItem(name, desc, 0, "TShirt", req.user.userid, internalId, id);
+
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -3913,11 +4240,80 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "image/bmp") {
+                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
                     id = await db.createAsset(req.user.userid, name + "-PANTS", desc, "Pants", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
-                    await db.createCatalogItem(name, desc, 0, "Pants", req.user.userid, id);
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.PantsUploadCost);
+
+                    if (await db.isNsfw(file.data)) {
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
+
+                    const internalId = await db.createAsset(req.user.userid, name + "-PANTS-INTERNAL", desc, "Pants", req.user.userid, true);
+                    const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+                    <External>null</External>
+                    <External>nil</External>
+                    <Item class="Pants" referent="RBX0">
+                      <Properties>
+                        <Content name="PantsTemplate">
+                          <url>http://sitetest.rbx2016.nl/asset/?id=${id}</url>
+                        </Content>
+                        <string name="Name">Pants</string>
+                        <bool name="archivable">true</bool>
+                      </Properties>
+                    </Item>
+                  </roblox>`;
+                    fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
+                    await db.createCatalogItem(name, desc, 0, "Pants", req.user.userid, internalId, id);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
+            } else if (assetTypeId == 8) {
+                if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
+                    if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                            res.status(401).send("You have reached the daily asset upload limit");
+                            return;
+                        }
+                    } else {
+                        await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                    }
+                } else if (req.user.firstDailyAssetUpload == 0) {
+                    await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                }
+
+                if (!(req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner")) {
+                    res.status(401).send("You do not have permission to upload a hat");
+                    return;
+                }
+
+                if (!req.files || Object.keys(req.files).length == 0) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                if (db.getSiteConfig().shared.PantsUploadCost < 0) {
+                    res.status(400).send("Hats are disabled");
+                    return;
+                }
+                if (req.user.robux < db.getSiteConfig().shared.ShirtUploadCost) {
+                    res.status(401).send("You do not have enough Robux to upload a hat");
+                    return;
+                }
+                const file = req.files.file;
+                if (file.mimetype == "application/xml" || file.mimetype == "text/plain" || file.mimetype == "application/octet-stream" && db.isXmlFile(file.data)) {
+                    id = await db.createAsset(req.user.userid, name + "-HAT", desc, "Hat", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
+                    await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.HatUploadCost);
+                    await db.createCatalogItem(name, desc, 0, "Hat", req.user.userid, id, id);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -3953,7 +4349,7 @@ module.exports = {
                         return;
                     }
                     id = await db.createAsset(req.user.userid, name, desc, "Audio", req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
-                    req.files.file.mv(`${__dirname}/../assets/${id}.asset`);
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -3982,7 +4378,7 @@ module.exports = {
                 const file = req.files.file;
                 if (file.mimetype == "application/octet-stream" && db.isObjFile(file.data)) {
                     const fp0 = `${__dirname}/../temp/${db.uuidv4()}.asset`;
-                    await req.files.file.mv(fp0);
+                    await file.mv(fp0);
                     const s = await db.convertMesh(fp0);
                     if (s) {
                         id = await db.createAsset(req.user.userid, name, desc, "Mesh", req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
@@ -4047,6 +4443,33 @@ module.exports = {
                     <div><a id="upload-fee-confirmation-link" target="_top">Pass</a> successfully created!</div>
                 </div>
             </div>`;
+            } else if (assetTypeId == 21) {
+                formData = `<div class="form-row">
+                <label for="file">Find your image:</label>
+                <input id="file" type="file" name="file" tabindex="1" />
+                <span id="file-error" class="error"></span>
+            </div>
+            <div class="form-row">
+                <label for="name">Badge Name:</label>
+                <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2" />
+                <span id="name-error" class="error"></span>
+            </div>
+            <div class="form-row textarea-container">
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" data-item-description-max-character-count="1000" rows="2"
+                    cols="62" tabindex="3"></textarea>
+            </div>
+            <div class="form-row submit-buttons">
+                <a id="upload-button" class="btn-medium btn-primary "
+                    tabindex="4">Preview<span class=></span></a>
+                <span id="loading-container"><img
+                        src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                <div id="upload-fee-item-result-error" class="status-error ${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}
+                </div>
+                <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
+                    <div><a id="upload-fee-confirmation-link" target="_top">Badge</a> successfully created!</div>
+                </div>
+            </div>`;
             } else if (assetTypeId == 3) {
                 formData = `<div id="audio-bucket-data" data-max-audio-size="20480000" data-max-audio-length="420" data-audio-enabled="false" data-audio-size="8388608" data-audio-price="100" data-shortsoundeffect-enabled="true" data-shortsoundeffect-size="786432" data-shortsoundeffect-price="20" data-longsoundeffect-enabled="true" data-longsoundeffect-size="1835008" data-longsoundeffect-price="35" data-music-enabled="true" data-music-size="8388608" data-music-price="70" data-longmusic-enabled="true" data-longmusic-size="20480000" data-longmusic-price="350"></div>            <div class="form-row">Audio uploads must be less than 7 minutes and smaller than 5.5 MB.</div>
                 <div class="form-row">
@@ -4089,7 +4512,7 @@ module.exports = {
             } else if (assetTypeId == 13) {
                 formData = `<div class="form-row">
                 <label for="file">Find your image:</label>
-                <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
+                <input id="file" type="file" accept="image/png,image/jpeg" name="file" tabindex="1">
                 <span id="file-error" class="error"></span>
             </div>
                     <div class="form-row">
@@ -4109,7 +4532,7 @@ module.exports = {
                 formData = `<div class="form-row">Did you use the template? If not, <a target="_blank" href="https://static.rbx2016.nl/images/shirttemplate.png">download it here</a>.</div>
                 <div class="form-row">
                     <label for="file">Find your image:</label>
-                    <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
+                    <input id="file" type="file" accept="image/png,image/jpeg" name="file" tabindex="1">
                     <span id="file-error" class="error"></span>
                 </div>
                         <div class="form-row">
@@ -4128,7 +4551,7 @@ module.exports = {
             } else if (assetTypeId == 2) {
                 formData = `<div class="form-row">
                 <label for="file">Find your image:</label>
-                <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
+                <input id="file" type="file" accept="image/png,image/jpeg" name="file" tabindex="1">
                 <span id="file-error" class="error"></span>
             </div>
                     <div class="form-row">
@@ -4148,7 +4571,7 @@ module.exports = {
                 formData = `<div class="form-row">Did you use the template? If not, <a target="_blank" href="https://static.rbx2016.nl/images/pantstemplate.png">download it here</a>.</div>
                 <div class="form-row">
                     <label for="file">Find your image:</label>
-                    <input id="file" type="file" accept="image/png,image/jpeg,image/bmp" name="file" tabindex="1">
+                    <input id="file" type="file" accept="image/png,image/jpeg" name="file" tabindex="1">
                     <span id="file-error" class="error"></span>
                 </div>
                         <div class="form-row">
@@ -4164,6 +4587,26 @@ module.exports = {
                     <div><a id="upload-fee-confirmation-link" target="_top">Pants</a> successfully created!</div>
                 </div>
                 </div>`
+            } else if (assetTypeId == 8) {
+                formData = `<div class="form-row">Did you use the template? If not, <a target="_blank" href="https://static.rbx2016.nl/templates/hattemplate.rbxl">download it here</a>.</div>
+                <div class="form-row">
+                    <label for="file">Find your image:</label>
+                    <input id="file" type="file" accept=".rbxmx" name="file" tabindex="1">
+                    <span id="file-error" class="error"></span>
+                </div>
+                        <div class="form-row">
+                    <label for="name">Hat Name:</label>
+                    <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
+                    <span id="name-error" class="error"></span>
+                </div>
+                    <div class="form-row submit-buttons">
+                                <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload for ${db.getSiteConfig().shared.HatUploadCost} Robux<span class=""></span></a>
+                                        <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+                <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
+                    <div><a id="upload-fee-confirmation-link" target="_top">Hat</a> successfully created!</div>
+                </div>
+                </div>`
             } else {
                 res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 return;
@@ -4175,7 +4618,7 @@ module.exports = {
                 assetTypeId: assetTypeId,
                 formData: formData,
                 uploadedId: uploadedId,
-                verifyUpload: assetTypeId == 34
+                verifyUpload: assetTypeId == 34 || assetTypeId == 21
             });
         });
 
@@ -5474,6 +5917,7 @@ module.exports = {
                             </div>
                     </div>
                     </div>	
+                    </div>
                     </div>`;
                 }
                 returnPromise(out);
@@ -5528,17 +5972,22 @@ module.exports = {
             const asset = await db.getCatalogItem(id);
 
             if (!asset) {
-                const item = await db.getAsset(id);
-                if (item) {
-                    return res.redirect("/library/" + item.id.toString() + "/" + db.filterText(item.name).replaceAll(" ", "-"));
+                const badge = await db.getBadge(id);
+                if (badge) {
+                    return res.redirect("/badges/" + badge.id.toString() + "/" + db.filterText(badge.name).replaceAll(" ", "-"));
                 } else {
-                    const gamepass = await db.getGamepass(id);
-                    if (gamepass) {
-                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    const item = await db.getAsset(id);
+                    if (item) {
+                        return res.redirect("/library/" + item.id.toString() + "/" + db.filterText(item.name).replaceAll(" ", "-"));
                     } else {
-                        const game = await db.getGame(id);
-                        if (game) {
-                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        const gamepass = await db.getGamepass(id);
+                        if (gamepass) {
+                            return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                        } else {
+                            const game = await db.getGame(id);
+                            if (game) {
+                                return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                            }
                         }
                     }
                 }
@@ -5570,6 +6019,10 @@ module.exports = {
         });
 
         app.post("/api/v1/thumbnail/upload", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             if (db.getSiteConfig().backend.thumbnailServiceEnabled == false) {
                 res.status(400).send();
                 return;
@@ -5584,13 +6037,14 @@ module.exports = {
             const isUserRender = req.body.isUserRender == "true" || req.body.isUserRender == true;
             const itemid = req.body.itemid;
             const jobid = req.body.jobid;
+
             if (!data || !itemid) {
                 res.status(400).send();
                 return;
             }
             const base64Data = data.replace(/^data:image\/png;base64,/, "");
 
-            fs.writeFile(`${__dirname}/../thumbnails/${isUserRender ? "avatars/thumbs" : "thumbs"}/${itemid}.asset`, base64Data, 'base64', async function (err) {
+            fs.writeFile(`${__dirname}/../thumbnails/${isUserRender ? "avatars/thumbs" : db.pendingRenderJobs.includes(itemid) ? "icons" : "thumbs"}/${itemid}.asset`, base64Data, 'base64', async function (err) {
                 res.send("OK");
                 if (err) {
                     console.log(err);
@@ -5630,7 +6084,7 @@ module.exports = {
                                         */
                     ],
                     "animations": {},
-                    "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=0`,
+                    "bodyColorsUrl": `https://sitetest.rbx2016.nl/asset/BodyColors.ashx?userId=0`,
                     "scales": {
                         "Height": 1.0000,
                         "Width": 1.0000,
@@ -5661,8 +6115,8 @@ module.exports = {
                 "equippedGearVersionIds": [],
                 "backpackGearVersionIds": [],
                 "accessoryVersionIds": equipCatalogItems,
-                "animations": {},    
-                "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${user.userid}`,
+                "animations": {},
+                "bodyColorsUrl": `https://sitetest.rbx2016.nl/asset/BodyColors.ashx?userId=${user.userid}`,
                 "scales": {
                     "Height": 1.0000,
                     "Width": 1.0000,
@@ -5688,17 +6142,22 @@ module.exports = {
             let asset = await db.getCatalogItem(id);
 
             if (!asset) {
-                const item = await db.getAsset(id);
-                if (item) {
-                    return res.redirect("/library/" + item.id.toString() + "/" + db.filterText(item.name).replaceAll(" ", "-"));
+                const badge = await db.getBadge(id);
+                if (badge) {
+                    return res.redirect("/badges/" + badge.id.toString() + "/" + db.filterText(badge.name).replaceAll(" ", "-"));
                 } else {
-                    const gamepass = await db.getGamepass(id);
-                    if (gamepass) {
-                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    const item = await db.getAsset(id);
+                    if (item) {
+                        return res.redirect("/library/" + item.id.toString() + "/" + db.filterText(item.name).replaceAll(" ", "-"));
                     } else {
-                        const game = await db.getGame(id);
-                        if (game) {
-                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        const gamepass = await db.getGamepass(id);
+                        if (gamepass) {
+                            return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                        } else {
+                            const game = await db.getGame(id);
+                            if (game) {
+                                return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                            }
                         }
                     }
                 }
@@ -6244,17 +6703,22 @@ module.exports = {
             const game = await db.getGame(gameid);
 
             if (!game) {
-                const item = await db.getCatalogItem(gameid);
-                if (item) {
-                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                const badge = await db.getBadge(id);
+                if (badge) {
+                    return res.redirect("/badges/" + badge.id.toString() + "/" + db.filterText(badge.name).replaceAll(" ", "-"));
                 } else {
-                    const asset = await db.getAsset(gameid);
-                    if (asset) {
-                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    const item = await db.getCatalogItem(gameid);
+                    if (item) {
+                        return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
                     } else {
-                        const gamepass = await db.getGamepass(gameid);
-                        if (gamepass) {
-                            return res.redirect("/game-pass/" + gamepass.gameid.toString() + "/" + db.filterText(gamepass.gamename).replaceAll(" ", "-"));
+                        const asset = await db.getAsset(gameid);
+                        if (asset) {
+                            return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                        } else {
+                            const gamepass = await db.getGamepass(gameid);
+                            if (gamepass) {
+                                return res.redirect("/game-pass/" + gamepass.gameid.toString() + "/" + db.filterText(gamepass.gamename).replaceAll(" ", "-"));
+                            }
                         }
                     }
                 }
@@ -6276,17 +6740,22 @@ module.exports = {
             const gamepass = await db.getGamepass(id);
 
             if (!gamepass) {
-                const item = await db.getCatalogItem(id);
-                if (item) {
-                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                const badge = await db.getBadge(id);
+                if (badge) {
+                    return res.redirect("/badges/" + badge.id.toString() + "/" + db.filterText(badge.name).replaceAll(" ", "-"));
                 } else {
-                    const asset = await db.getAsset(id);
-                    if (asset) {
-                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    const item = await db.getCatalogItem(id);
+                    if (item) {
+                        return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
                     } else {
-                        const game = await db.getGame(id);
-                        if (game) {
-                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        const asset = await db.getAsset(id);
+                        if (asset) {
+                            return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                        } else {
+                            const game = await db.getGame(id);
+                            if (game) {
+                                return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                            }
                         }
                     }
                 }
@@ -6306,24 +6775,27 @@ module.exports = {
         app.get("/library/:id", db.requireAuth, async (req, res) => {
             const id = parseInt(req.params.id);
             const asset = await db.getAsset(id);
-
             if (!asset) {
-                const item = await db.getCatalogItem(id);
-                if (item) {
-                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                const badge = await db.getBadge(id);
+                if (badge) {
+                    return res.redirect("/badges/" + badge.id.toString() + "/" + db.filterText(badge.name).replaceAll(" ", "-"));
                 } else {
-                    const gamepass = await db.getGamepass(id);
-                    if (gamepass) {
-                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    const item = await db.getCatalogItem(id);
+                    if (item) {
+                        return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
                     } else {
-                        const game = await db.getGame(id);
-                        if (game) {
-                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        const gamepass = await db.getGamepass(id);
+                        if (gamepass) {
+                            return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                        } else {
+                            const game = await db.getGame(id);
+                            if (game) {
+                                return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                            }
                         }
                     }
                 }
             }
-
             if (!asset || (asset.deleted && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
@@ -6335,6 +6807,43 @@ module.exports = {
             res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
         });
 
+        app.get("/badges/:id", db.requireAuth, async (req, res) => {
+            const id = parseInt(req.params.id);
+            const badge = await db.getBadge(id);
+
+            if (!badge) {
+                const gamepass = await db.getGamepass(id);
+                if (gamepass) {
+                    return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                } else {
+                    const item = await db.getCatalogItem(id);
+                    if (item) {
+                        return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                    } else {
+                        const asset = await db.getAsset(id);
+                        if (asset) {
+                            return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                        } else {
+                            const game = await db.getGame(id);
+                            if (game) {
+                                return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!badge) {
+                if (req.user) {
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            res.redirect("/badges/" + badge.id.toString() + "/" + db.filterText(badge.name).replaceAll(" ", "-"));
+        });
+
         async function getGamesT1(userid) {
             let out = ``;
             const games = await db.getGamesByCreatorId(userid) || [];
@@ -6344,7 +6853,7 @@ module.exports = {
                 const created = db.unixToDate(game.created);
                 const updated = db.unixToDate(game.updated);
                 out += `<table class="item-table" data-item-id="${game.gameid}" data-type="game" data-universeid="{game.gameid}"
-                data-developerstats-url="https://create.rbx2016.nl/creations/games/{game.gameid}/stats">
+                data-developerstats-url="https://create.rbx2016.nl/creations/game/{game.gameid}/stats">
                 <tr>
                     <td class="image-col">
                         <a href="https://sitetest.rbx2016.nl/games/{game.gameid}/${gamename2}" class="game-image">
@@ -6567,17 +7076,22 @@ module.exports = {
             const game = await db.getGame(gameid);
 
             if (!game) {
-                const item = await db.getCatalogItem(gameid);
-                if (item) {
-                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                const badge = await db.getBadge(id);
+                if (badge) {
+                    return res.redirect("/badges/" + badge.id.toString() + "/" + db.filterText(badge.name).replaceAll(" ", "-"));
                 } else {
-                    const asset = await db.getAsset(gameid);
-                    if (asset) {
-                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    const item = await db.getCatalogItem(gameid);
+                    if (item) {
+                        return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
                     } else {
-                        const gamepass = await db.getGamepass(gameid);
-                        if (gamepass) {
-                            return res.redirect("/game-pass/" + gamepass.gameid.toString() + "/" + db.filterText(gamepass.gamename).replaceAll(" ", "-"));
+                        const asset = await db.getAsset(gameid);
+                        if (asset) {
+                            return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                        } else {
+                            const gamepass = await db.getGamepass(gameid);
+                            if (gamepass) {
+                                return res.redirect("/game-pass/" + gamepass.gameid.toString() + "/" + db.filterText(gamepass.gamename).replaceAll(" ", "-"));
+                            }
                         }
                     }
                 }
@@ -6879,17 +7393,22 @@ module.exports = {
             const gamepass = await db.getGamepass(id);
 
             if (!gamepass) {
-                const item = await db.getCatalogItem(id);
-                if (item) {
-                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                const badge = await db.getBadge(id);
+                if (badge) {
+                    return res.redirect("/badges/" + badge.id.toString() + "/" + db.filterText(badge.name).replaceAll(" ", "-"));
                 } else {
-                    const asset = await db.getAsset(id);
-                    if (asset) {
-                        return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                    const item = await db.getCatalogItem(id);
+                    if (item) {
+                        return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
                     } else {
-                        const game = await db.getGame(id);
-                        if (game) {
-                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        const asset = await db.getAsset(id);
+                        if (asset) {
+                            return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                        } else {
+                            const game = await db.getGame(id);
+                            if (game) {
+                                return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                            }
                         }
                     }
                 }
@@ -6947,6 +7466,95 @@ module.exports = {
                 updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
                 onSale: gamepass.onSale,
                 isCreator: req.user.userid == gamepass.creatorid,
+            });
+        });
+
+        app.get("/badges/:id/:name", db.requireAuth, async (req, res) => {
+            if (db.getSiteConfig().shared.badgesEnabled == false) {
+                if (req.user) {
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const id = parseInt(req.params.id);
+            const badge = await db.getBadge(id);
+
+            if (!badge) {
+                const gamepass = await db.getGamepass(id);
+                if (gamepass) {
+                    return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                } else {
+                    const item = await db.getCatalogItem(id);
+                    if (item) {
+                        return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                    } else {
+                        const asset = await db.getAsset(id);
+                        if (asset) {
+                            return res.redirect("/library/" + asset.id.toString() + "/" + db.filterText(asset.name).replaceAll(" ", "-"));
+                        } else {
+                            const game = await db.getGame(id);
+                            if (game) {
+                                return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!badge) {
+                if (req.user) {
+                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            if (!badge.onSale && req.user.userid != badge.creatorid) {
+                return res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
+            }
+            const actualUrl = `/badges/${badge.id}/${db.filterText2(badge.name).replaceAll(" ", "-")}`;
+            if (req.url != actualUrl) {
+                res.redirect(actualUrl);
+                return;
+            }
+            const creator = await db.getUser(badge.creatorid);
+            if (!creator || creator.banned || badge.deleted || creator.inviteKey == "") {
+                res.status(404).json({});
+                return;
+            }
+
+            const game = await db.getGame(badge.gameid);
+
+            const created = db.unixToDate(badge.created);
+            const updated = db.unixToDate(badge.updated);
+            res.render("sitetest/badge", {
+                ...(await db.getRenderObject(req.user)),
+                id: badge.id,
+                icon: `https://thumbnails.rbx2016.nl/v1/icon?id=${badge.id}`,
+                gameid: game.gameid,
+                gamename: game.gamename,
+                gamegenre: game.genre,
+                gamethumb: `https://thumbnails.rbx2016.nl/v1/thumb?id=${game.gameid}`,
+                price: badge.price,
+                name: badge.name,
+                name2: badge.name.replaceAll(" ", "-"),
+                desc: badge.description,
+                likes: badge.likes.length,
+                dislikes: badge.dislikes.length,
+                userVoted: await db.userLikeStatus(req.user.userid, badge.id),
+                favorites: badge.favorites.length,
+                userFavorited: await db.userHasFavorited(req.user.userid, badge.id),
+                creatorname: creator.username,
+                creatorid: game.creatorid,
+                sold: badge.sold,
+                owned: badge.owners.includes(req.user.userid),
+                likeratio: badge.likes.length == 0 && badge.dislikes.length == 0 ? 50 : badge.likes.length / (badge.likes.length + badge.dislikes.length),
+                created: `${created.getDate()}/${created.getMonth()}/${created.getFullYear()}`,
+                updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
+                onSale: badge.onSale,
+                isCreator: req.user.userid == badge.creatorid,
             });
         });
 
@@ -7166,21 +7774,27 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
                 return;
             }
+
             const id = parseInt(req.params.id);
             const asset = await db.getAsset(id);
 
             if (!asset) {
-                const item = await db.getCatalogItem(id);
-                if (item) {
-                    return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
+                const badge = await db.getBadge(id);
+                if (badge) {
+                    return res.redirect("/badges/" + badge.id.toString() + "/" + db.filterText(badge.name).replaceAll(" ", "-"));
                 } else {
-                    const gamepass = await db.getGamepass(id);
-                    if (gamepass) {
-                        return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                    const item = await db.getCatalogItem(id);
+                    if (item) {
+                        return res.redirect("/catalog/" + item.itemid.toString() + "/" + db.filterText(item.itemname).replaceAll(" ", "-"));
                     } else {
-                        const game = await db.getGame(id);
-                        if (game) {
-                            return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                        const gamepass = await db.getGamepass(id);
+                        if (gamepass) {
+                            return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
+                        } else {
+                            const game = await db.getGame(id);
+                            if (game) {
+                                return res.redirect("/games/" + game.gameid.toString() + "/" + db.filterText(game.gamename).replaceAll(" ", "-"));
+                            }
                         }
                     }
                 }
@@ -7289,6 +7903,54 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 return;
             }
             await db.setGamepassProperty(itemId, "price", price);
+            res.redirect(`/game-pass/${itemId}/${db.filterText2(gamepass.name).replaceAll(" ", "-")}`);
+        });
+
+        app.post("/v1/update/item2", db.requireAuth, async (req, res) => {
+            const itemId = parseInt(req.body.itemId);
+            const name = db.censorText(db.filterText4(req.body.name));
+            const desc = db.censorText(db.filterText4(req.body.desc));
+            const gamepass = await db.getGamepass(itemId);
+            if (!gamepass) {
+                const item = await db.getCatalogItem(itemId);
+                if (!item) {
+                    const badge = await db.getBadge(itemId);
+                    if (!badge) {
+                        res.status(404).send("Invalid item ID");
+                        return;
+                    }
+                    await db.setBadgeProperty(itemId, "name", name);
+                    await db.setBadgeProperty(itemId, "description", desc);
+                    res.redirect(`/badges/${itemId}/${db.filterText2(badge.name).replaceAll(" ", "-")}`);
+                    return;
+                }
+                if (item.deleted){
+                    res.status(404).send("Invalid item ID");
+                    return;
+                }
+                if (item.itemcreatorid != req.user.userid) {
+                    res.status(403).send("You are not the creator of this item");
+                    return;
+                }
+                if (price < 0) {
+                    res.status(400).send("Invalid price");
+                    return;
+                }
+                await db.setCatalogItemProperty(itemId, "name", name);
+                await db.setCatalogItemProperty(itemId, "description", desc);
+                res.redirect(`/catalog/${itemId}/${db.filterText2(item.itemname).replaceAll(" ", "-")}`);
+                return;
+            }
+            if (gamepass.creatorid != req.user.userid) {
+                res.status(403).send("You are not the creator of this item");
+                return;
+            }
+            if (price < 0) {
+                res.status(400).send("Invalid price");
+                return;
+            }
+            await db.setGamepassItemProperty(itemId, "name", name);
+            await db.setGamepassItemProperty(itemId, "description", desc);
             res.redirect(`/game-pass/${itemId}/${db.filterText2(gamepass.name).replaceAll(" ", "-")}`);
         });
 
@@ -8090,12 +8752,13 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         }
                     }
                     await db.setUserProperty(req.user.userid, "avatarColors", brickColors);
+                    await db.setUserProperty(req.user.userid, "avatarColors", brickColors);
                     if (!db.hasRedrawn.includes(req.user.userid)) {
                         await db.enqueueRender(req.user.userid, true);
                         db.hasRedrawn.push(req.user.userid);
                         setTimeout(() => {
                             db.hasRedrawn.splice(db.hasRedrawn.indexOf(req.user.userid), 1);
-                        }, db.getSiteConfig().backend.avatarCanRedrawEvery);   
+                        }, db.getSiteConfig().backend.avatarCanRedrawEvery);
                     }
                     res.send();
                 }
@@ -8664,7 +9327,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     "HeadingExperimentalModeMetadata": {
                         "IsTranslated": true
                     },
-                    "HeadingExperimentalMode": "Experimental Mode Games",
+                    "HeadingExperimentalMode": "Games Mode Games",
                     "LabelFilterExperimentalMetadata": {
                         "IsTranslated": true
                     },
@@ -8980,6 +9643,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
 
         app.post("/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const apikey = req.query.apiKey;
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
@@ -9038,8 +9705,12 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         });
 
         app.post("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
-            const apiKky = req.query.apiKey || (id0.length > 0 ? id0[0] : "");
-            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
+            const apiKey = req.query.apiKey || (id0.length > 0 ? id0[0] : "");
+            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
@@ -9098,6 +9769,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         });
 
         app.get("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -9158,6 +9833,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         });
 
         app.get("/Game/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -9218,6 +9897,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         });
 
         app.get("/Game/api/v1/UserJoined", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -9251,6 +9934,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
         });
 
         app.get("/Game/api/v1/GetPublicIp", async (req, res) => {
+            let ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const apiKey = req.query.apiKey;
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
@@ -9260,7 +9947,6 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
                 return;
             }
-            let ip = get_ip(req).clientIp;
             if (ip == "127.0.0.1" || ip == "::1" || ip == "") {
                 ip = db.getHostPublicIp();
             }
@@ -9271,6 +9957,10 @@ publicIp = "${ip}"`
         });
 
         app.get("/Game/api/v1/UserLeft", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -9291,6 +9981,10 @@ publicIp = "${ip}"`
         });
 
         app.get("/Game/api/v1/UserJoinedTeamCreate", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -9311,6 +10005,10 @@ publicIp = "${ip}"`
         });
 
         app.get("/Game/api/v1/UserLeftTeamCreate", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -9364,6 +10062,10 @@ publicIp = "${ip}"`
         });
 
         app.post("/api/v2/CreateOrUpdate", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const apiKey = req.query.apiKey;
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
@@ -9390,6 +10092,10 @@ publicIp = "${ip}"`
         });
 
         app.get("/api/v1/Close", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -9420,6 +10126,10 @@ publicIp = "${ip}"`
         });
 
         app.get("/Game/api/v1/Close", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             let id0 = req.query.apiKey.split("|");
             const apiKey = (id0.length > 0 ? id0[0] : "");
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {

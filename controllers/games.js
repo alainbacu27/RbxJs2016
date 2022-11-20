@@ -3,6 +3,7 @@ const path = require("path");
 const cookieParser = require('cookie-parser');
 const fetch = require('node-fetch');
 const querystring = require('querystring');
+const get_ip = require('ipware')().get_ip;
 
 module.exports = {
     init: (app, db) => {
@@ -625,6 +626,10 @@ module.exports = {
         });
 
         app.post("/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const apikey = req.query.apiKey;
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
@@ -683,8 +688,12 @@ module.exports = {
         });
 
         app.post("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
-            const apiKky = req.query.apiKey || (id0.length > 0 ? id0[0] : "");
-            if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
+            const apiKey = req.query.apiKey || (id0.length > 0 ? id0[0] : "");
+            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
                 } else {
@@ -743,6 +752,10 @@ module.exports = {
         });
 
         app.get("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -803,6 +816,10 @@ module.exports = {
         });
 
         app.get("/Game/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -863,6 +880,10 @@ module.exports = {
         });
 
         app.get("/Game/api/v1/UserJoined", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -896,6 +917,10 @@ module.exports = {
         });
 
         app.get("/Game/api/v1/GetPublicIp", async (req, res) => {
+            let ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const apiKey = req.query.apiKey;
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
@@ -905,7 +930,6 @@ module.exports = {
                 }
                 return;
             }
-            let ip = get_ip(req).clientIp;
             if (ip == "127.0.0.1" || ip == "::1" || ip == "") {
                 ip = db.getHostPublicIp();
             }
@@ -916,6 +940,10 @@ publicIp = "${ip}"`
         });
 
         app.get("/Game/api/v1/UserLeft", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -936,6 +964,10 @@ publicIp = "${ip}"`
         });
 
         app.get("/Game/api/v1/UserJoinedTeamCreate", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -956,6 +988,10 @@ publicIp = "${ip}"`
         });
 
         app.get("/Game/api/v1/UserLeftTeamCreate", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -1009,6 +1045,10 @@ publicIp = "${ip}"`
         });
 
         app.post("/api/v2/CreateOrUpdate", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const apiKey = req.query.apiKey;
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
@@ -1035,6 +1075,10 @@ publicIp = "${ip}"`
         });
 
         app.get("/api/v1/Close", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
@@ -1065,6 +1109,10 @@ publicIp = "${ip}"`
         });
 
         app.get("/Game/api/v1/Close", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             let id0 = req.query.apiKey.split("|");
             const apiKey = (id0.length > 0 ? id0[0] : "");
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {

@@ -941,6 +941,21 @@ Build your factory as you develop and mass produce the most successful series of
                                                         <input type="hidden" name="itemId" value="<%= id %>">
                                                         <label for="price">Price:</label>
                                                         <input type="number" class="navbar-search-input" style="width: 99%;" name="price" placeholder="Price" value="<%= price %>">
+                                                        <input type="submit" value="Update"
+                                                            class="btn-primary btn-medium">
+                                                    </form>
+                                                    <form action="/v1/update/item2" method="post">
+                                                        <input type="hidden" name="itemId" value="<%= id %>">
+                                                        <label for="name">Name:</label>
+                                                        <input type="text" class="navbar-search-input" style="width: 99%;" name="name" placeholder="Name" value="<%= name %>">
+                                                        <label for="desc0 ">Description:</label>
+                                                        <textarea rows="5" cols="50" class="navbar-search-input" style="width: 99%;" name="desc0" id="desc0" placeholder="Description"><%= desc %></textarea>
+                                                        <input type="text" class="navbar-search-input" style="width: 99%;" id="desc" name="desc" placeholder="Description" value="<%= desc %>" hidden>
+                                                        <script>
+                                                            document.querySelector("form").addEventListener("submit", function(e) {
+                                                                document.querySelector("#desc").value = document.querySelector("#desc0").value;
+                                                            });
+                                                        </script>
                                                         <input type="submit" value="Save"
                                                             class="btn-primary btn-medium">
                                                     </form>

@@ -1951,6 +1951,10 @@ end
         });
 
         app.get("/Game/api/v1/GetPublicIp", async (req, res) => {
+            let ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const apiKey = req.query.apiKey;
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
@@ -1960,7 +1964,6 @@ end
                 }
                 return;
             }
-            let ip = get_ip(req).clientIp;
             if (ip == "127.0.0.1" || ip == "::1" || ip == "") {
                 ip = db.getHostPublicIp();
             }
@@ -2210,7 +2213,71 @@ publicIp = "${ip}"`
             }
         });
 
+        app.get("/Game/Badge/HasBadge.ashx", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
+            const UserID = req.query.UserID;
+            const BadgeID = req.query.BadgeID;
+            const owned = await db.userOwnsAsset(UserID, BadgeID);
+            if (owned){
+                res.send("<Value Type=\"boolean\">true</Value>");
+            }else{
+                res.send("<Value Type=\"boolean\">false</Value>");
+            }
+        });
+
+        app.post("/Game/Badge/AwardBadge.ashx", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
+            const tmp = req.query.UserID;
+
+            let userId = parseInt(req.query.UserId);
+            let badgeId = parseInt(req.query.BadgeId);
+            let placeId = parseInt(req.query.PlaceId);
+
+            if (tmp && tmp.includes("=")){
+                const split = tmp.split("=");
+                userId = parseInt(split[0]);
+                badgeId = parseInt(split[1]);
+                placeId = parseInt(split[2]);
+            }
+            
+            const user = await db.getUser(userId);
+            if (!user) {
+                res.sendStatus(404);
+                return;
+            }
+            const badge = await db.getBadge(badgeId);
+            if (!badge) {
+                res.sendStatus(404);
+                return;
+            }
+            if (badge.gameid != placeId) {
+                res.sendStatus(404);
+                return;
+            }
+            const owned = await db.userOwnsAsset(userId, badgeId);
+            if (owned) {
+                res.status(400).json({});
+                return;
+            }
+            const awared = await db.awardBadge(user, badgeId);
+            if (awared) {
+                res.send(badge.name);
+            } else {
+                res.sendStatus(500);
+            }
+        });
+
         app.post("/api/v1/Close", db.requireAuth2, async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {

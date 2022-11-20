@@ -33,7 +33,7 @@ if (!fs.existsSync("./logs/admin.log")) {
     fs.writeFileSync("./logs/admin.log", "");
 }
 
-const exludedRedirects = ["/ide", "/api/", "/api/moderation/v2/filtertext/", "//api/moderation/v2/filtertext/", "/moderation/filtertext/", "//moderation/filtertext/", "/v1.1/avatar-fetch/", "//v1.1/avatar-fetch/", "/v1/avatar-fetch/", "//v1/avatar-fetch/"]
+const exludedRedirects = ["/ide", "/api/", "/api/moderation/v2/filtertext/", "//api/moderation/v2/filtertext/", "/moderation/filtertext/", "//moderation/filtertext/", "/v1.1/avatar-fetch/", "//v1.1/avatar-fetch/", "/v1/avatar-fetch/", "//v1/avatar-fetch/", "/Game/LoadPlaceInfo.ashx", "//Game/LoadPlaceInfo.ashx"]
 
 const bypassedIps = ["::1", "127.0.0.1"];
 
