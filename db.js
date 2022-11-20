@@ -5466,7 +5466,7 @@ module.exports = {
 
     createCatalogItem: async function (itemname, itemdescription, itemprice, itemtype, itemcreatorid, internalAssetId = 0, decalId = 0, meshId = 0, amount = -1) {
         return new Promise(async returnPromise => {
-            censorText(filterText4(name))
+            itemname = censorText(filterText4(itemname))
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
