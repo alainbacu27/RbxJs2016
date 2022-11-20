@@ -8365,7 +8365,25 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 const asset = await db.getAsset(itemId);
                 if (!asset) {
                     const item = await db.getCatalogItem(itemId);
-                    if (!item || item.deleted) {
+                    if (!item) {
+                        const badge = await db.getBadge(itemId);
+                        if (!badge) {
+                            res.status(404).json({});
+                            return;
+                        }
+                        if (badge.deleted){
+                            res.status(404).json({});
+                            return;
+                        }
+                        if (req.user.userid != badge.creatorid) {
+                            res.status(403).json({});
+                            return;
+                        }
+                        await db.setBadgeProperty(itemId, "onSale", !badge.onSale);
+                        res.json({});
+                        return;
+                    }
+                    if (item.deleted){
                         res.status(404).json({});
                         return;
                     }

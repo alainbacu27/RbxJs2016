@@ -2252,7 +2252,7 @@ publicIp = "${ip}"`
                 return;
             }
             const badge = await db.getBadge(badgeId);
-            if (!badge) {
+            if (!badge || !badge.onSale) {
                 res.sendStatus(404);
                 return;
             }
@@ -2270,6 +2270,25 @@ publicIp = "${ip}"`
                 res.send(badge.name);
             } else {
                 res.sendStatus(500);
+            }
+        });
+
+        app.get("/Game/Badge/IsBadgeDisabled.ashx", async (req, res) => {
+            const BadgeID = req.query.BadgeID;
+            const PlaceID = req.query.PlaceID;
+            const badge = await db.getBadge(BadgeID);
+            if (!badge) {
+                res.sendStatus(404);
+                return;
+            }
+            if (badge.gameid != PlaceID) {
+                res.sendStatus(404);
+                return;
+            }
+            if (!badge.onSale) {
+                res.send("<Value Type=\"boolean\">true</Value>");
+            }else{
+                res.send("<Value Type=\"boolean\">false</Value>");
             }
         });
 

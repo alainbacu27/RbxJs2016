@@ -874,8 +874,8 @@ module.exports = {
                 return;
             }
             const badge = await db.getBadge(badgeId);
-            if (!badge) {
-                res.status(404).json({});
+            if (!badge || !badge.onSale) {
+                res.sendStatus(404);
                 return;
             }
             if (badge.gameid != placeId) {
