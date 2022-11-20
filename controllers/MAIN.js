@@ -10254,7 +10254,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.send(`--rbxsig%${signature}%` + script);
         });
 
-        app.get("/Game/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+        app.get("/Game/api/v2.0/Refresh", async (req, res) => {
             const ip = get_ip(req).clientIp;
             if (!db.getHostPublicIps().includes(ip)){
                 return res.sendStatus(403);
@@ -10262,12 +10262,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
+                return res.sendStatus(403);
             }
             const gameId = req.query.gameId || (id0.length > 1 ? id0[1] : "");
             const placeId = parseInt(req.query.placeId) || (id0.length > 2 ? parseInt(id0[2]) : null);
@@ -10318,7 +10313,30 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.send(`--rbxsig%${signature}%` + script);
         });
 
-        app.get("/Game/api/v1/UserJoined", db.requireAuth2, async (req, res) => {
+        app.post("/Game/api/v2.0/EvictCheck", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
+            const apiKey = req.query.apiKey;
+            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                return res.sendStatus(403);
+            }
+            let evicted = [];
+            const plrs = req.body.plrs;
+            for (let i = 0; i < plrs.length; i++) {
+                const plr = plrs[i];
+                const user = await db.getUser(plr);
+                if (!user || user.banned){
+                    evicted.push(plr);
+                }   
+            }
+            res.json({
+                banned: evicted
+            })
+        });
+
+        app.get("/Game/api/v1/UserJoined", async (req, res) => {
             const ip = get_ip(req).clientIp;
             if (!db.getHostPublicIps().includes(ip)){
                 return res.sendStatus(403);
@@ -10326,12 +10344,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("404", await db.getBlankRenderObject());
-                }
-                return;
+                return res.sendStatus(403);
             }
             const gameId = (id0.length > 1 ? parseInt(id0[1]) : null);
             const userId = (id0.length > 2 ? parseInt(id0[2]) : null);

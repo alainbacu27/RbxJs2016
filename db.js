@@ -1788,6 +1788,26 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                     plrs
                     )
                 end)
+                pcall(function()
+                    local url = "https://www.rbx2016.nl/Game/api/v2.0/EvictCheck?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+                    local plrs = {}
+                    for i,v in ipairs(game:GetService("Players"):GetPlayers()) do
+                        table.insert(plrs, v.UserId)
+                    end
+                
+                    local result = {plrs = plrs}
+                    local https = game:GetService("HttpService")
+                    local data = https:JSONEncode(result)
+                    local resp = https:JSONDecode(game:HttpPostAsync(url, data, "application/json"))
+                    if resp.banned then
+                        for i,v in ipairs(resp.banned) do
+                            local plr = game:GetService("Players"):GetPlayerByUserId(v)
+                            if plr then
+                                plr:Kick("You have been evicted from this game.")
+                            end
+                        end
+                    end
+                end)
             end)()
             wait(5)
             if not starting then
@@ -1930,6 +1950,26 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                         "|false|Unknown|" ..
                         plrs
                         )
+                    end)
+                    pcall(function()
+                        local url = "https://www.rbx2016.nl/Game/api/v2.0/EvictCheck?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+                        local plrs = {}
+                        for i,v in ipairs(game:GetService("Players"):GetPlayers()) do
+                            table.insert(plrs, v.UserId)
+                        end
+                    
+                        local result = {plrs = plrs}
+                        local https = game:GetService("HttpService")
+                        local data = https:JSONEncode(result)
+                        local resp = https:JSONDecode(game:HttpPostAsync(url, data, "application/json"))
+                        if resp.banned then
+                            for i,v in ipairs(resp.banned) do
+                                local plr = game:GetService("Players"):GetPlayerByUserId(v)
+                                if plr then
+                                    plr:Kick("You have been evicted from this game.")
+                                end
+                            end
+                        end
                     end)
                 end)()
                 wait(5)
