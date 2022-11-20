@@ -4418,7 +4418,7 @@ module.exports = {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
                 }
-            } else if (assetTypeId == 4) {
+            } else if (assetTypeId == 40) {
                 if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
                     if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
                         if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
