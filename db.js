@@ -2135,7 +2135,7 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
                     loadCode = `local tshirt = Instance.new("ShirtGraphic")
                     tshirt.Graphic = "rbxassetid://${item.itemdecalid}"
                     tshirt.Parent = plr.Character`;
-                } else if (item.itemtype == "Hat") {
+                } else if (item.itemtype == "Accessory") {
                     loadCode = `local thing = game:GetService("InsertService"):LoadAsset(${item.itemid})
                     thing:GetChildren()[1].Parent = plr.Character`;
                 }
@@ -2178,7 +2178,7 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
 
             wait(1)
 
-            ${item.itemtype == "Hat" ? `url = "http://www.rbx2016.nl"
+            ${item.itemtype == "Accessory" ? `url = "http://www.rbx2016.nl"
             game.Workspace:ClearAllChildren()
 
             local thing = game:GetService("InsertService"):LoadAsset(${item.itemid})
@@ -5484,7 +5484,7 @@ module.exports = {
             "Shirt": 11,
             "TShirt": 2,
             "Pants": 12,
-            "Hat": 8
+            "Accessory": 8
         }
         return Object.keys(lookup).includes(name) ? lookup[name] : 0;
     },

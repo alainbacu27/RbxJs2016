@@ -1454,7 +1454,7 @@ module.exports = {
                     type = "Head";
                     break;
                 case "Hats":
-                    type = "Hat";
+                    type = "Accessory";
                     break;
                 case "Faces":
                     type = "Face";
@@ -3871,7 +3871,7 @@ module.exports = {
 
             let hatsHtml = "";
             if (db.getSiteConfig().shared.assetsEnabled == true && Page == "hats") {
-                let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "Hat");
+                let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "Accessory");
                 assets = assets.reverse();
                 for (let i = 0; i < assets.length; i++) {
                     if (i > 50) break;
@@ -4352,7 +4352,7 @@ module.exports = {
                 }
 
                 if (!(req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner")) {
-                    res.status(401).send("You do not have permission to upload a hat");
+                    res.status(401).send("You do not have permission to upload an accessory");
                     return;
                 }
 
@@ -4365,19 +4365,19 @@ module.exports = {
                     return;
                 }
                 if (db.getSiteConfig().shared.PantsUploadCost < 0) {
-                    res.status(400).send("Hats are disabled");
+                    res.status(400).send("Accessories are disabled");
                     return;
                 }
                 if (req.user.robux < db.getSiteConfig().shared.ShirtUploadCost) {
-                    res.status(401).send("You do not have enough Robux to upload a hat");
+                    res.status(401).send("You do not have enough Robux to upload an accessory");
                     return;
                 }
                 const file = req.files.file;
                 if (file.mimetype == "application/xml" || file.mimetype == "text/plain" || file.mimetype == "application/octet-stream" && db.isXmlFile(file.data)) {
-                    id = await db.createAsset(req.user.userid, name + "-HAT", desc, "Hat", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    id = await db.createAsset(req.user.userid, name + "-ACCESSORY", desc, "Accessory", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.HatUploadCost);
-                    await db.createCatalogItem(name, desc, 0, "Hat", req.user.userid, id, id);
+                    await db.createCatalogItem(name, desc, 0, "Accessory", req.user.userid, id, id);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -5831,7 +5831,7 @@ module.exports = {
                     });
                 }
             } else if (assetTypeId == 8) {
-                const assets = await await db.getOwnedCatalogItems(userId, "Hat")
+                const assets = await await db.getOwnedCatalogItems(userId, "Accessory")
                 for (const asset of assets) {
                     items.push({
                         "AssetRestrictionIcon": {

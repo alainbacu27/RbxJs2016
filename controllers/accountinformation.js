@@ -120,9 +120,38 @@ module.exports = {
             });
         });
 
-        app.get("/v1/description", db.requireAuth, (req, res) => {
+        app.get("/v1/description", db.requireAuth2, async (req, res) => {
+            const userid = req.query.userId;
+            if (!userid){
+                if (!req.user){
+                    res.status(401).json({
+                        "errors": [
+                            {
+                                "code": 0,
+                                "message": "Unauthorized"
+                            }
+                        ]
+                    });
+                    return;
+                }
+                res.json({
+                    "description": req.user.description
+                });
+            }
+            const user = await db.getUser(userid);
+            if (!user || user.banned || user.inviteKey == ""){
+                res.status(404).json({
+                    "errors": [
+                        {
+                            "code": 0,
+                            "message": "Not Found"
+                        }
+                    ]
+                });
+                return;
+            }
             res.json({
-                "description": req.user.description
+                "description": user.description
             });
         });
 
