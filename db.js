@@ -811,7 +811,7 @@ function unixToDate(unix) {
     return new Date(unix * 1000);
 }
 
-function formatAMPMFull(date, onlyDate = false) {
+function formatAMPMFull(date, onlyDate = false, noSeconds = false) {
     let hours = date.getHours();
     let minutes = date.getMinutes();
     const seconds = date.getSeconds();
@@ -824,7 +824,7 @@ function formatAMPMFull(date, onlyDate = false) {
     minutes = minutes < 10 ? '0' + minutes : minutes;
     let result = year + '/' + month + '/' + day;
     if (!onlyDate) {
-        result += ' ' + hours + ':' + minutes + ':' + seconds + ' ' + ampm;
+        result += ' ' + hours + ':' + minutes + (noSeconds ? '' : (':' + seconds)) + ' ' + ampm;
     }
     return result;
 }

@@ -706,7 +706,51 @@ module.exports = {
                 res.status(400).render("404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("searchusers", await db.getRenderObject(req.user));
+            const keyword = req.query.keyword;
+            let outHtml = "";
+            const users = await db.findUsers(keyword);
+            if (users && users.length > 0) {
+                let maxI = 10;
+                for (let i = 0; i < users.length; i++) {
+                    if (i > maxI) break;
+                    const user = users[i];
+                    if (!user || user.banned) {
+                        maxI++;
+                        continue;
+                    };
+                    let lastOnline = db.unixToDate(user.lastOnline);
+                    let lastOnlineString = db.formatAMPMFull(lastOnline, false, true);
+                    let presenceType = (user.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? (user.lastOnline || 0) > (db.getUnixTimestamp() - 60) && user.playing != 0 ? "onlineStatus-0-2-40" : "onlineStatus-0-2-40" : "offlineStatus-0-2-41";
+                    if (lastOnline == null || lastOnline == 0) {
+                        lastOnlineString = "???";
+                        presenceType = "unknownStatus-0-2-39";
+                    }
+                    outHtml += `<div class="userRow-0-2-44"><a href="/users/${user.userid}/profile">
+                    <div class="row">
+                        <div class="col-6 col-md-2 col-lg-1"><img
+                                class="image-0-2-64"
+                                src="https://thumbnails.rbx2016.nl/v1/avatar/icon?id=${user.userid}">
+                        </div>
+                        <div class="col-6 col-md-7 col-lg-8">
+                            <p><span
+                                    class="status-0-2-42 ${presenceType}">.</span>
+                                <span
+                                    style="position: relative; left: 1em;">${user.username}</span>
+                            </p>
+                        </div>
+                        <div class="col-12 col-md-3 col-lg-3">
+                            <p class="textRight-0-2-38 colorNormal-0-2-45">
+                                ${lastOnlineString}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>`;
+                }
+            }
+            res.render("searchusers", {
+                ...(await db.getRenderObject(req.user)),
+                users: outHtml
+            });
         });
 
         app.get("/search/users/metadata", db.requireAuth, async (req, res) => {
@@ -1493,7 +1537,7 @@ module.exports = {
                 for (let i = 0; i < items.length; i++) {
                     const item = items[i];
 
-                    if (type != "All"){
+                    if (type != "All") {
                         if (item.itemtype == "TShirt" || item.itemtype == "Shirt" || item.itemtype == "Pants" || item.itemtype == "Face" || item.itemtype == "Gear") continue;
                     }
                     const internalAsset = await db.getAsset(item.internalAssetId);
@@ -4053,7 +4097,7 @@ module.exports = {
                 }
             }
             let fileB64 = "";
-            
+
             if (req.files && Object.keys(req.files).length > 0) {
                 if (req.files.file.size > 5.5 * 1024 * 1024) {
                     res.status(400).send("File too large");
@@ -5980,7 +6024,7 @@ module.exports = {
                         }
                     });
                 }
-            } else if (assetTypeId == 21){
+            } else if (assetTypeId == 21) {
                 const assets = await await db.getOwnedBadges(userId)
                 for (const asset of assets) {
                     items.push({
@@ -6462,7 +6506,7 @@ module.exports = {
 
         app.post("/api/v1/thumbnail/upload", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             if (db.getSiteConfig().backend.thumbnailServiceEnabled == false) {
@@ -7652,7 +7696,7 @@ module.exports = {
                     </ul>
                 </div>
             </li>`;
-            // <div class="badge-stats-info">0.0% (Impossible)</div>
+                // <div class="badge-stats-info">0.0% (Impossible)</div>
             }
 
             const created = db.unixToDate(game.created);
@@ -8402,7 +8446,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     res.redirect(`/badges/${itemId}/${db.filterText2(badge.name).replaceAll(" ", "-")}`);
                     return;
                 }
-                if (item.deleted){
+                if (item.deleted) {
                     res.status(404).send("Invalid item ID");
                     return;
                 }
@@ -8445,7 +8489,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                             res.status(404).json({});
                             return;
                         }
-                        if (badge.deleted){
+                        if (badge.deleted) {
                             res.status(404).json({});
                             return;
                         }
@@ -8457,7 +8501,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         res.json({});
                         return;
                     }
-                    if (item.deleted){
+                    if (item.deleted) {
                         res.status(404).json({});
                         return;
                     }
@@ -10140,7 +10184,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.post("/v2.0/Refresh", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apikey = req.query.apiKey;
@@ -10202,7 +10246,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.post("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey || (id0.length > 0 ? id0[0] : "");
@@ -10266,7 +10310,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.get("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10330,7 +10374,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.get("/Game/api/v2.0/Refresh", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10389,7 +10433,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.post("/Game/api/v2.0/EvictCheck", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey;
@@ -10401,9 +10445,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             for (let i = 0; i < plrs.length; i++) {
                 const plr = plrs[i];
                 const user = await db.getUser(plr);
-                if (!user || user.banned){
+                if (!user || user.banned) {
                     evicted.push(plr);
-                }   
+                }
             }
             res.json({
                 banned: evicted
@@ -10412,7 +10456,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.get("/Game/api/v1/UserJoined", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10444,7 +10488,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.get("/Game/api/v1/GetPublicIp", async (req, res) => {
             let ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey;
@@ -10467,7 +10511,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/UserLeft", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10491,7 +10535,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/UserJoinedTeamCreate", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10515,7 +10559,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/UserLeftTeamCreate", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10572,7 +10616,7 @@ publicIp = "${ip}"`
 
         app.post("/api/v2/CreateOrUpdate", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey;
@@ -10602,7 +10646,7 @@ publicIp = "${ip}"`
 
         app.get("/api/v1/Close", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10636,7 +10680,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/Close", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             let id0 = req.query.apiKey.split("|");

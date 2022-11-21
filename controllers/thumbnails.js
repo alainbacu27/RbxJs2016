@@ -208,12 +208,7 @@ module.exports = {
                 res.attachment("Download");
                 res.send(fs.readFileSync(fp));
             } else {
-                const asset = await db.getAsset(id);
-                if (asset && !asset.deleted) {
-                    res.redirect(`${req.secure ? "https" : "http"}://static.rbx2016.nl/images/eb0f290fb60954fff9f7251a689b9088.jpg`);
-                } else {
-                    res.redirect(`${req.secure ? "https" : "http"}://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png`);
-                }
+                res.redirect(`${req.secure ? "https" : "http"}://images.rbx2016.nl/e6ea624485b22e528cc719f04560fe78Headshot.png`);
             }
         });
 
@@ -229,12 +224,7 @@ module.exports = {
                 res.attachment("Download");
                 res.send(fs.readFileSync(fp));
             } else {
-                const asset = await db.getAsset(id);
-                if (asset && !asset.deleted) {
-                    res.redirect(`${req.secure ? "https" : "http"}://static.rbx2016.nl/images/eb0f290fb60954fff9f7251a689b9088.jpg`);
-                } else {
-                    res.redirect(`${req.secure ? "https" : "http"}://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png`);
-                }
+                res.redirect(`${req.secure ? "https" : "http"}://static.rbx2016.nl/images/e6ea624485b22e528cc719f04560fe78Avatar.png`);
             }
         });
     }

@@ -16,6 +16,11 @@
     background: var(--body);
 }
 
+.userRow-0-2-44:hover {
+    cursor: pointer;
+    background: #212121;
+}
+
 #mCSB_1 {
     background: var(--section);
 }
