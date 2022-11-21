@@ -640,8 +640,8 @@
                                                             <a href="https://www.rbx2016.nl/develop?Page=pants"
                                                                 class="tab-item <% if (tab == "pants"){ %>tab-item-selected<% } %>">Pants</a>
                                                             <% if (role == "approver" || role == "mod" || role == "admin" || role == "owner") { %>
-                                                                <a href="https://www.rbx2016.nl/develop?Page=hats"
-                                                                    class="tab-item <% if (tab == "hats"){ %>tab-item-selected<% } %>">Hats</a>
+                                                                <a href="https://www.rbx2016.nl/develop?Page=accessories"
+                                                                    class="tab-item <% if (tab == "accessories"){ %>tab-item-selected<% } %>">Accessories</a>
                                                             <% } %>
                                                             <a class="tab-item tab-item-disabled">Plugins</a>
 
@@ -1037,9 +1037,9 @@
         
                                                             </td>
                                                         <% } %>
-                                                        <% if (tab == "hats"){ %>
+                                                        <% if (tab == "accessories"){ %>
                                                             <td class="content-area ">
-                                                                <h2>Create a Hat</h2>
+                                                                <h2>Create an Accessory</h2>
                                                                 <iframe id="upload-iframe"
                                                                     class="place-specific-assets my-upload-iframe"
                                                                     src="/build/upload?assetTypeId=8&amp;GroupId=&amp;targetPlaceId=<%= gameid %>"
@@ -1051,14 +1051,14 @@
                                                                             <td class="content-title">
                                                                                 <div>
         
-                                                                                    <h2 class="header-text">Hats</h2>
+                                                                                    <h2 class="header-text">Accessories</h2>
                                                                                 </div>
                                                                             </td>
                                                                         </tr>
                                                                     </tbody>
                                                                 </table>
                                                                 <div class="items-container ">
-                                                                    <%- hats %>
+                                                                    <%- accessories %>
                                                                 </div>
                                                                 <div class="build-loading-container" style="display: none;">
                                                                     <div class="buildpage-loading-container">

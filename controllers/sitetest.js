@@ -1426,8 +1426,9 @@ module.exports = {
                                 item.parentNode.removeChild(item);
                                 const item2 = document.getElementById("wear${item.itemid}");
                                 if (item2) {
-                                    item2.disabled = false;
-                                    item2.innerHTML = "Wear";
+                                    item2.innerText = "Wear";
+                                    item2.classList.remove("cancelButton-0-2-61");
+                                    item2.classList.add("continueButton-0-2-62");
                                 }
                             }
                         });
@@ -1440,7 +1441,7 @@ module.exports = {
         });
 
         app.get("/My/Character/Items/:type", db.requireAuth, async (req, res) => {
-            const types = ["Heads", "Faces", "TShirts", "Shirts", "Pants", "Gear", "Accessories", "Hats", "Hair", "Face", "Neck", "Shoulder", "Front", "Back", "Waist", "Torsos", "LArms", "RArms", "LLegs", "RLegs", "Packages"];
+            const types = ["All", "Heads", "Faces", "TShirts", "Shirts", "Pants", "Gear", "Accessories", "Hats", "Hair", "Face", "Neck", "Shoulder", "Front", "Back", "Waist", "Torsos", "LArms", "RArms", "LLegs", "RLegs", "Packages"];
             let type = req.params.type;
             if (!types.includes(type)) {
                 res.status(404).send("");
@@ -1454,7 +1455,7 @@ module.exports = {
                     type = "Head";
                     break;
                 case "Hats":
-                    type = "Accessory";
+                    type = "Hat";
                     break;
                 case "Faces":
                     type = "Face";
@@ -1485,14 +1486,20 @@ module.exports = {
                     break;
             }
 
-            if (type == "Accessory") {
+            if (type != "TShirt" && type != "Shirt" && type != "Pants" && type != "Face" && type != "Gear") {
                 const items = await db.getOwnedCatalogItems(req.user.userid);
                 let itemsHtml = "";
 
                 for (let i = 0; i < items.length; i++) {
                     const item = items[i];
 
-                    if (item.itemtype == "TShirt" || item.itemtype == "Shirt" || item.itemtype == "Pants" || item.itemtype == "TShirt" || item.itemtype == "Face") continue;
+                    if (type != "All"){
+                        if (item.itemtype == "TShirt" || item.itemtype == "Shirt" || item.itemtype == "Pants" || item.itemtype == "Face" || item.itemtype == "Gear") continue;
+                    }
+                    const internalAsset = await db.getAsset(item.internalAssetId);
+                    const internalAssetType = internalAsset.type;
+
+                    if (type != "All" && internalAssetType != type) continue;
 
                     const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
                     itemsHtml += `<div class="col-3 mt-4">
@@ -1502,8 +1509,8 @@ module.exports = {
                         </div>
                         <div class="wearButtonWrapper-0-2-94" style="bottom: 6.25em;">
                             <div><button
-                                    class="btn-0-2-99 wearButton-0-2-93 continueButton-0-2-62" id="wear${item.itemid}"
-                                    title="" ${wearing ? "disabled" : ""}>${wearing ? "Wearing" : "Wear"}</button></div>
+                                    class="btn-0-2-99 wearButton-0-2-93 ${wearing ? "cancelButton-0-2-61" : "continueButton-0-2-62"}" id="wear${item.itemid}"
+                                    title="">${wearing ? "Remove" : "Wear"}</button></div>
                         </div>
                     </div>
                     <p class="itemName-0-2-91"><a
@@ -1511,22 +1518,44 @@ module.exports = {
                     <script>
                         const btn = document.getElementById("wear${item.itemid}");
                         btn.addEventListener("click", () => {
-                            fetch("/My/Character/Wear", {
-                                method: "POST",
-                                credentials: "include",
-                                headers: {
-                                    "Content-Type": "application/json"
-                                },
-                                body: JSON.stringify({
-                                    "itemid": ${item.itemid}
-                                })
-                            }).then(res => {
-                                if (res.status == 200) {
-                                    btn.innerText = "Wearing";
-                                    btn.disabled = true;
-                                    fetchCurrentlyWearing();
-                                }
-                            });
+                            if (btn.innerHTML == "Wear") {
+                                fetch("/My/Character/Wear", {
+                                    method: "POST",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        "itemid": ${item.itemid}
+                                    })
+                                }).then(res => {
+                                    if (res.status == 200) {
+                                        btn.innerText = "Remove";
+                                        fetchCurrentlyWearing();
+                                        btn.classList.remove("continueButton-0-2-62");
+                                        btn.classList.add("cancelButton-0-2-61");
+                                    }
+                                });
+                            } else if (btn.innerHTML == "Remove") {
+                                fetch("/My/Character/Remove", {
+                                    method: "POST",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        "itemid": ${item.itemid}
+                                    })
+                                }).then(res => {
+                                    if (res.status == 200) {
+                                        const item = document.getElementById("item${item.itemid}");
+                                        item.parentNode.removeChild(item);
+                                        btn.innerText = "Wear";
+                                        btn.classList.remove("cancelButton-0-2-61");
+                                        btn.classList.add("continueButton-0-2-62");
+                                    }
+                                });
+                            }
                         });
                     </script>
                 </div>`;
@@ -1547,8 +1576,8 @@ module.exports = {
                     </div>
                     <div class="wearButtonWrapper-0-2-94" style="bottom: 6.25em;">
                         <div><button
-                                class="btn-0-2-99 wearButton-0-2-93 continueButton-0-2-62" id="wear${item.itemid}"
-                                title="" ${wearing ? "disabled" : ""}>${wearing ? "Wearing" : "Wear"}</button></div>
+                                class="btn-0-2-99 wearButton-0-2-93 ${wearing ? "cancelButton-0-2-61" : "continueButton-0-2-62"}" id="wear${item.itemid}"
+                                title="">${wearing ? "Remove" : "Wear"}</button></div>
                     </div>
                 </div>
                 <p class="itemName-0-2-91"><a
@@ -1556,22 +1585,44 @@ module.exports = {
                 <script>
                     const btn = document.getElementById("wear${item.itemid}");
                     btn.addEventListener("click", () => {
-                        fetch("/My/Character/Wear", {
-                            method: "POST",
-                            credentials: "include",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                "itemid": ${item.itemid}
-                            })
-                        }).then(res => {
-                            if (res.status == 200) {
-                                btn.innerText = "Wearing";
-                                btn.disabled = true;
-                                fetchCurrentlyWearing();
-                            }
-                        });
+                        if (btn.innerHTML == "Wear") {
+                            fetch("/My/Character/Wear", {
+                                method: "POST",
+                                credentials: "include",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "itemid": ${item.itemid}
+                                })
+                            }).then(res => {
+                                if (res.status == 200) {
+                                    btn.innerText = "Remove";
+                                    fetchCurrentlyWearing();
+                                    btn.classList.remove("continueButton-0-2-62");
+                                    btn.classList.add("cancelButton-0-2-61");
+                                }
+                            });
+                        } else if (btn.innerHTML == "Remove") {
+                            fetch("/My/Character/Remove", {
+                                method: "POST",
+                                credentials: "include",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "itemid": ${item.itemid}
+                                })
+                            }).then(res => {
+                                if (res.status == 200) {
+                                    const item = document.getElementById("item${item.itemid}");
+                                    item.parentNode.removeChild(item);
+                                    btn.innerText = "Wear";
+                                    btn.classList.remove("cancelButton-0-2-61");
+                                    btn.classList.add("continueButton-0-2-62");
+                                }
+                            });
+                        }
                     });
                 </script>
             </div>`;
@@ -3487,7 +3538,7 @@ module.exports = {
             if (Page) {
                 Page = Page.toLowerCase();
             }
-            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts" && Page != "pants" && Page != "tshirts" && Page != "hats" && Page != "badges") || View != null) {
+            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts" && Page != "pants" && Page != "tshirts" && Page != "accessories" && Page != "badges") || View != null) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
@@ -3869,8 +3920,8 @@ module.exports = {
                 }
             }
 
-            let hatsHtml = "";
-            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "hats") {
+            let accessoriesHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "accessories") {
                 let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "Accessory");
                 assets = assets.reverse();
                 for (let i = 0; i < assets.length; i++) {
@@ -3879,7 +3930,7 @@ module.exports = {
                     // if (asset.deleted) continue;
                     const created = db.unixToDate(asset.created);
                     const updated = db.unixToDate(asset.updated);
-                    hatsHtml += `<table class="item-table" data-item-id="${asset.itemid}"
+                    accessoriesHtml += `<table class="item-table" data-item-id="${asset.itemid}"
                     data-type="image" style="">
                     <tbody>
                         <tr>
@@ -3980,7 +4031,7 @@ module.exports = {
                 meshes: meshesHtml,
                 shirts: shirtsHtml,
                 pants: pantsHtml,
-                hats: hatsHtml,
+                accessories: accessoriesHtml,
                 tshirts: tshirtHtml,
                 tab: Page,
                 assetTypeId: Page == "game-passes" ? 34 : Page == "decals" ? 13 : Page == "audios" ? 3 : Page == "meshes" ? 4 : Page == "badges" ? 21 : null,
@@ -4338,6 +4389,12 @@ module.exports = {
                     return;
                 }
             } else if (assetTypeId == 8) {
+                const validTypes = ["Hat", "Hair", "Face", "Neck", "Shoulder", "Front", "Back", "Waist", "Torso", "LArms", "RArms", "LLegs", "RLegs"];
+                const type = req.body.type;
+                if (!validTypes.includes(type)) {
+                    res.status(400).send("Invalid type");
+                    return;
+                }
                 if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
                     if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
                         if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
@@ -4374,7 +4431,7 @@ module.exports = {
                 }
                 const file = req.files.file;
                 if (file.mimetype == "application/xml" || file.mimetype == "text/plain" || file.mimetype == "application/octet-stream" && db.isXmlFile(file.data)) {
-                    id = await db.createAsset(req.user.userid, name + "-ACCESSORY", desc, "Accessory", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    id = await db.createAsset(req.user.userid, name + "-ACCESSORY", desc, type, req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.HatUploadCost);
                     await db.createCatalogItem(name, desc, 0, "Accessory", req.user.userid, id, id);
@@ -4418,7 +4475,7 @@ module.exports = {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
                 }
-            } else if (assetTypeId == 4) {
+            } else if (assetTypeId == 40) {
                 if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
                     if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
                         if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
@@ -4659,9 +4716,26 @@ module.exports = {
                     <span id="file-error" class="error"></span>
                 </div>
                         <div class="form-row">
-                    <label for="name">Hat Name:</label>
+                    <label for="name">Accessory Name:</label>
                     <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
                     <span id="name-error" class="error"></span>
+                    <label for="type">Accessory type:</label>
+                    <select name="type" required>
+                        <option value="Hat">Hat</option>
+                        <option value="Hair">Hair</option>
+                        <option value="Face">Face</option>
+                        <option value="Neck">Neck</option>
+                        <option value="Shoulder">Shoulder</option>
+                        <option value="Front">Front</option>
+                        <option value="Back">Back</option>
+                        <option value="Waist">Waist</option>
+                        <option value="Torso">Torso</option>
+                        <option value="LArms">L Arms</option>
+                        <option value="RArms">R Arms</option>
+                        <option value="LLegs">L Legs</option>
+                        <option value="RLegs">R Legs</option>
+                        <!-- <option value="Package">Package</option> -->
+                    </select>
                 </div>
                     <div class="form-row submit-buttons">
                                 <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload for ${db.getSiteConfig().shared.HatUploadCost} Robux<span class=""></span></a>
@@ -7548,7 +7622,7 @@ module.exports = {
             }
 
             let badgesHtml = ``
-            const badges = await db.getBadges(gameid);
+            const badges = await db.getBadges(gameid, 0, false);
             for (let i = 0; i < badges.length; i++) {
                 const badge = badges[i];
                 badgesHtml += `<li class="stack-row badge-row ${i > 3 ? "badge-see-more-row" : ""}" ${(await db.userOwnsAsset(req.user.userid, badge.id)) ? `style="filter: brightness(1.35);"` : ``}>
@@ -8294,7 +8368,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     res.status(400).send("Invalid price");
                     return;
                 }
-                await db.setCatalogItemProperty(itemId, "price", price);
+                await db.setCatalogItemProperty(itemId, "itemprice", price);
                 res.redirect(`/catalog/${itemId}/${db.filterText2(item.itemname).replaceAll(" ", "-")}`);
                 return;
             }
@@ -8365,7 +8439,25 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 const asset = await db.getAsset(itemId);
                 if (!asset) {
                     const item = await db.getCatalogItem(itemId);
-                    if (!item || item.deleted) {
+                    if (!item) {
+                        const badge = await db.getBadge(itemId);
+                        if (!badge) {
+                            res.status(404).json({});
+                            return;
+                        }
+                        if (badge.deleted){
+                            res.status(404).json({});
+                            return;
+                        }
+                        if (req.user.userid != badge.creatorid) {
+                            res.status(403).json({});
+                            return;
+                        }
+                        await db.setBadgeProperty(itemId, "onSale", !badge.onSale);
+                        res.json({});
+                        return;
+                    }
+                    if (item.deleted){
                         res.status(404).json({});
                         return;
                     }
@@ -10236,7 +10328,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.send(`--rbxsig%${signature}%` + script);
         });
 
-        app.get("/Game/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
+        app.get("/Game/api/v2.0/Refresh", async (req, res) => {
             const ip = get_ip(req).clientIp;
             if (!db.getHostPublicIps().includes(ip)){
                 return res.sendStatus(403);
@@ -10244,12 +10336,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
-                }
-                return;
+                return res.sendStatus(403);
             }
             const gameId = req.query.gameId || (id0.length > 1 ? id0[1] : "");
             const placeId = parseInt(req.query.placeId) || (id0.length > 2 ? parseInt(id0[2]) : null);
@@ -10300,7 +10387,30 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.send(`--rbxsig%${signature}%` + script);
         });
 
-        app.get("/Game/api/v1/UserJoined", db.requireAuth2, async (req, res) => {
+        app.post("/Game/api/v2.0/EvictCheck", async (req, res) => {
+            const ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)){
+                return res.sendStatus(403);
+            }
+            const apiKey = req.query.apiKey;
+            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                return res.sendStatus(403);
+            }
+            let evicted = [];
+            const plrs = req.body.plrs;
+            for (let i = 0; i < plrs.length; i++) {
+                const plr = plrs[i];
+                const user = await db.getUser(plr);
+                if (!user || user.banned){
+                    evicted.push(plr);
+                }   
+            }
+            res.json({
+                banned: evicted
+            })
+        });
+
+        app.get("/Game/api/v1/UserJoined", async (req, res) => {
             const ip = get_ip(req).clientIp;
             if (!db.getHostPublicIps().includes(ip)){
                 return res.sendStatus(403);
@@ -10308,12 +10418,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const id0 = req.query.apiKey.split("|");
             const apikey = (id0.length > 0 ? id0[0] : "");
             if (apikey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user) {
-                    res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
-                } else {
-                    res.status(404).render("sitetest/404", await db.getBlankRenderObject());
-                }
-                return;
+                return res.sendStatus(403);
             }
             const gameId = (id0.length > 1 ? parseInt(id0[1]) : null);
             const userId = (id0.length > 2 ? parseInt(id0[2]) : null);
