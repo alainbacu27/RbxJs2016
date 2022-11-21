@@ -5948,9 +5948,12 @@ module.exports = {
                         }
                     });
                 }
-            } else if (assetTypeId == 8) {
+            } else if (assetTypeId == 8 || assetTypeId == 41 || assetTypeId == 42 || assetTypeId == 43 || assetTypeId == 42 || assetTypeId == 44 || assetTypeId == 45 || assetTypeId == 46 || assetTypeId == 47) {
+                const internalTypeIs = assetTypeId == 8 ? "Hat" : assetTypeId == 41 ? "Hair" : assetTypeId == 42 ? "Face" : assetTypeId == 43 ? "Neck" : assetTypeId == 44 ? "Shoulder" : assetTypeId == 45 ? "Front" : assetTypeId == 46 ? "Back" : assetTypeId == 47 ? "Waist" : "Unknown";
                 const assets = await await db.getOwnedCatalogItems(userId, "Accessory")
                 for (const asset of assets) {
+                    const internalAsset = await db.getAsset(asset.internalAssetId)
+                    if (internalAsset.type != internalTypeIs) continue;
                     items.push({
                         "AssetRestrictionIcon": {
                             "TooltipText": null,
