@@ -26,6 +26,7 @@ const Profanity = require('profanity-js');
 const jpeg = require('jpeg-js');
 const detectContentType = require('detect-content-type');
 const pngToJpeg = require('png-to-jpeg');
+const stringSimilarity = require("string-similarity");
 
 
 function maskIp(ip) {
@@ -193,7 +194,8 @@ async function setDataStore(placeid, key, type, scope, target, value) {
             returnPromise(false);
             return;
         }
-        if (value.length > 256 * 1024) {
+        if (value.length > siteConfig.backend.datastoresMaxSize) {
+            256 * 1024
             returnPromise(false);
             return;
         }
@@ -1253,7 +1255,7 @@ async function isRenderPending(itemid, isUserRender = false) {
 
 async function enqueueRender(itemid, isUserRender = true) {
     return new Promise(async returnPromise => {
-        if (siteConfig.backend.renderingEnabled == false){
+        if (siteConfig.backend.renderingEnabled == false) {
             returnPromise(false);
             return;
         }
@@ -3686,6 +3688,28 @@ const profanity = new Profanity('', {
     wordsList: badWords,
 });
 
+function isProfane2(words, str) {
+    for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        console.log(stringSimilarity.compareTwoStrings(word, str));
+        if (stringSimilarity.compareTwoStrings(word, str) > 0.4) {
+            return true;   
+        }
+    }
+    return false;
+}
+
+profanity.isProfane = function (value) {
+    if (this.wordlist === undefined) {
+        console_1.default.error('Unexpected error: wordlist is invalid.');
+        return;
+    }
+    if (!this.config.enabled || this.config.excludeWords.includes(value.toLowerCase())) {
+        return false;
+    }
+    return isProfane2(this.wordlist, value.toLowerCase());
+}
+
 function censorText(text) {
     return profanity.censor(text);
 }
@@ -3700,6 +3724,7 @@ function getBadWords(text) {
                 word += text[i];
                 i++;
             }
+            word += "#";
             badWords.push(word.substring(0, word.length - 1));
         }
     }
@@ -3877,7 +3902,7 @@ setInterval(async () => {
         return;
     }
     const job = await newJob(0, false, true);
-    if (!job){
+    if (!job) {
         await enqueueRender(item.itemid, item.isUserRender);
         return;
     }
@@ -3898,7 +3923,7 @@ setInterval(async () => {
 module.exports = {
     hasRedrawn: [],
     pendingRenderJobs: [],
-    
+
     getPRIVATE_PLACE_KEYS: function () {
         return PRIVATE_PLACE_KEYS;
     },
@@ -6926,7 +6951,7 @@ module.exports = {
                         return;
                     }
                     result = result.reverse();
-                    if (!includeOffsale){
+                    if (!includeOffsale) {
                         result = result.filter(badge => badge.onSale == true);
                     }
                     if (playerid > 0) {

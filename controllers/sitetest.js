@@ -8204,7 +8204,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
             }
 
-            if (!asset || ((asset.deleted || asset.approvedBy == 0) && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
+            if (!asset || ((asset.deleted || asset.approvedBy == 0) && req.user.role != "approver" && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner" && req.user.userid != asset.creatorid)) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
