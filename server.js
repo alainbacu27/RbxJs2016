@@ -71,7 +71,7 @@ template.app.use(async (req, res, next) => {
             maxAge: 50 * 365 * 24 * 60 * 60 * 1000,
             httpOnly: true
         });
-        return res.redirect("/");
+        return res.send("You may now access the site.");
     }
     if (typeof req.cookies[".INFOBYPASS"] != "string" || req.cookies[".INFOBYPASS"] != "yes") {
         if (req.path == "/") {
