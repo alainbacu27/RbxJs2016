@@ -888,7 +888,13 @@ module.exports = {
                 return;
             }
             await db.awardBadge(user, badgeId);
-            res.json({});
+            const creator = await db.getUser(badge.creatorid);
+            const awarded = await db.awardBadge(user, badgeId);
+            if (awarded) {
+                res.send(`${user.username} won ${creator.username}'s\n"${badge.name}" award!`);
+            } else {
+                res.sendStatus(500);
+            }
         });
 
 

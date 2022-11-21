@@ -2265,9 +2265,10 @@ publicIp = "${ip}"`
                 res.status(400).json({});
                 return;
             }
-            const awared = await db.awardBadge(user, badgeId);
-            if (awared) {
-                res.send(badge.name);
+            const creator = await db.getUser(badge.creatorid);
+            const awarded = await db.awardBadge(user, badgeId);
+            if (awarded) {
+                res.send(`${user.username} won ${creator.username}'s\n"${badge.name}" award!`);
             } else {
                 res.sendStatus(500);
             }
