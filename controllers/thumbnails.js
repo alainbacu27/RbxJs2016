@@ -197,8 +197,9 @@ module.exports = {
         });
 
         app.get("/v1/avatar/icon", async (req, res) => {
+            const id = parseInt(req.query.id);
             const bp = path.resolve(__dirname + "/../thumbnails/avatars/icons/") + path.sep;
-            const fp = path.resolve(bp + req.query.id.toString() + ".asset");
+            const fp = path.resolve(bp + id.toString() + ".asset");
             if (!fp.startsWith(bp)) {
                 res.status(403).send("Forbidden");
                 return;
@@ -217,8 +218,9 @@ module.exports = {
         });
 
         app.get("/v1/avatar/thumb", async (req, res) => {
+            const id = parseInt(req.query.id);
             const bp = path.resolve(__dirname + "/../thumbnails/avatars/thumbs/") + path.sep;
-            const fp = path.resolve(bp + req.query.id.toString() + ".asset");
+            const fp = path.resolve(bp + id.toString() + ".asset");
             if (!fp.startsWith(bp)) {
                 res.status(403).send("Forbidden");
                 return;
