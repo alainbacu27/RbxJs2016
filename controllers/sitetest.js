@@ -1499,7 +1499,7 @@ module.exports = {
                     const internalAsset = await db.getAsset(item.internalAssetId);
                     const internalAssetType = internalAsset.type;
 
-                    if (type != "All" && internalAssetType != type) continue;
+                    if (type != "All" && type != "Accessory" && internalAssetType != type) continue;
 
                     const wearing = await db.isCatalogItemEquipped(req.user.userid, item.itemid);
                     itemsHtml += `<div class="col-3 mt-4">
