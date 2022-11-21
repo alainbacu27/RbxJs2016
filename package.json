@@ -53,6 +53,7 @@
     "png-to-jpeg": "^1.0.1",
     "profanity-js": "^0.1.4",
     "serve-favicon": "^2.5.0",
+    "string-similarity": "^4.0.4",
     "tree-kill": "^1.2.2",
     "utf8": "^3.0.0",
     "uuid": "^9.0.0"
