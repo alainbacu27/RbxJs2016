@@ -7098,6 +7098,30 @@ module.exports = {
 
     log: log,
 
+    clearRobloxLogs: function () {
+        if (isWin) {
+            const localappdata = process.env.LOCALAPPDATA;
+            const fp = `${localappdata}\\R-2016\\logs\\`;
+            const files = fs.readdirSync(fp);
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                try {
+                    fs.unlinkSync(fp + file);
+                } catch (e) {}
+            }
+        }else{
+            const username = process.env.USER;
+            const fp = `~/.wine/drive_c/users/${username}/AppData/Local/R-2016/logs/`;
+            const files = fs.readdirSync(fp);
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                try {
+                    fs.unlinkSync(fp + file);
+                } catch (e) {}
+            }
+        }
+    },
+
     createDevProduct(creatorid, gameid, name, desc, price) {
         return new Promise(async returnPromise => {
             name = censorText(filterText4(name));
