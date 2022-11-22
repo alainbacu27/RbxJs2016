@@ -119,6 +119,7 @@
             "invitekeys",
             "logs"
         ],
+		"MaxGameThumbnails": 10,
         "CLIENT_DOWNLOAD_AVAIlABLE": true,
         "ShirtUploadCost": 4,
         "PantsUploadCost": 4,
