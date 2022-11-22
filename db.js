@@ -7111,7 +7111,7 @@ module.exports = {
             }
         }else{
             const username = process.env.USER;
-            const fp = `~/.wine/drive_c/users/${username}/AppData/Local/R-2016/logs/`;
+            const fp = `/home/${username}/.wine/drive_c/users/${username}/AppData/Local/R-2016/logs/`;
             const files = fs.readdirSync(fp);
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];

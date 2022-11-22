@@ -3095,6 +3095,11 @@ module.exports = {
                 return;
             }
 
+            if (game.thumbnails && game.thumbnails.length >= db.getSiteConfig().shared.MaxGameThumbnails){
+                res.status(401).send("");
+                return;
+            }
+
             const internalId = await db.createAsset(req.user.userid, `${game.gameid}-PLACE_THUMBNAIL`, "", "Thumbnail", (req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
             file.mv(`${__dirname}/../assets/${internalId}.asset`, async (err) => {
                 if (err) {

@@ -659,9 +659,23 @@ module.exports = {
 
             const games = await getGamesT7(req.user.userid);
 
+            let templatesHtml = "";
+            const templates = await db.getTemplateGames();
+
+            for (let i = 0; i < templates.length; i++) {
+                const template = templates[i];
+                templatesHtml += `<div class="template" placeid="${template.gameid}">
+                <a class="game-image">
+                    <img class="inner-game-image" src="http://thumbnails.rbx2016.nl/v1/thumb?id=${template.gameid}">
+                </a>
+                <p>${template.gamename}</p>
+            </div>`;
+            }
+
             res.render("sitetest/idewelcome", {
                 ...(await db.getRenderObject(req.user)),
-                MyGames: games
+                MyGames: games,
+                templates: templatesHtml
             });
         });
 
@@ -706,7 +720,51 @@ module.exports = {
                 res.status(400).render("sitetest/404", await db.getBlankRenderObject());
                 return;
             }
-            res.render("sitetest/searchusers", await db.getRenderObject(req.user));
+            const keyword = req.query.keyword;
+            let outHtml = "";
+            const users = await db.findUsers(keyword);
+            if (users && users.length > 0) {
+                let maxI = 10;
+                for (let i = 0; i < users.length; i++) {
+                    if (i > maxI) break;
+                    const user = users[i];
+                    if (!user || user.banned) {
+                        maxI++;
+                        continue;
+                    };
+                    let lastOnline = db.unixToDate(user.lastOnline);
+                    let lastOnlineString = db.formatAMPMFull(lastOnline, false, true);
+                    let presenceType = (user.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? (user.lastOnline || 0) > (db.getUnixTimestamp() - 60) && user.playing != 0 ? "onlineStatus-0-2-40" : "onlineStatus-0-2-40" : "offlineStatus-0-2-41";
+                    if (lastOnline == null || lastOnline == 0) {
+                        lastOnlineString = "???";
+                        presenceType = "unknownStatus-0-2-39";
+                    }
+                    outHtml += `<div class="userRow-0-2-44"><a href="/users/${user.userid}/profile">
+                    <div class="row">
+                        <div class="col-6 col-md-2 col-lg-1"><img
+                                class="image-0-2-64"
+                                src="https://thumbnails.rbx2016.nl/v1/avatar/icon?id=${user.userid}">
+                        </div>
+                        <div class="col-6 col-md-7 col-lg-8">
+                            <p><span
+                                    class="status-0-2-42 ${presenceType}">.</span>
+                                <span
+                                    style="position: relative; left: 1em;">${user.username}</span>
+                            </p>
+                        </div>
+                        <div class="col-12 col-md-3 col-lg-3">
+                            <p class="textRight-0-2-38 colorNormal-0-2-45">
+                                ${lastOnlineString}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>`;
+                }
+            }
+            res.render("sitetest/searchusers", {
+                ...(await db.getRenderObject(req.user)),
+                users: outHtml
+            });
         });
 
         app.get("/search/users/metadata", db.requireAuth, async (req, res) => {
@@ -1493,7 +1551,7 @@ module.exports = {
                 for (let i = 0; i < items.length; i++) {
                     const item = items[i];
 
-                    if (type != "All"){
+                    if (type != "All") {
                         if (item.itemtype == "TShirt" || item.itemtype == "Shirt" || item.itemtype == "Pants" || item.itemtype == "Face" || item.itemtype == "Gear") continue;
                     }
                     const internalAsset = await db.getAsset(item.internalAssetId);
@@ -3010,6 +3068,353 @@ module.exports = {
             });
         });
 
+        app.post("/places/thumbnails/add-image", db.requireAuth, async (req, res) => {
+            const body = req.body;
+            const placeid = parseInt(body.id);
+            if (!req.files || req.files.length == 0 || !Object.keys(req.files).includes("thumbnailImageFile")) {
+                res.status(400).json("");
+                return;
+            }
+            const file = req.files.thumbnailImageFile;
+            const game = await db.getGame(placeid);
+            if (!game) {
+                res.status(404).send("");
+                return;
+            }
+            if (game.creatorid != req.user.userid) {
+                res.status(401).send("");
+                return;
+            }
+            if (!file) {
+                res.status(400).send("");
+                return;
+            }
+            const contentType = detectContentType(file.data);
+            if (contentType != "image/png" && contentType != "image/jpeg") {
+                res.status(400).send("");
+                return;
+            }
+
+            if (game.thumbnails && game.thumbnails.length >= db.getSiteConfig().shared.MaxGameThumbnails){
+                res.status(401).send("");
+                return;
+            }
+
+            const internalId = await db.createAsset(req.user.userid, `${game.gameid}-PLACE_THUMBNAIL`, "", "Thumbnail", (req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
+            file.mv(`${__dirname}/../assets/${internalId}.asset`, async (err) => {
+                if (err) {
+                    res.status(500).send("");
+                    return;
+                }
+                if (await db.isNsfw(file.data)) {
+                    await db.deleteAsset(internalId);
+                    await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                    db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
+                    res.redirect("/");
+                    return;
+                }
+                const page = await db.addGameThumbnail(game.gameid, internalId);
+
+                let thumbnailsHtml = "";
+
+                const newGame = await db.getGame(game.gameid);
+
+                if (game.thumbnails && game.thumbnails.length > 0) {
+                    for (let i = 0; i < newGame.thumbnails.length; i++) {
+                        const thumbnail = newGame.thumbnails[i];
+                        thumbnailsHtml += `<div id="divSmallGalleryScrollContainer" class="ui-sortable"
+                    style="width: 130px;">
+                    <div class="divSmallGalleryItem SelectedYouTubeGalleryIcon"
+                        data-place-media-item-id="${thumbnail}"
+                        data-place-media-item-alt-text="">
+                        <a data-remove-url="/thumbnail/remove-asset-media"
+                            data-thumbnailid="${thumbnail}"
+                            class="ImageButton closeBtnCircle_35h RemoveYouTubeGalleryImage">
+                        </a>
+                        <div class="smallGalleryThumbItem">
+                            <a href="" class=""><img class="small-image-item"
+                                    src="https://thumbnails.rbx2016.nl/v1/thumb?id=${newGame.gameid}&page=${i}"></a>
+                        </div>
+                        <div class="youTubeVideoOverlay"></div>
+                    </div>
+                    <input type="hidden" name="thumbnailid" value="" style="">
+                </div>`;
+                    }
+                }
+
+                res.json(`
+            <div class="headline">
+                <h2>Thumbnails</h2>
+            </div>
+            <div id="ThumbnailDisplayContainer" class="thumbnail-display-container" data-place-id="${game.gameid}" data-remove-url='/thumbnail/remove-asset-media' data-is-place="true" data-media-items-count="1">
+                    <div id="ItemThumbnail" style="height: 230px; width: 420px;">
+                        <div id="bigGalleryThumbItem" style="position: absolute">
+            <a href="" class="MainThumbnail" ><img  class='' src='https://thumbnails.rbx2016.nl/v1/thumb?id=${game.gameid}&page=0' style="height: 14em; width: 27em;"/></a>            </div>
+                    </div>
+                    <div id="remove-thumbnail-error"></div>
+                    <div id="divSmallGalleryItemBox">
+                        ${thumbnailsHtml}
+                    </div>
+            </div>
+            <div id="ThumbnailPurchaseContainer" class="thumbnail-purchase-container">
+                    <div id="UploadStatus" class="status-confirm" style="width: 220px; margin-bottom: 10px">Image added successfully</div>
+                <div class="add-media-title"><h3>Add a New Thumbnail</h3></div>
+                <fieldset id="allowedGenre">
+                    <label for="thumbnailType" class="form-label">Media type:</label>
+                    <label class="radio-selection">
+                        <input type="radio" name="thumbnailType" id="imageThumbnail" checked="checked" value="image" />
+                        <span class="checkboxListItem">Image (Free)</span>
+                    </label>
+                        <label class="radio-selection">
+                            <input type="radio" name="thumbnailType" id="youtubeThumbnail" value="youtube" data-cost-in-robux="5"/>
+                            <span class="checkboxListItem">
+                                Video (
+                                <span class="icon-robux-16x16"></span>
+                                <span>
+                                    5
+                                </span>)
+                            </span>
+                        </label>
+                                <label class="radio-selection">
+                            <input type="radio" name="thumbnailType" id="autogenerated" value="autogenerated" />
+                            <span class="checkboxListItem">Auto generated Image (Free) </span>
+                        </label>
+                </fieldset>
+                <div id="ImageUpload">
+                    <fieldset>
+                        <label for="thumbnailImageFile" class="form-label" style="width:150px;">Select image:</label>
+                        <input type="file" accept="image/*" id="thumbnailImageFile" name="thumbnailImageFile" />
+                    </fieldset>
+                    <div class="field-validation-valid"></div>
+            
+                    <a  data-form-post-url="/places/thumbnails/add-image" class="btn-small btn-disabled-neutral add-image-button" id="addImageButton" disabled>Upload Image</a>
+                </div>
+                    <div id="VideoUpload" style="display: none">
+                        <fieldset>
+                            <label for="txtYouTubeVideoUrl" class="form-label" style="width:150px;">
+                                YouTube URL:
+                                <a href="https://roblox.zendesk.com/entries/21153041-video-advertisment-policy" class="tooltip" target="_blank" style="position:relative; left:5px;">
+                                    <img class="TipsyImg" title="Click here to learn more." height="13" width="12" src="https://static.rbx2016.nl/images/65cb6e4009a00247ca02800047aafb87.png" alt="Click here to learn more." />
+            
+                                </a>
+                            </label>
+                            <input type="text" name="ThumbnailYoutubeUrl" id="txtYouTubeVideoUrl" class="text-box text-box-medium" style="width:242px;" />
+                        </fieldset>
+            
+                        <a  data-form-post-url="/places/thumbnails/add-video" class="btn-small btn-disabled-neutral" id="addVideoButton" disabled>Add Video</a>
+                        <div class="moderation-note">Videos will not be displayed on the Game page until they have been reviewed by moderation.</div>
+                    </div>
+                        <div id="autogenerate" style="display: none">
+                        <fieldset>
+                            <span ><img  class='MainThumbnail' src='https://thumbnails.rbx2016.nl/v1/thumb?id=${game.gameid}&page=0'/></span>
+                        </fieldset>
+                        <div id="generatedImageUploadButton">
+                            <a  data-form-post-url="/places/thumbnails/add-generated-image" class="btn-small btn-neutral add-generated-image-button" id="addGeneratedImageButton">Set Thumbnail</a>
+                        </div>
+                    </div>
+                <img id="LoadingImage" class="add-image-button" style="display: none" src='https://static.rbx2016.nl/images/ec4e85b0c4396cf753a06fade0a8d8af.gif' alt="Updating place..." />
+            </div>
+            <div class="clear"></div>
+            `);
+            });
+        });
+
+        app.post("/thumbnail/remove-asset-media", db.requireAuth, async (req, res) => {
+            const gameid = req.body.id;
+            const thumbId = req.body.thumbnailid;
+            const game = await db.getGame(parseInt(gameid));
+            if (!game) {
+                return res.status(404).json({
+                    "success": false,
+                    "message": "Game not found"
+                });
+            }
+            if (game.ownerid !== req.user.id) {
+                return res.status(403).json({
+                    "success": false,
+                    "message": "Lacking permissions"
+                });
+            }
+            if (!game.thumbnails.includes(thumbId)) {
+                return res.status(400).json({
+                    "success": false,
+                    "message": "Thumbnail not found"
+                });
+            }
+            await db.removeGameThumbnail(parseInt(gameid), thumbId);
+            await db.deleteAsset(parseInt(thumbId));
+            res.send({
+                "success": true,
+                "message": "Great Success"
+            });
+        });
+
+        app.post("/places/icons/add-icon", db.requireAuth, async (req, res) => {
+            const body = req.body;
+            const placeid = parseInt(body.placeId);
+            if (!req.files || req.files.length == 0 || !Object.keys(req.files).includes("iconImageFile")) {
+                res.status(400).json("");
+                return;
+            }
+            const file = req.files.iconImageFile;
+            const game = await db.getGame(placeid);
+            if (!game) {
+                res.status(404).send("");
+                return;
+            }
+            if (game.creatorid != req.user.userid) {
+                res.status(401).send("");
+                return;
+            }
+            if (!file) {
+                res.status(400).send("");
+                return;
+            }
+            const contentType = detectContentType(file.data);
+            if (contentType != "image/png" && contentType != "image/jpeg") {
+                res.status(400).send("");
+                return;
+            }
+
+            const internalId = await db.createAsset(req.user.userid, `${game.gameid}-PLACE_ICON`, "", "Icon", (req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
+            file.mv(`${__dirname}/../assets/${internalId}.asset`, async (err) => {
+                if (err) {
+                    res.status(500).send("");
+                    return;
+                }
+                if (await db.isNsfw(file.data)) {
+                    await db.deleteAsset(internalId);
+                    await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                    db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
+                    res.redirect("/");
+                    return;
+                }
+                await db.setGameProperty(game.gameid, "internalIconAssetId", internalId);
+                res.send(`<div class="headline">
+                <h2>Icon</h2>
+            </div>
+            <div id="IconDisplayContainer" class="thumbnail-display-container icon-display-container" data-place-id="${game.gameid}" data-place-icon-id="${game.gameid}" data-remove-icon-url='/places/icons/remove-icon'>
+                <div class="icon-thumbnail">
+                        <a data-remove-icon-url class="ImageButton closeBtnCircle_35h RemoveYouTubeGalleryImage"></a>
+                    <span >
+                        <img src="https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}" style="height: 32em; width: 32em;"/>
+                    </span>
+                    <span class="icon-note icon-special">Note: You can only have 1 icon per experience.</span>
+                </div>
+            </div>
+            <div id="IconPurchaseContainer" class="thumbnail-purchase-container icon-purchase-container">
+                <div id="UploadStatus" class="status-confirm" style="width: 207px; margin-bottom: 10px" >Image added successfully</div>
+                <h3 class="add-media-title">Change the Icon</h3>
+                <fieldset id="mediaTypeSelection">
+                    <label for="iconType" class="form-label">Media type:</label>
+                    <label class="radio-selection">
+                        <input type="radio" name="iconType" id="imageIcon" checked="checked" value="image"/>
+                        <span class="checkboxListItem">Image</span>
+                    </label>
+                    <label class="radio-selection">
+                        <input type="radio" name="iconType" id="autogenerated" value="autogenerated"/>
+                        <span class="checkboxListItem">Auto generated Image </span>
+                    </label>
+                </fieldset>
+                
+                <div id="ImageUpload">
+                    <fieldset>
+                        <label for="iconImageFile" class="form-label" >Select image:</label>
+                        <input type="file" id="iconImageFile" accept="image/*" name="iconImageFile"/>
+                    </fieldset>
+                    <a  data-form-post-url="/places/icons/add-icon" class="btn-small btn-neutral add-image-button" id="addIconButton">Upload Image</a>
+                    <div class="clear"></div>
+                    <span class="icon-note icon-special">Icon must be square.</span>
+                </div>
+                <div id="autogenerate">
+                    <fieldset>
+                        <span ><img  class='MainIcon' src='https://static.rbx2016.nl/images/eb0f290fb60954fff9f7251a689b9088.jpg'/></span>
+                    </fieldset>
+                    <div id="generatedImageUploadButton">
+                        <a  data-form-post-url="/places/icons/add-generated-image" class="btn-small btn-neutral add-generated-image-button" id="addGeneratedIconImageButton">Set Icon</a>
+                    </div>
+                </div>
+                <img id="LoadingImage" class="add-image-button default-hidden" src='https://static.rbx2016.nl/images/ec4e85b0c4396cf753a06fade0a8d8af.gif' alt="Updating place..." />
+                <div class="game-icon-message">
+                    <h3>
+                        New to making icons? Check out the <a href="https://developer.rbx2016.nl/articles/game-metadata">Icon Tutorial</a>.
+                    </h3>
+                </div>
+            </div>
+            <div class="clear"></div>
+            `);
+            });
+        });
+
+        app.post("/places/icons/remove-icon", db.requireAuth, async (req, res) => {
+            const body = req.body;
+            const placeid = parseInt(body.placeId);
+            const game = await db.getGame(placeid);
+            if (!game) {
+                res.status(404).send("");
+                return;
+            }
+            if (game.creatorid != req.user.userid) {
+                res.status(401).send("");
+                return;
+            }
+            await db.deleteAsset(game.internalIconAssetId);
+            await db.setGameProperty(game.gameid, "internalIconAssetId", 0);
+            res.send(`<div class="headline">
+                <h2>Icon</h2>
+            </div>
+            <div id="IconDisplayContainer" class="thumbnail-display-container icon-display-container" data-place-id="${game.gameid}" data-place-icon-id="${game.gameid}" data-remove-icon-url='/places/icons/remove-icon'>
+                <div class="icon-thumbnail">
+                        <a data-remove-icon-url class="ImageButton closeBtnCircle_35h RemoveYouTubeGalleryImage"></a>
+                    <span >
+                        <img src="https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}" style="height: 32em; width: 32em;"/>
+                    </span>
+                    <span class="icon-note icon-special">Note: You can only have 1 icon per experience.</span>
+                </div>
+            </div>
+            <div id="IconPurchaseContainer" class="thumbnail-purchase-container icon-purchase-container">
+                <div id="UploadStatus" class="status-confirm" style="width: 207px; margin-bottom: 10px" >Image removed successfully</div>
+                <h3 class="add-media-title">Change the Icon</h3>
+                <fieldset id="mediaTypeSelection">
+                    <label for="iconType" class="form-label">Media type:</label>
+                    <label class="radio-selection">
+                        <input type="radio" name="iconType" id="imageIcon" checked="checked" value="image"/>
+                        <span class="checkboxListItem">Image</span>
+                    </label>
+                    <label class="radio-selection">
+                        <input type="radio" name="iconType" id="autogenerated" value="autogenerated"/>
+                        <span class="checkboxListItem">Auto generated Image </span>
+                    </label>
+                </fieldset>
+                
+                <div id="ImageUpload">
+                    <fieldset>
+                        <label for="iconImageFile" class="form-label" >Select image:</label>
+                        <input type="file" id="iconImageFile" accept="image/*" name="iconImageFile"/>
+                    </fieldset>
+                    <a  data-form-post-url="/places/icons/add-icon" class="btn-small btn-neutral add-image-button" id="addIconButton">Upload Image</a>
+                    <div class="clear"></div>
+                    <span class="icon-note icon-special">Icon must be square.</span>
+                </div>
+                <div id="autogenerate">
+                    <fieldset>
+                        <span ><img  class='MainIcon' src='https://static.rbx2016.nl/images/eb0f290fb60954fff9f7251a689b9088.jpg'/></span>
+                    </fieldset>
+                    <div id="generatedImageUploadButton">
+                        <a  data-form-post-url="/places/icons/add-generated-image" class="btn-small btn-neutral add-generated-image-button" id="addGeneratedIconImageButton">Set Icon</a>
+                    </div>
+                </div>
+                <img id="LoadingImage" class="add-image-button default-hidden" src='https://static.rbx2016.nl/images/ec4e85b0c4396cf753a06fade0a8d8af.gif' alt="Updating place..." />
+                <div class="game-icon-message">
+                    <h3>
+                        New to making icons? Check out the <a href="https://developer.rbx2016.nl/articles/game-metadata">Icon Tutorial</a>.
+                    </h3>
+                </div>
+            </div>
+            <div class="clear"></div>
+            `);
+        });
+
         app.get("/places/:placeid/update", db.requireAuth, async (req, res) => {
             const placeid = parseInt(req.params.placeid);
             const game = await db.getGame(placeid);
@@ -3022,20 +3427,53 @@ module.exports = {
                     }
                     return;
                 }
+
+                let thumbnailsHtml = "";
+
+                if (game.thumbnails && game.thumbnails.length > 0) {
+                    for (let i = 0; i < game.thumbnails.length; i++) {
+                        const thumbnail = game.thumbnails[i];
+                        thumbnailsHtml += `<div id="divSmallGalleryScrollContainer" class="ui-sortable"
+                    style="width: 130px;">
+                    <div class="divSmallGalleryItem SelectedYouTubeGalleryIcon"
+                        data-place-media-item-id="${thumbnail}"
+                        data-place-media-item-alt-text="">
+                        <a data-remove-url="/thumbnail/remove-asset-media"
+                            data-thumbnailid="${thumbnail}"
+                            class="ImageButton closeBtnCircle_35h RemoveYouTubeGalleryImage">
+                        </a>
+                        <div class="smallGalleryThumbItem">
+                            <a href="" class=""><img class="small-image-item"
+                                    src="https://thumbnails.rbx2016.nl/v1/thumb?id=${game.gameid}&page=${i}"></a>
+                        </div>
+                        <div class="youTubeVideoOverlay"></div>
+                    </div>
+                    <input type="hidden" name="thumbnailid" value="" style="">
+                </div>`;
+                    }
+                }
+
+                let thumbnailCount = game.thumbnails ? game.thumbnails.length : 0;
+
                 const creator = await db.getUser(game.creatorid);
                 res.render("sitetest/updateplace", {
                     ...(await db.getRenderObject(req.user)),
+                    thumbnailCount: thumbnailCount,
                     gameid: game.gameid,
+                    thumbnails: thumbnailsHtml,
                     gamename: game.gamename,
                     gamedesc: game.description,
                     creatorid: game.creatorid,
                     creatorname: creator.username,
                     gamegenre: game.genre || "All",
+                    gamecreated: db.timeToString(game.created),
                     maxPlayers: game.maxplayers,
                     everyonearg: game.access == "Everyone" ? "selected=\"selected\"" : "",
                     friendsarg: game.access == "Friends" ? "selected=\"selected\"" : "",
                     copiable: game.copiable ? "checked=\"checked\"" : "",
-                    chattype: game.chattype
+                    chattype: game.chattype,
+                    access: game.access,
+                    privateServersEnabled: game.privateServersEnabled || false
                 });
             }
         });
@@ -3060,7 +3498,7 @@ module.exports = {
             let genre = req.body.Genre;
             if (genre == "") genre = "All";
             const maxplayers = parseInt(req.body.NumberOfPlayersMax);
-            if (maxplayers > 15) {
+            if (maxplayers > 100 || maxplayers < 1) {
                 if (req.user) {
                     res.status(400).render("sitetest/400", await db.getRenderObject(req.user));
                 } else {
@@ -3068,14 +3506,18 @@ module.exports = {
                 }
                 return;
             }
-            const access = req.body.Access;
-            if (access != "Everyone" && access != "Friends") {
+            let access = req.body.Access;
+
+            if (!access || (access != "Everyone" && access != "Friends")) {
                 if (req.user) {
                     res.status(400).render("sitetest/400", await db.getRenderObject(req.user));
                 } else {
                     res.status(400).render("sitetest/400", await db.getBlankRenderObject());
                 }
                 return;
+            }
+            if (!access) {
+                access = game.access || "Everyone";
             }
             const isCopyingAlowed = req.body.IsCopyingAllowed == "true";
             const chattype = req.body.ChatType;
@@ -3538,7 +3980,7 @@ module.exports = {
             if (Page) {
                 Page = Page.toLowerCase();
             }
-            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts" && Page != "pants" && Page != "tshirts" && Page != "accessories" && Page != "badges") || View != null) {
+            if ((Page != null && Page != "universes" && Page != "game-passes" && Page != "decals" && Page != "audios" && Page != "meshes" && Page != "shirts" && Page != "pants" && Page != "tshirts" && Page != "accessories" && Page != "faces" && Page != "userads" && Page != "badges") || View != null) {
                 if (req.user) {
                     res.status(404).render("sitetest/404", await db.getRenderObject(req.user));
                 } else {
@@ -4020,6 +4462,56 @@ module.exports = {
                 }
             }
 
+            let facesHtml = "";
+            if (db.getSiteConfig().shared.assetsEnabled == true && Page == "faces") {
+                let assets = await db.getCatalogItemsFromCreatorId(req.user.userid, "Face");
+                assets = assets.reverse();
+                for (let i = 0; i < assets.length; i++) {
+                    if (i > 50) break;
+                    const asset = assets[i];
+                    // if (asset.deleted) continue;
+                    const created = db.unixToDate(asset.created);
+                    const updated = db.unixToDate(asset.updated);
+                    facesHtml += `<table class="item-table" data-item-id="${asset.itemid}"
+                    data-type="image" style="">
+                    <tbody>
+                        <tr>
+                            <td class="image-col">
+                                <a href="https://sitetest.rbx2016.nl/library/${asset.itemid}"
+                                    class="item-image"><img class=""
+                                        src="${asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`}"></a>
+                            </td>
+                            <td class="name-col">
+                                <a class="title"
+                                    href="https://sitetest.rbx2016.nl/catalog/${asset.itemid}">${asset.itemname}</a>
+                                <table class="details-table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="item-date">
+                                                <span>Updated</span>${`${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="stats-col">
+                                <div class="totals-label">Total Sales:
+                                    <span>${asset.itemowners.length}</span></div>
+                                <div class="totals-label">Last 7 days:
+                                    <span>?</span></div>
+                            </td>
+                            <td class="menu-col">
+                                <div class="gear-button-wrapper">
+                                    <a href="#" class="gear-button"></a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="separator" style=""></div>`;
+                }
+            }
+
             res.render("sitetest/develop", {
                 ...(await db.getRenderObject(req.user)),
                 games: games_html,
@@ -4031,6 +4523,7 @@ module.exports = {
                 meshes: meshesHtml,
                 shirts: shirtsHtml,
                 pants: pantsHtml,
+                faces: facesHtml,
                 accessories: accessoriesHtml,
                 tshirts: tshirtHtml,
                 tab: Page,
@@ -4053,7 +4546,7 @@ module.exports = {
                 }
             }
             let fileB64 = "";
-            
+
             if (req.files && Object.keys(req.files).length > 0) {
                 if (req.files.file.size > 5.5 * 1024 * 1024) {
                     res.status(400).send("File too large");
@@ -4350,7 +4843,7 @@ module.exports = {
                     res.status(400).send("Pants are disabled");
                     return;
                 }
-                if (req.user.robux < db.getSiteConfig().shared.ShirtUploadCost) {
+                if (req.user.robux < db.getSiteConfig().shared.PantsUploadCost) {
                     res.status(401).send("You do not have enough Robux to upload pants");
                     return;
                 }
@@ -4384,6 +4877,71 @@ module.exports = {
                   </roblox>`;
                     fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
                     await db.createCatalogItem(name, desc, 0, "Pants", req.user.userid, internalId, id);
+                } else {
+                    res.status(400).send("Only listed formats are allowed!");
+                    return;
+                }
+            } else if (assetTypeId == 18) {
+                if (req.user.firstDailyAssetUpload && req.user.firstDailyAssetUpload != 0) {
+                    if (db.getUnixTimestamp() - req.user.firstDailyAssetUpload < 24 * 60 * 60) {
+                        if (db.getAssetsThisDay(req.userid) >= ((req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner") ? db.getSiteConfig().shared.maxAssetsPerDaily.admin : db.getSiteConfig().shared.maxAssetsPerDaily.user)) {
+                            res.status(401).send("You have reached the daily asset upload limit");
+                            return;
+                        }
+                    } else {
+                        await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                    }
+                } else if (req.user.firstDailyAssetUpload == 0) {
+                    await db.setUserProperty(req.user.userid, "firstDailyAssetUpload", db.getUnixTimestamp());
+                }
+
+                if (!req.files || Object.keys(req.files).length == 0) {
+                    res.status(400).send("No file uploaded");
+                    return;
+                }
+                if (req.files.file.size > 5.5 * 1024 * 1024) {
+                    res.status(400).send("File too large");
+                    return;
+                }
+                if (db.getSiteConfig().shared.FaceUploadCost < 0) {
+                    res.status(400).send("Faces are disabled");
+                    return;
+                }
+                if (req.user.robux < db.getSiteConfig().shared.FaceUploadCost) {
+                    res.status(401).send("You do not have enough Robux to upload a face");
+                    return;
+                }
+                const file = req.files.file;
+                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+                    id = await db.createAsset(req.user.userid, name + "-FACE", desc, "Face", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    file.mv(`${__dirname}/../assets/${id}.asset`);
+                    await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.FaceUploadCost);
+
+                    if (await db.isNsfw(file.data)) {
+                        await db.deleteAsset(id);
+                        await db.banUser(req.user.userid, "3Days", "This content is not appropriate for Roblox. Do not upload inappropriate assets on Roblox.", "Inappropriate Asset", "[ Content Deleted ]");
+                        db.log(`user ${req.user.userid} has been 3Days banned by SYSTEM (?) for the reason: Inappropriate Asset`);
+                        res.redirect("/");
+                        return;
+                    }
+
+                    const internalId = await db.createAsset(req.user.userid, name + "-FACE-INTERNAL", desc, "Face", req.user.userid, true);
+                    const xml = `<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+                    <External>null</External>
+                    <External>nil</External>
+                    <Item class="Decal" referent="RBX0">
+                        <Properties>
+                            <token name="Face">5</token>
+                            <string name="Name">face</string>
+                            <float name="Shiny">20</float>
+                            <float name="Specular">0</float>
+                            <Content name="Texture"><url>http://www.roblox.com/asset/?id=${id}</url></Content>
+                            <bool name="archivable">true</bool>
+                        </Properties>
+                    </Item>
+                </roblox>`;
+                    fs.writeFileSync(`${__dirname}/../assets/${internalId}.asset`, xml);
+                    await db.createCatalogItem(name, desc, 0, "Face", req.user.userid, internalId, id);
                 } else {
                     res.status(400).send("Only listed formats are allowed!");
                     return;
@@ -4706,6 +5264,26 @@ module.exports = {
                 <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
                 <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
                     <div><a id="upload-fee-confirmation-link" target="_top">Pants</a> successfully created!</div>
+                </div>
+                </div>`
+            } else if (assetTypeId == 18) {
+                formData = `<div class="form-row">Did you use the template? If not, <a target="_blank" href="https://static.rbx2016.nl/images/facetemplate.png">download it here</a>.</div>
+                <div class="form-row">
+                    <label for="file">Find your image:</label>
+                    <input id="file" type="file" accept="image/png,image/jpeg" name="file" tabindex="1">
+                    <span id="file-error" class="error"></span>
+                </div>
+                        <div class="form-row">
+                    <label for="name">Face Name:</label>
+                    <input id="name" type="text" class="text-box text-box-medium" name="name" maxlength="50" tabindex="2">
+                    <span id="name-error" class="error"></span>
+                </div>
+                    <div class="form-row submit-buttons">
+                                <a id="upload-button" class="btn-medium  btn-primary" data-freeaudio-enabled="true" tabindex="4">Upload for ${db.getSiteConfig().shared.FaceUploadCost} Robux<span class=""></span></a>
+                                        <span id="loading-container"><img src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif"></span>
+                <div id="upload-fee-item-result-error" class="status-error hidden">${(!isCreator || fault) ? "" : "hidden"}">${!isCreator ? "You cannot manage this place" : "Insufficient Funds"}</div>
+                <div id="upload-fee-item-result-success" class="status-confirm ${isUploaded ? "" : "hidden"}">
+                    <div><a id="upload-fee-confirmation-link" target="_top">Face</a> successfully created!</div>
                 </div>
                 </div>`
             } else if (assetTypeId == 8) {
@@ -5904,8 +6482,87 @@ module.exports = {
                         }
                     });
                 }
-            } else if (assetTypeId == 8) {
+            } else if (assetTypeId == 8 || assetTypeId == 41 || assetTypeId == 42 || assetTypeId == 43 || assetTypeId == 42 || assetTypeId == 44 || assetTypeId == 45 || assetTypeId == 46 || assetTypeId == 47) {
+                const internalTypeIs = assetTypeId == 8 ? "Hat" : assetTypeId == 41 ? "Hair" : assetTypeId == 42 ? "Face" : assetTypeId == 43 ? "Neck" : assetTypeId == 44 ? "Shoulder" : assetTypeId == 45 ? "Front" : assetTypeId == 46 ? "Back" : assetTypeId == 47 ? "Waist" : "Unknown";
                 const assets = await await db.getOwnedCatalogItems(userId, "Accessory")
+                for (const asset of assets) {
+                    const internalAsset = await db.getAsset(asset.internalAssetId)
+                    if (internalAsset.type != internalTypeIs) continue;
+                    items.push({
+                        "AssetRestrictionIcon": {
+                            "TooltipText": null,
+                            "CssTag": null,
+                            "LoadAssetRestrictionIconCss": true,
+                            "HasTooltip": false
+                        },
+                        "Item": {
+                            "AssetId": asset.itemid,
+                            "UniverseId": asset.itemid,
+                            "Name": asset.itemname,
+                            "AbsoluteUrl": "https://sitetest.rbx2016.nl/catalog/" + asset.itemid.toString() + "/" + db.filterText2(asset.itemname).replaceAll(" ", "-"),
+                            "AssetType": assetTypeId,
+                            "AssetTypeDisplayName": null,
+                            "AssetTypeFriendlyLabel": null,
+                            "Description": asset.itemdescription,
+                            "Genres": "All",
+                            "GearAttributes": null,
+                            "AssetCategory": 0,
+                            "CurrentVersionId": 0,
+                            "IsApproved": true,
+                            "LastUpdated": "\/Date(-62135575200000)\/",
+                            "LastUpdatedBy": null,
+                            "AudioUrl": null
+                        },
+                        "Creator": {
+                            "Id": creator.userid,
+                            "Name": creator.username,
+                            "Type": 1,
+                            "CreatorProfileLink": "https://sitetest.rbx2016.nl/users/" + creator.userid.toString() + "/profile/"
+                        },
+                        "Product": {
+                            "Id": 0,
+                            "PriceInRobux": asset.itemprice > 0 ? asset.itemprice : null,
+                            "PremiumDiscountPercentage": null,
+                            "PremiumPriceInRobux": null,
+                            "IsForSale": false,
+                            "IsPublicDomain": true,
+                            "IsResellable": false,
+                            "IsLimited": false,
+                            "IsLimitedUnique": false,
+                            "SerialNumber": null,
+                            "IsRental": false,
+                            "RentalDurationInHours": 0,
+                            "BcRequirement": 0,
+                            "TotalPrivateSales": 0,
+                            "SellerId": 0,
+                            "SellerName": null,
+                            "LowestPrivateSaleUserAssetId": null,
+                            "IsXboxExclusiveItem": false,
+                            "OffsaleDeadline": !asset.onSale,
+                            "NoPriceText": asset.onSale ? (asset.itemprice == 0 ? "Free" : asset.itemprice.toString()) : "Offsale",
+                            "IsFree": asset.itemprice == 0
+                        },
+                        "PrivateServer": null,
+                        "Thumbnail": {
+                            "Final": true,
+                            "Url": asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.itemid}`,
+                            "RetryUrl": "",
+                            "IsApproved": false
+                        },
+                        "UserItem": {
+                            "UserAsset": null,
+                            "IsItemOwned": false,
+                            "ItemOwnedCount": 0,
+                            "IsRentalExpired": false,
+                            "IsItemCurrentlyRented": false,
+                            "CanUserBuyItem": false,
+                            "RentalExpireTime": null,
+                            "CanUserRentItem": false
+                        }
+                    });
+                }
+            } else if (assetTypeId == 18) {
+                const assets = await await db.getOwnedCatalogItems(userId, "Face")
                 for (const asset of assets) {
                     items.push({
                         "AssetRestrictionIcon": {
@@ -5980,7 +6637,7 @@ module.exports = {
                         }
                     });
                 }
-            } else if (assetTypeId == 21){
+            } else if (assetTypeId == 21) {
                 const assets = await await db.getOwnedBadges(userId)
                 for (const asset of assets) {
                     items.push({
@@ -6462,7 +7119,7 @@ module.exports = {
 
         app.post("/api/v1/thumbnail/upload", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             if (db.getSiteConfig().backend.thumbnailServiceEnabled == false) {
@@ -7145,7 +7802,7 @@ module.exports = {
             const game = await db.getGame(gameid);
 
             if (!game) {
-                const badge = await db.getBadge(id);
+                const badge = await db.getBadge(gameid);
                 if (badge) {
                     return res.redirect("/badges/" + badge.id.toString() + "/" + db.filterText(badge.name).replaceAll(" ", "-"));
                 } else {
@@ -7159,7 +7816,7 @@ module.exports = {
                         } else {
                             const gamepass = await db.getGamepass(gameid);
                             if (gamepass) {
-                                return res.redirect("/game-pass/" + gamepass.gameid.toString() + "/" + db.filterText(gamepass.gamename).replaceAll(" ", "-"));
+                                return res.redirect("/game-pass/" + gamepass.id.toString() + "/" + db.filterText(gamepass.name).replaceAll(" ", "-"));
                             }
                         }
                     }
@@ -7652,7 +8309,17 @@ module.exports = {
                     </ul>
                 </div>
             </li>`;
-            // <div class="badge-stats-info">0.0% (Impossible)</div>
+                // <div class="badge-stats-info">0.0% (Impossible)</div>
+            }
+
+            let thumbnailsHtml = "";
+
+            if (game.thumbnails && game.thumbnails.length > 0) {
+                for (let i = 0; i < game.thumbnails.length; i++) {
+                    thumbnailsHtml += `<div class="item${i == 0 ? " active" : ""}">
+                    <span><img class='carousel-thumb' style="height: 22.5em;" src='https://thumbnails.rbx2016.nl/v1/thumb?id=${game.gameid}&page=${i}' /></span>
+                </div>`;
+                }
             }
 
             const created = db.unixToDate(game.created);
@@ -7663,6 +8330,7 @@ module.exports = {
                 gamename: game.gamename,
                 gamename2: game.gamename.replaceAll(" ", "-"),
                 badges: badgesHtml,
+                thumbnails: thumbnailsHtml,
                 badgesCount: badges.length,
                 desc: game.description,
                 likes: game.likes.length,
@@ -8298,7 +8966,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 res.render("sitetest/asset", {
                     ...(await db.getRenderObject(req.user)),
                     id: asset.id,
-                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`,
+                    icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "approver" && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`,
                     price: asset.price || 0,
                     name: "[ Content Deleted ]",
                     name2: "[ Content Deleted ]".replaceAll(" ", "-"),
@@ -8327,7 +8995,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             res.render("sitetest/asset", {
                 ...(await db.getRenderObject(req.user)),
                 id: asset.id,
-                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`,
+                icon: asset.deleted ? "https://static.rbx2016.nl/images/3970ad5c48ba1eaf9590824bbc739987f0d32dc9.png" : (asset.approvedBy == 0 && (req.user.role != "approver" && req.user.role != "mod" && req.user.role != "admin" && req.user.role != "owner")) ? "https://static.rbx2016.nl/eb0f290fb60954fff9f7251a689b9088.jpg" : asset.type == "Audio" ? "https://static.rbx2016.nl/eadc8982548a4aa4c158ba1dad61ff14.png" : asset.type == "Mesh" ? "https://static.rbx2016.nl/643d0aa8abe0b6f253c59ef6bbd0b30a.jpg" : `https://thumbnails.rbx2016.nl/v1/icon?id=${asset.id}`,
                 price: asset.price || 0,
                 name: asset.name,
                 name2: asset.name.replaceAll(" ", "-"),
@@ -8402,7 +9070,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                     res.redirect(`/badges/${itemId}/${db.filterText2(badge.name).replaceAll(" ", "-")}`);
                     return;
                 }
-                if (item.deleted){
+                if (item.deleted) {
                     res.status(404).send("Invalid item ID");
                     return;
                 }
@@ -8445,7 +9113,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                             res.status(404).json({});
                             return;
                         }
-                        if (badge.deleted){
+                        if (badge.deleted) {
                             res.status(404).json({});
                             return;
                         }
@@ -8457,7 +9125,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         res.json({});
                         return;
                     }
-                    if (item.deleted){
+                    if (item.deleted) {
                         res.status(404).json({});
                         return;
                     }
@@ -10140,7 +10808,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.post("/v2.0/Refresh", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apikey = req.query.apiKey;
@@ -10202,7 +10870,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.post("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey || (id0.length > 0 ? id0[0] : "");
@@ -10266,7 +10934,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.get("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10330,7 +10998,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.get("/Game/api/v2.0/Refresh", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10389,7 +11057,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.post("/Game/api/v2.0/EvictCheck", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey;
@@ -10401,9 +11069,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             for (let i = 0; i < plrs.length; i++) {
                 const plr = plrs[i];
                 const user = await db.getUser(plr);
-                if (!user || user.banned){
+                if (!user || user.banned) {
                     evicted.push(plr);
-                }   
+                }
             }
             res.json({
                 banned: evicted
@@ -10412,7 +11080,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.get("/Game/api/v1/UserJoined", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10444,7 +11112,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
 
         app.get("/Game/api/v1/GetPublicIp", async (req, res) => {
             let ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey;
@@ -10467,7 +11135,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/UserLeft", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10491,7 +11159,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/UserJoinedTeamCreate", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10515,7 +11183,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/UserLeftTeamCreate", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10572,7 +11240,7 @@ publicIp = "${ip}"`
 
         app.post("/api/v2/CreateOrUpdate", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey;
@@ -10602,7 +11270,7 @@ publicIp = "${ip}"`
 
         app.get("/api/v1/Close", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -10636,7 +11304,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/Close", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             let id0 = req.query.apiKey.split("|");
