@@ -139,18 +139,26 @@ module.exports = {
             });
         });
 
-        app.get("/v1/icon", async (req, res) => {
-            const id = parseInt(req.query.id);
+        app.get("/v1/icon", db.requireAuth2, async (req, res) => {
+            let id = parseInt(req.query.id);
             const gamepass = await db.getGamepass(id);
             const badge = await db.getBadge(id);
-            const internalId = gamepass && gamepass.internalId ? gamepass.internalId : badge && badge.internalId ? badge.internalId : id;
-            const bp = path.resolve(__dirname + (internalId != id ? "/../assets/" : "/../thumbnails/thumbs/")) + path.sep;
+            let game = await db.getGame(id);
+            if (!game) {
+                game = await db.getGameWithIconId(id);
+                if (game) {
+                    id = 0;
+                }
+            }
+            const internalId = gamepass && gamepass.internalId ? gamepass.internalId : badge && badge.internalId ? badge.internalId : game && game.internalIconAssetId ? game.internalIconAssetId : id;
+            const bp = path.resolve(__dirname + (internalId != id ? "/../assets/" : "/../thumbnails/icons/")) + path.sep;
             const fp = path.resolve(bp + internalId.toString() + ".asset");
             if (!fp.startsWith(bp)) {
                 res.status(403).send("Forbidden");
                 return;
             }
-            if (fs.existsSync(fp)) {
+            const internalAsset = await db.getAsset(internalId);
+            if (fs.existsSync(fp) && ((internalId == id && !gamepass && !badge) || (internalAsset.approved != 0 && !internalAsset.deleted) || (internalAsset.deleted && req.user && req.user.role == "approver" || req.user.role == "moderator" || req.user.role == "admin" || req.user.role == "owner"))) {
                 res.attachment("Download");
                 res.send(fs.readFileSync(fp));
             } else {
@@ -162,7 +170,7 @@ module.exports = {
                         res.redirect(`${req.secure ? "https" : "http"}://static.rbx2016.nl/images/eb0f290fb60954fff9f7251a689b9088.jpg`);
                     }
                 } else {
-                    const asset = await db.getAsset(id);
+                    const asset = await db.getAsset(internalId);
                     if (asset && !asset.deleted) {
                         res.redirect(`${req.secure ? "https" : "http"}://static.rbx2016.nl/images/eb0f290fb60954fff9f7251a689b9088.jpg`);
                     } else {
@@ -172,22 +180,40 @@ module.exports = {
             }
         });
 
-        app.get("/v1/thumb", async (req, res) => {
-            const id = parseInt(req.query.id);
+        app.get("/v1/thumb", db.requireAuth2, async (req, res) => {
+            let id = parseInt(req.query.id);
             const gamepass = await db.getGamepass(id);
             const badge = await db.getBadge(id);
-            const internalId = gamepass && gamepass.internalId ? gamepass.internalId : badge && badge.internalId ? badge.internalId : id;
-            const bp = path.resolve(__dirname + (internalId != id ? "/../assets/" : "/../thumbnails/thumbs/")) + path.sep;
+            let internalId = gamepass && gamepass.internalId ? gamepass.internalId : badge && badge.internalId ? badge.internalId : id;
+
+            let game = await db.getGame(id);
+            if (!game) {
+                game = await db.getGameWithIconId(id);
+                if (game) {
+                    id = 0;
+                }
+            }
+            let page = 0;
+            if (game) {
+                page = req.query.page ? parseInt(req.query.page) : 0;
+                if (game.thumbnails && game.thumbnails.length > page) {
+                    internalId = parseInt(game.thumbnails[page]) || 0; // TODO: Add video support (check if its a string or number or sum .-.)
+                } else {
+                    internalId = 0;
+                }
+            }
+            const bp = path.resolve(__dirname + ((internalId != id || game) ? "/../assets/" : "/../thumbnails/thumbs/")) + path.sep;
             const fp = path.resolve(bp + internalId.toString() + ".asset");
+            const internalAsset = await db.getAsset(internalId);
             if (!fp.startsWith(bp)) {
                 res.status(403).send("Forbidden");
                 return;
             }
-            if (fs.existsSync(fp)) {
+            if (fs.existsSync(fp) && ((internalId == id && !gamepass && !badge) || (internalAsset.approved != 0 && !internalAsset.deleted) || (!internalAsset.deleted && req.user && req.user.role == "approver" || req.user.role == "moderator" || req.user.role == "admin" || req.user.role == "owner"))) {
                 res.attachment("Download");
                 res.send(fs.readFileSync(fp));
             } else {
-                const asset = await db.getAsset(id);
+                const asset = await db.getAsset(internalId);
                 if (asset && !asset.deleted) {
                     res.redirect(`${req.secure ? "https" : "http"}://static.rbx2016.nl/images/eb0f290fb60954fff9f7251a689b9088.jpg`);
                 } else {

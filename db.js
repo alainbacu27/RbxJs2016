@@ -2007,16 +2007,17 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     return script;
 }
 
-async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN, DO NOT USE (ThumbnailGenerator crashes rcc.)
+async function getRCCRenderScript(isUserRender, itemid, port, jobid) {
     const isGame = await getGame(itemid) != null;
 
     let script = ``;
 
     if (isUserRender) {
-        script = `local url = "http://www.rbx2016.nl"
+        script = `game.Workspace:ClearAllChildren()
+        local url = "http://www.rbx2016.nl"
         game:GetService("ContentProvider"):SetBaseUrl(url)
         game:GetService("ScriptContext").ScriptsDisabled = true
-        local plr = game.Players:CreateLocalPlayer(0)
+        local plr = game.Players.LocalPlayer or game.Players:CreateLocalPlayer(0)
         plr.CharacterAppearance = "https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=${itemid}"
         plr:LoadCharacter(false)
         for i,v in pairs(plr.Character:GetChildren()) do
@@ -2038,7 +2039,8 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
         if (isGame) {
             const key = uuidv4();
             PRIVATE_PLACE_KEYS.push(key);
-            script = `local placeId = ${itemid}
+            script = `game.Workspace:ClearAllChildren()
+            local placeId = ${itemid}
             local port = ${port}
             local url = "http://www.rbx2016.nl"
     
@@ -2101,14 +2103,6 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
                 game:Load("http://www.rbx2016.nl/asset/?id=${itemid}|${key}")
             end
     
-            spawn(function()
-                while true do
-                    wait(25)
-                    loadfile(url .. "/Game/api/v1/close?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. game.JobId .. "|${itemid}")
-                    game:FinishShutdown(false)
-                end
-            end)
-    
             local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 352, 352, true), isUserRender = ${isUserRender ? "true" : "false"}, itemid = ${itemid}, jobid = "${jobid}"}
             local https = game:GetService("HttpService")
             local url = "https://www.rbx2016.nl/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
@@ -2137,12 +2131,23 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
                     tshirt.Parent = plr.Character`;
                 } else if (item.itemtype == "Accessory") {
                     loadCode = `local thing = game:GetService("InsertService"):LoadAsset(${item.itemid})
-                    thing:GetChildren()[1].Parent = plr.Character`;
+                    local item = thing:GetChildren()[1]
+                    item.Parent = plr.Character`;
+                } else if (item.itemtype == "Face") {
+                    loadCode = `local oldFace = plr.Character.Head:FindFirstChild("face")
+                    if oldFace then
+                        oldFace:Destroy()
+                    end
+                    local face = Instance.new("Decal")
+                    face.Name = "face"
+                    face.Texture = "rbxassetid://${item.itemdecalid}"
+                    face.Parent = plr.Character.Head`;
                 }
-                script = `local url = "http://www.rbx2016.nl"
+                script = `game.Workspace:ClearAllChildren()
+            local url = "http://www.rbx2016.nl"
             game:GetService("ContentProvider"):SetBaseUrl(url)
             game:GetService("ScriptContext").ScriptsDisabled = true
-            local plr = game.Players:CreateLocalPlayer(0)
+            local plr = game.Players.LocalPlayer or game.Players:CreateLocalPlayer(0)
             plr.CharacterAppearance = "https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=1"
             plr:LoadCharacter(false)
     
@@ -2159,14 +2164,6 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) { // BROKEN
                    plr.Character.Torso["Right Shoulder"].CurrentAngle = math.pi / 2
                end
             end
-    
-            spawn(function()
-                while true do
-                    wait(25)
-                    loadfile(url .. "/Game/api/v1/close?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. game.JobId .. "|${itemid}")
-                    game:FinishShutdown(false)
-                end
-            end)
     
             local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 352, 352, true), isUserRender = ${isUserRender ? "true" : "false"}, itemid = ${itemid}}
             local https = game:GetService("HttpService")
@@ -3693,7 +3690,7 @@ function isProfane2(words, str) {
         const word = words[i];
         console.log(stringSimilarity.compareTwoStrings(word, str));
         if (stringSimilarity.compareTwoStrings(word, str) > 0.4) {
-            return true;   
+            return true;
         }
     }
     return false;
@@ -3807,6 +3804,10 @@ if (siteConfig.backend.PRODUCTION) {
             await job.stop();
         }
         */
+        for (let i = 0; i < Object.keys(currentRenderJobs).length; i++) {
+            const job = currentRenderJobs[Object.keys(currentRenderJobs)[i]];
+            await job.stop();
+        }
         if (options.exit) process.exit();
     }
 
@@ -3893,6 +3894,8 @@ async function awaitRender(itemid, isUserRender = true) {
     });
 }
 
+let renderJobs = [];
+let lastRenderJobId = 0;
 setInterval(async () => {
     if (siteConfig.backend.renderingEnabled == false || currentRenderJobs.length >= siteConfig.backend.maxRenderJobs) {
         return;
@@ -3901,22 +3904,34 @@ setInterval(async () => {
     if (!item) {
         return;
     }
-    const job = await newJob(0, false, true);
-    if (!job) {
+    let renderJob = renderJobs[lastRenderJobId];
+    while (currentRenderJobs.includes(renderJob)) {
+        if (lastRenderJobId >= (siteConfig.backend.maxRenderJobs - 1)) {
+            lastRenderJobId = 0;
+        } else {
+            lastRenderJobId++;
+        }
+        renderJob = renderJobs[lastRenderJobId];
+    }
+    if (!renderJob) {
+        renderJob = await newJob(0, false, true);
+        renderJobs[lastRenderJobId] = renderJob;
         await enqueueRender(item.itemid, item.isUserRender);
         return;
     }
-    currentRenderJobs.push(job);
-    await job.start();
+    currentRenderJobs.push(renderJob);
+    if (!renderJob.isAlive()) {
+        await renderJob.start();
+    }
     await sleep(1000);
     if (item.isUserRender) {
-        userRenderIdLookup[job.getJobId()] = item.itemid;
+        userRenderIdLookup[renderJob.getJobId()] = item.itemid;
     } else {
-        renderIdLookup[job.getJobId()] = item.itemid;
+        renderIdLookup[renderJob.getJobId()] = item.itemid;
     }
-    await job.render(item.itemid, item.isUserRender);
-    if (currentRenderJobs.includes(job)) {
-        currentRenderJobs.splice(currentRenderJobs.indexOf(job), 1);
+    await renderJob.render(item.itemid, item.isUserRender);
+    if (currentRenderJobs.includes(renderJob)) {
+        currentRenderJobs.splice(currentRenderJobs.indexOf(renderJob), 1);
     }
 }, 500);
 
@@ -8071,7 +8086,10 @@ module.exports = {
                             teamCreatePlaying: 0,
                             teamCreateRccVersion: "",
                             teamCreateLastHeartBeat: 0,
-                            showOnProfile: false
+                            showOnProfile: false,
+                            internalIconAssetId: 0,
+                            thumbnails: [],
+                            isTemplate: false
                         };
                         dbo.collection("games").insertOne(myobj, function (err, res) {
                             if (err) {
@@ -8087,6 +8105,105 @@ module.exports = {
             });
         });
     },
+
+    getTemplateGames: async function () {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("games").find({
+                    isTemplate: true
+                }).toArray(function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
+
+    getGameWithIconId: async function (internalIconAssetId) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("games").findOne({
+                    internalIconAssetId: internalIconAssetId
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
+
+    addGameThumbnail: async function (gameid, assetid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("games").updateOne({
+                    gameid: gameid
+                }, {
+                    $push: {
+                        thumbnails: (typeof assetid != "string") ? assetid.toString() : assetid
+                    }
+                }, function (err, res) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    db.close();
+                    // get the amount of thumbnails
+                    dbo.collection("games").findOne({
+                        gameid: gameid
+                    }, function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        returnPromise(result.thumbnails.length - 1);
+                    });
+                });
+            });
+        });
+    },
+
+    removeGameThumbnail: async function (gameid, assetid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("games").updateOne({
+                    gameid: gameid
+                }, {
+                    $pull: {
+                        thumbnails: (typeof assetid != "string") ? assetid.toString() : assetid
+                    }
+                }, function (err, res) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(true);
+                });
+            });
+        });
+    },
+
 
     getTopModels: async function (x = 15) {
         return new Promise(async returnPromise => {

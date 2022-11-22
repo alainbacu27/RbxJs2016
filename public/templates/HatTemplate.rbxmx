@@ -1,7 +1,7 @@
 <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.rbx2016.nl/roblox.xsd" version="4">
 	<External>null</External>
 	<External>nil</External>
-	<Item class="Hat" referent="RBX0F854A17792E480F91FC01AA947901A7">
+	<Item class="Accessory" referent="RBX0F854A17792E480F91FC01AA947901A7">
 		<Properties>
 			<CoordinateFrame name="AttachmentPoint">
 				<X>0.0799999982</X>

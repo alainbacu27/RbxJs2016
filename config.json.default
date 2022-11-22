@@ -122,12 +122,13 @@
         "CLIENT_DOWNLOAD_AVAIlABLE": true,
         "ShirtUploadCost": 4,
         "PantsUploadCost": 4,
+        "FaceUploadCost": 3,
         "HatUploadCost": 5,
         "BadgeUploadCost": 1,
         "jobsEnabled": true
     },
     "backend": {
-        "PRODUCTION": false,
+        "PRODUCTION": true,
         "database": {
             "ip": "localhost",
             "port": 27017

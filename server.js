@@ -23,11 +23,11 @@ setTimeout(async () => {
     const items = await db.getAllCatalogItems();
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
+        console.log(`FORCING RENDER OF ITEM ${item.itemid}`);
         await db.enqueueRender(item.itemid, false);
     }
 }, 10000);
 */
-
 
 if (!fs.existsSync("./logs/admin.log")) {
     fs.writeFileSync("./logs/admin.log", "");
