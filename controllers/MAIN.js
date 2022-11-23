@@ -2449,7 +2449,7 @@ module.exports = {
             const pendingObj = req.cookies[".ROBLOSECURITY"] || "";
             if (pendingObj.startsWith("<pending>")) {
                 const s = pendingObj.split("|");
-                username = db.filterText4(s[1]);
+                username = db.filterText(s[1]);
                 password = s[2];
 
                 const birthday = new Date(Date.parse(s[3]));
@@ -2565,7 +2565,7 @@ module.exports = {
             }
             const password = data.password;
             const referralData = data.referralData;
-            const username = db.filterText4(data.username);
+            const username = db.filterText(data.username);
 
             const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
             if (isBadUsername) {
