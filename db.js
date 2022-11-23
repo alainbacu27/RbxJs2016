@@ -2142,6 +2142,30 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) {
         local data = https:JSONEncode(result)
 
         game:HttpPostAsync(url, data, "application/json")
+
+        local FOV = 52.5
+        local AngleOffsetX = 0
+        local AngleOffsetY = 0
+        local AngleOffsetZ = 0
+
+        local CameraAngle = plr.Character.Head.CFrame * CFrame.new(AngleOffsetX, AngleOffsetY, AngleOffsetZ)
+        local CameraPosition = plr.Character.Head.CFrame + Vector3.new(0, 0, 0) + (CFrame.Angles(0, 0, 0).lookVector.unit * 3)
+
+        local Camera = Instance.new("Camera", plr.Character)
+        Camera.Name = "ThumbnailCamera"
+        Camera.CameraType = Enum.CameraType.Scriptable
+
+        Camera.CoordinateFrame = CFrame.new(CameraPosition.p, CameraAngle.p)
+        Camera.FieldOfView = FOV
+        workspace.CurrentCamera = Camera
+
+        local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), isUserRender = ${isUserRender ? "true" : "false"}, itemid = ${itemid}, jobid = "${jobid}"}
+        local https = game:GetService("HttpService")
+        local url = "https://www.rbx2016.nl/api/v1/thumbnail/upload?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}"
+
+        local data = https:JSONEncode(result)
+
+        game:HttpPostAsync(url, data, "application/json")
         `;
     } else {
         if (isGame) {
@@ -4078,6 +4102,7 @@ setInterval(async () => {
 module.exports = {
     hasRedrawn: [],
     pendingRenderJobs: [],
+    pendingUserRenderJobs: [],
     userSeeingAds: {},
 
     getPRIVATE_PLACE_KEYS: function () {

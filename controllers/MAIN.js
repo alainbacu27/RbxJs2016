@@ -7506,7 +7506,7 @@ module.exports = {
             }
             const base64Data = data.replace(/^data:image\/png;base64,/, "");
 
-            fs.writeFile(`${__dirname}/../thumbnails/${isUserRender ? "avatars/thumbs" : db.pendingRenderJobs.includes(itemid) ? "icons" : "thumbs"}/${itemid}.asset`, base64Data, 'base64', async function (err) {
+            fs.writeFile(`${__dirname}/../thumbnails/${isUserRender ? `avatars/${db.pendingUserRenderJobs.includes(itemid) ? "icons" : "thumbs"}` : db.pendingRenderJobs.includes(itemid) ? "icons" : "thumbs"}/${itemid}.asset`, base64Data, 'base64', async function (err) {
                 res.send("OK");
                 if (err) {
                     console.log(err);
@@ -7517,6 +7517,13 @@ module.exports = {
                         db.pendingRenderJobs.splice(db.pendingRenderJobs.indexOf(itemid), 1)
                     } else {
                         db.pendingRenderJobs.push(itemid);
+                        return;
+                    }
+                }else{
+                    if (db.pendingUserRenderJobs.includes(itemid)) {
+                        db.pendingUserRenderJobs.splice(db.pendingUserRenderJobs.indexOf(itemid), 1)
+                    } else {
+                        db.pendingUserRenderJobs.push(itemid);
                         return;
                     }
                 }
