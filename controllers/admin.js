@@ -400,7 +400,7 @@ module.exports = {
             if (!user) {
                 return res.status(404).send("User not found");
             }
-            if (role < 0 || role > 2) {
+            if (role < 0 || role > 3) {
                 return res.status(400).send("Invalid role");
             }
             if (user.role == "owner" && req.user.userid != 1) {
@@ -419,6 +419,9 @@ module.exports = {
                     break;
                 case 3:
                     await db.setUserProperty(userid, "role", "admin");
+                    break;
+                case 4:
+                    await db.setUserProperty(userid, "role", "owner");
                     break;
             }
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/usermoderation");

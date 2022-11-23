@@ -631,7 +631,8 @@
                                                             <a class="tab-item tab-item-disabled">Animations</a>
                                                             <a href="https://www.rbx2016.nl/develop?Page=meshes"
                                                                 class="tab-item <% if (tab == "meshes"){ %>tab-item-selected<% } %>">Meshes</a>
-                                                            <a class="tab-item tab-item-disabled">User Ads</a>
+                                                            <a href="https://www.rbx2016.nl/develop?Page=userads"
+                                                                    class="tab-item <% if (tab == "userads"){ %>tab-item-selected<% } %>">User Ads</a>
                                                             <a class="tab-item tab-item-disabled">Sponsored Games</a>
                                                             <a href="https://www.rbx2016.nl/develop?Page=shirts"
                                                                 class="tab-item <% if (tab == "shirts"){ %>tab-item-selected<% } %>">Shirts</a>
@@ -1103,6 +1104,38 @@
         
                                                             </td>
                                                         <% } %>
+                                                        <% if (tab == "userads"){ %>
+                                                            <td class="content-area ">
+                                                                <h2>Create an Ad</h2>
+                                                                <iframe id="upload-iframe"
+                                                                    class="place-specific-assets my-upload-iframe"
+                                                                    src="/build/upload?assetTypeId=22&amp;GroupId=&amp;targetPlaceId=<%= gameid %>"
+                                                                    frameborder="0" scrolling="no"
+                                                                    data-target-universe-id="<% if (gameid){ %><%= gameid %><% } %>"></iframe>
+                                                                <table class="section-header">
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td class="content-title">
+                                                                                <div>
+        
+                                                                                    <h2 class="header-text">User Ads</h2>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                                <div class="items-container ">
+                                                                    <%- userads %>
+                                                                </div>
+                                                                <div class="build-loading-container" style="display: none;">
+                                                                    <div class="buildpage-loading-container">
+                                                                        <img alt="^_^" class=""
+                                                                            src="https://images.rbx2016.nl/ec4e85b0c4396cf753a06fade0a8d8af.gif">
+                                                                    </div>
+                                                                </div>
+        
+                                                            </td>
+                                                        <% } %>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -1235,7 +1268,7 @@
                                 </a>
                             </li>
                             <li class="col-4 col-xs-1 footer-link">
-                                <a href="http://corp.rbx2016.nl/jobs" class="text-footer-nav roblox-interstitial"
+                                <a href="http://www.rbx2016.nl/jobs" class="text-footer-nav roblox-interstitial"
                                     target="_blank">
                                     Jobs
                                 </a>

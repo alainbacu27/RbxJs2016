@@ -143,6 +143,7 @@ module.exports = {
             let id = parseInt(req.query.id);
             const gamepass = await db.getGamepass(id);
             const badge = await db.getBadge(id);
+            const asset = await db.getAsset(id);
             let game = await db.getGame(id);
             if (!game) {
                 game = await db.getGameWithIconId(id);
@@ -151,7 +152,7 @@ module.exports = {
                 }
             }
             const internalId = gamepass && gamepass.internalId ? gamepass.internalId : badge && badge.internalId ? badge.internalId : game && game.internalIconAssetId ? game.internalIconAssetId : id;
-            const bp = path.resolve(__dirname + (internalId != id ? "/../assets/" : "/../thumbnails/icons/")) + path.sep;
+            const bp = path.resolve(__dirname + ((internalId != id || game || asset) ? "/../assets/" : "/../thumbnails/icons/")) + path.sep;
             const fp = path.resolve(bp + internalId.toString() + ".asset");
             if (!fp.startsWith(bp)) {
                 res.status(403).send("Forbidden");
@@ -184,6 +185,7 @@ module.exports = {
             let id = parseInt(req.query.id);
             const gamepass = await db.getGamepass(id);
             const badge = await db.getBadge(id);
+            const asset = await db.getAsset(id);
             let internalId = gamepass && gamepass.internalId ? gamepass.internalId : badge && badge.internalId ? badge.internalId : id;
 
             let game = await db.getGame(id);
@@ -202,7 +204,7 @@ module.exports = {
                     internalId = 0;
                 }
             }
-            const bp = path.resolve(__dirname + ((internalId != id || game) ? "/../assets/" : "/../thumbnails/thumbs/")) + path.sep;
+            const bp = path.resolve(__dirname + ((internalId != id || game || asset) ? "/../assets/" : "/../thumbnails/thumbs/")) + path.sep;
             const fp = path.resolve(bp + internalId.toString() + ".asset");
             const internalAsset = await db.getAsset(internalId);
             if (!fp.startsWith(bp)) {

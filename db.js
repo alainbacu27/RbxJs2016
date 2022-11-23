@@ -137,6 +137,88 @@ async function getDataStore(placeid, key, type, scope, target) {
     });
 }
 
+async function getAd(id) {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("ads").findOne({
+                id: id
+            }, function (err, result) {
+                if (err) {
+                    db.close();
+                    returnPromise(null);
+                    return;
+                }
+                db.close();
+                returnPromise(result);
+            });
+        });
+    });
+}
+
+async function deleteAsset(assetid) {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+
+            if (fs.existsSync(`./assets/${assetid}.asset`)) {
+                fs.unlinkSync(`./assets/${assetid}.asset`);
+            }
+
+            if (fs.existsSync(`./thumbnails/thumbs/${assetid}.asset`)) {
+                fs.unlinkSync(`./thumbnails/icons/${assetid}.asset`);
+            }
+
+            dbo.collection("assets").updateOne({
+                id: assetid,
+            }, {
+                $set: {
+                    deleted: true
+                }
+            }, function (err, result) {
+                if (err) {
+                    returnPromise(false);
+                    return;
+                }
+                dbo.collection("games").updateOne({
+                    gameid: assetid,
+                }, {
+                    $set: {
+                        deleted: true
+                    }
+                }, function (err, result) {
+                    if (err) {
+                        returnPromise(false);
+                        return;
+                    }
+                    dbo.collection("catalog").updateOne({
+                        itemid: assetid,
+                    }, {
+                        $set: {
+                            deleted: true
+                        }
+                    }, function (err, result) {
+                        if (err) {
+                            returnPromise(false);
+                            return;
+                        }
+                        db.close();
+
+                        if (!fs.existsSync(`./assets/${assetid}`)) {
+                            returnPromise(false);
+                            return;
+                        }
+
+                        returnPromise(true);
+                    });
+                });
+            });
+        });
+    });
+}
+
 setInterval(async () => {
     MongoClient.connect(mongourl, function (err, db) {
         if (err) throw err;
@@ -152,7 +234,18 @@ setInterval(async () => {
                 console.error(err);
                 return;
             }
-            db.close();
+            dbo.collection("ads").deleteMany({
+                expires: {
+                    $lt: getUnixTimestamp()
+                }
+            }, function (err, res) {
+                if (err) {
+                    db.close();
+                    console.error(err);
+                    return;
+                }
+                db.close();
+            });
         });
     });
 }, 60 * 1000);
@@ -526,6 +619,22 @@ MongoClient.connect(mongourl, function (err, db) {
         if (err) throw err;
         if (!collinfo) {
             dbo.createCollection("badges", function (err, res) {
+                if (err) throw err;
+                db.close();
+            });
+        }
+    });
+});
+
+MongoClient.connect(mongourl, function (err, db) {
+    if (err) throw err;
+    const dbo = db.db(dbName);
+    dbo.listCollections({
+        name: "ads"
+    }).next(function (err, collinfo) {
+        if (err) throw err;
+        if (!collinfo) {
+            dbo.createCollection("ads", function (err, res) {
                 if (err) throw err;
                 db.close();
             });
@@ -3678,8 +3787,14 @@ async function renderCatalogItem(itemid) {
 }
 
 const badWords = require("./badwords.js");
+const badWordsStrict = require("./badwordsStrict.js");
 
 const profanity = new Profanity('', {
+    placeHolder: "#",
+    wordsList: badWords,
+});
+
+const profanityStrict = new Profanity('', {
     placeHolder: "#",
     wordsList: badWords,
 });
@@ -3687,7 +3802,6 @@ const profanity = new Profanity('', {
 function isProfane2(words, str) {
     for (let i = 0; i < words.length; i++) {
         const word = words[i];
-        console.log(stringSimilarity.compareTwoStrings(word, str));
         if (stringSimilarity.compareTwoStrings(word, str) > 0.4) {
             return true;
         }
@@ -3706,12 +3820,36 @@ profanity.isProfane = function (value) {
     return isProfane2(this.wordlist, value.toLowerCase());
 }
 
-function censorText(text) {
+function SisProfane2(words, str) {
+    for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        if (stringSimilarity.compareTwoStrings(word, str) > 0.4) {
+            return true;
+        }
+    }
+    return false;
+}
+
+profanityStrict.isProfane = function (value) {
+    if (this.wordlist === undefined) {
+        console_1.default.error('Unexpected error: wordlist is invalid.');
+        return;
+    }
+    if (!this.config.enabled || this.config.excludeWords.includes(value.toLowerCase())) {
+        return false;
+    }
+    return SisProfane2(this.wordlist, value.toLowerCase());
+}
+
+function censorText(text, strict = true) {
+    if (strict) {
+        return profanityStrict.censor(text);
+    }
     return profanity.censor(text);
 }
 
-function getBadWords(text) {
-    const censored = profanity.censor(text);
+function getBadWords(text, strict = true) {
+    const censored = strict ? profanityStrict.censor(text) : profanity.censor(text);;
     let badWords = [];
     for (let i = 0; i < censored.length; i++) {
         if (censored[i] == '#') {
@@ -3734,7 +3872,10 @@ function getGoodWords(text, badWords) {
     return text;
 }
 
-function shouldCensorText(text) {
+function shouldCensorText(text, strict = true) {
+    if (strict) {
+        return profanityStrict.isProfane(text);
+    }
     return profanity.isProfane(text);
 }
 
@@ -3937,6 +4078,7 @@ setInterval(async () => {
 module.exports = {
     hasRedrawn: [],
     pendingRenderJobs: [],
+    userSeeingAds: {},
 
     getPRIVATE_PLACE_KEYS: function () {
         return PRIVATE_PLACE_KEYS;
@@ -4044,67 +4186,7 @@ module.exports = {
         });
     },
 
-    deleteAsset: async function (assetid) {
-        return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
-                if (err) throw err;
-                const dbo = db.db(dbName);
-
-                if (fs.existsSync(`./assets/${assetid}.asset`)) {
-                    fs.unlinkSync(`./assets/${assetid}.asset`);
-                }
-
-                if (fs.existsSync(`./thumbnails/thumbs/${assetid}.asset`)) {
-                    fs.unlinkSync(`./thumbnails/icons/${assetid}.asset`);
-                }
-
-                dbo.collection("assets").updateOne({
-                    id: assetid,
-                }, {
-                    $set: {
-                        deleted: true
-                    }
-                }, function (err, result) {
-                    if (err) {
-                        returnPromise(false);
-                        return;
-                    }
-                    dbo.collection("games").updateOne({
-                        gameid: assetid,
-                    }, {
-                        $set: {
-                            deleted: true
-                        }
-                    }, function (err, result) {
-                        if (err) {
-                            returnPromise(false);
-                            return;
-                        }
-                        dbo.collection("catalog").updateOne({
-                            itemid: assetid,
-                        }, {
-                            $set: {
-                                deleted: true
-                            }
-                        }, function (err, result) {
-                            if (err) {
-                                returnPromise(false);
-                                return;
-                            }
-                            db.close();
-
-                            if (!fs.existsSync(`./assets/${assetid}`)) {
-                                returnPromise(false);
-                                return;
-                            }
-
-                            returnPromise(true);
-                        });
-                    });
-                });
-            });
-        });
-    },
+    deleteAsset: deleteAsset,
 
     changePassword: async function (userid, password) {
         return new Promise(async returnPromise => {
@@ -7095,6 +7177,244 @@ module.exports = {
         });
     },
 
+    createAd: async function (assetid, creatorid, name, desc, type, internalId) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("config").findOne({}, function (err, config) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    let lastId = config.assets + 1;
+                    while (fs.existsSync(`${__dirname}/required_assets/${lastId}.asset`) || fs.existsSync(`${__dirname}/assets/${lastId}.asset`)) {
+                        lastId++;
+                    }
+                    dbo.collection("config").updateOne({}, {
+                        $set: {
+                            assets: lastId
+                        }
+                    }, function (err, res) {
+                        if (err) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        dbo.collection("ads").insertOne({
+                            id: lastId,
+                            assetid: assetid,
+                            creatorid: creatorid,
+                            created: getUnixTimestamp(),
+                            expires: getUnixTimestamp() + 259200,
+                            name: name,
+                            desc: desc,
+                            created: getUnixTimestamp(),
+                            impressions: 0,
+                            clicks: 0,
+                            type: type,
+                            internalId: internalId
+                        }, function (err, result) {
+                            if (err) {
+                                db.close();
+                                returnPromise(false);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(lastId);
+                        });
+                    });
+                });
+            });
+        });
+    },
+
+    getRandomAd: async function (type = -1) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                if (type == -1) {
+                    dbo.collection("ads").find({}).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        if (result.length == 0) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        let ad = result[Math.floor(Math.random() * result.length)];
+                        dbo.collection("ads").updateOne({
+                            id: ad.id
+                        }, {
+                            $inc: {
+                                impressions: 1
+                            }
+                        }, function (err, res) {
+                            if (err) {
+                                db.close();
+                                returnPromise(null);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(ad);
+                        });
+                    });
+                } else {
+                    dbo.collection("ads").find({
+                        type: type
+                    }).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        if (result.length == 0) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        let ad = result[Math.floor(Math.random() * result.length)];
+                        dbo.collection("ads").updateOne({
+                            id: ad.id
+                        }, {
+                            $inc: {
+                                impressions: 1
+                            }
+                        }, function (err, res) {
+                            if (err) {
+                                db.close();
+                                returnPromise(null);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(ad);
+                        });
+                    });
+                }
+            });
+        });
+    },
+
+    giveAdClick: async function (adid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, async function (err, db) {
+                if (err) throw err;
+                const ad = await getAd(adid);
+                if (ad.clicks <= ad.impressions) {
+                    const dbo = db.db(dbName);
+                    dbo.collection("ads").updateOne({
+                        id: adid
+                    }, {
+                        $inc: {
+                            clicks: 1
+                        }
+                    }, function (err, res) {
+                        if (err) {
+                            db.close();
+                            returnPromise(false);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(true);
+                    });
+                } else {
+                    db.close();
+                    returnPromise(false);
+                }
+            });
+        });
+    },
+
+    getAd: getAd,
+
+    getAds: async function (type = -1) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                if (type == -1) {
+                    dbo.collection("ads").find({}).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(result);
+                    });
+                } else {
+                    dbo.collection("ads").find({
+                        type: type
+                    }).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(result);
+                    });
+                }
+            });
+        });
+    },
+
+    getAdsByCreatorId: async function (creatorid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("ads").find({
+                    creatorid: creatorid
+                }).toArray(function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(result);
+                });
+            });
+        });
+    },
+
+    deleteAd: async function (id) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, async function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+
+                const ad = await getAd(id);
+                if (!ad) {
+                    db.close();
+                    returnPromise(false);
+                    return;
+                }
+                if (ad.internalId) {
+                    await deleteAsset(ad.internalId);
+                }
+
+                dbo.collection("ads").deleteOne({
+                    id: id
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(false);
+                        return;
+                    }
+                    db.close();
+                    returnPromise(true);
+                });
+            });
+        });
+    },
+
     log: log,
 
     clearRobloxLogs: function () {
@@ -7108,7 +7428,7 @@ module.exports = {
                     fs.unlinkSync(fp + file);
                 } catch (e) {}
             }
-        }else{
+        } else {
             const username = process.env.USER;
             const fp = `/home/${username}/.wine/drive_c/users/${username}/AppData/Local/R-2016/logs/`;
             const files = fs.readdirSync(fp);

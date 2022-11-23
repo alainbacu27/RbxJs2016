@@ -91,7 +91,7 @@ template.app.post("/moderation/filtertext", (req, res) => {
     const text = req.body.text;
     const userid = req.body.userId;
 
-    const badWords = db.getBadWords(text);
+    const badWords = db.getBadWords(text, false);
 
     res.json({
         "data": {
@@ -105,7 +105,7 @@ template.app.post("/api/moderation/filtertext", (req, res) => {
     const text = req.body.text;
     const userid = req.body.userId;
 
-    const badWords = db.getBadWords(text);
+    const badWords = db.getBadWords(text, false);
 
     res.json({
         "data": {

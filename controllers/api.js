@@ -787,7 +787,7 @@ module.exports = {
             const text = req.body.text;
             const userid = req.body.userId;
 
-            const badWords = db.getBadWords(text);
+            const badWords = db.getBadWords(text, false);
 
             res.json({
                 "data": {

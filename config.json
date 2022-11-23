@@ -127,9 +127,11 @@
         "ShirtUploadCost": 4,
         "PantsUploadCost": 4,
         "FaceUploadCost": 3,
+        "UserAdUploadCost": 2,
         "HatUploadCost": 5,
         "BadgeUploadCost": 1,
-        "jobsEnabled": true
+        "jobsEnabled": true,
+        "adClickTimeout": 10000
     },
     "backend": {
         "PRODUCTION": false,
