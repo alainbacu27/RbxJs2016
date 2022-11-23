@@ -762,7 +762,7 @@ function filterText3(input) {
 }
 
 function filterText4(input) {
-    return input.replace(/[^0-9a-z:_\-()\[\]"'\n\t.,/`^*+!?" ]/gi, '');
+    return input.replace(/[^0-9a-z:_\-()\[\]"'\n\t.,/`^*+!?<>" ]/gi, '').replace("<", "&lt;").replace(">", "&gt;");
 }
 
 function filterText5(input) {
