@@ -13,10 +13,9 @@ module.exports = {
                 return;
             }
             const userid = parseInt(req.body.userid);
-            const modnote = req.body.modnote;
-            const reason = req.body.reason;
-            const item = req.body.item;
-            const todo = req.body.todo;
+            const modnote = db.censorText(db.filterText4(req.body.modnote));
+            const reason = db.censorText(db.filterText4(req.body.reason));
+            const item = db.censorText(db.filterText4(req.body.item));
             const user = await db.getUser(userid);
             if (req.user.role == "mod") {
                 if (user && (user.role == "mod" || user.role == "admin" || user.role == "owner")) {

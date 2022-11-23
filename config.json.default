@@ -47,7 +47,10 @@
             "user": 15
         },
         "messages": {
-            "maxMessagesPerDay": 10
+            "maxMessagesPerDay": 10,
+            "maxSubjectLength": 256,
+            "maxBodyLength": 1000,
+            "maxBodyLines": 100
         },
         "ADMIN_InviteCooldown": 600,
         "assetsEnabled": true,
@@ -134,6 +137,7 @@
             "ip": "localhost",
             "port": 27017
         },
+        "datastoresMaxSize": 262144,
         "renderingEnabled": true,
         "maxRenderJobs": 4,
         "avatarCanRedrawEvery": 7500,

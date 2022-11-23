@@ -825,10 +825,10 @@ module.exports = {
                     </div>
                 </div>
                 <div class="subjectAndContent-0-2-115">
-                    <p class="username-0-2-105">${sender.username}</p>
+                    <p class="username-0-2-105">${db.censorText(db.filterText4(sender.username))}</p>
                     <p class="subjectBodyParagraph-0-2-108"><span
-                            class="subject-0-2-106 ">${message.subject}</span> - <span
-                            class="body-0-2-109">${message.body}</span></p>
+                            class="subject-0-2-106 ">${db.censorText(db.filterText4(message.subject))}</span> - <span
+                            class="body-0-2-109">${db.censorText(db.filterText4(message.body))}</span></p>
                 </div>
                 <div>
                     <div class="divider-top"></div>
@@ -887,8 +887,8 @@ module.exports = {
 
         app.post("/messages/send", db.requireAuth, async (req, res) => {
             const userid = req.body.to;
-            const subject = req.body.subject;
-            const body = req.body.body;
+            const subject = db.censorText(db.filterText4(req.body.subject));
+            const body = db.censorText(db.filterText4(req.body.body));
             const user = await db.getUser(userid);
             if (!user) {
                 res.status(404).json({
@@ -922,6 +922,34 @@ module.exports = {
                 res.status(400).json({
                     "success": false,
                     "error": "Subject or body not specified"
+                });
+                return;
+            }
+            if (subject.length > db.getSiteConfig().shared.messages.maxSubjectLength) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "Subject too long"
+                });
+                return;
+            }
+            if (body.length > db.getSiteConfig().shared.messages.maxBodyLength) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "Body too long"
+                });
+                return;
+            }
+            if (subject.split("\n").length > 1) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "Subject cannot contain newlines"
+                });
+                return;
+            }
+            if (body.split("\n").length > db.getSiteConfig().shared.messages.maxBodyLines) {
+                res.status(400).json({
+                    "success": false,
+                    "error": `Body can only contain ${db.getSiteConfig().shared.messages.maxBodyLines} lines`
                 });
                 return;
             }
@@ -2421,7 +2449,7 @@ module.exports = {
             const pendingObj = req.cookies[".ROBLOSECURITY"] || "";
             if (pendingObj.startsWith("<pending>")) {
                 const s = pendingObj.split("|");
-                username = s[1];
+                username = db.filterText4(s[1]);
                 password = s[2];
 
                 const birthday = new Date(Date.parse(s[3]));
@@ -2537,7 +2565,7 @@ module.exports = {
             }
             const password = data.password;
             const referralData = data.referralData;
-            const username = data.username;
+            const username = db.filterText4(data.username);
 
             const isBadUsername = badUsernames.includes(username.toLowerCase()) || db.shouldCensorText(username);
             if (isBadUsername) {

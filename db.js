@@ -195,7 +195,6 @@ async function setDataStore(placeid, key, type, scope, target, value) {
             return;
         }
         if (value.length > siteConfig.backend.datastoresMaxSize) {
-            256 * 1024
             returnPromise(false);
             return;
         }
