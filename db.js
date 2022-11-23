@@ -750,23 +750,23 @@ MongoClient.connect(mongourl, function (err, db) {
 });
 
 function filterText(input) {
-    return input.replace(/[^0-9a-z]/gi, '')
+    return input.replace(/[^0-9a-z]/gi, '');
 }
 
 function filterText2(input) {
-    return input.replace(/[^0-9a-z:_\- ]/gi, '')
+    return input.replace(/[^0-9a-z:_\- ]/gi, '');
 }
 
 function filterText3(input) {
-    return input.replace(/[^0-9a-z:\-_]/gi, '')
+    return input.replace(/[^0-9a-z:\-_]/gi, '');
 }
 
 function filterText4(input) {
-    return input.replace(/[^0-9a-z:_\-()\[\]"'\n\t.,/-`^*+!?" ]/gi, '')
+    return input.replace(/[^0-9a-z:_\-()\[\]"'\n\t.,/`^*+!?" ]/gi, '');
 }
 
 function filterText5(input) {
-    return input.replace(/[^0-9a-z:_()\[\]"'\- ]/gi, '')
+    return input.replace(/[^0-9a-z:_()\[\]"'\- ]/gi, '');
 }
 
 function randHash(len, possible = "ABCDEF0123456789") {
