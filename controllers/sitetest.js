@@ -657,6 +657,12 @@ module.exports = {
                 return;
             }
 
+            const isAndroid = req.headers["user-agent"].includes("Android");
+            if (isAndroid) {
+                res.redirect("/");
+                return;
+            }
+
             const games = await getGamesT7(req.user.userid);
 
             let templatesHtml = "";
@@ -2439,7 +2445,33 @@ module.exports = {
                 res.redirect("/My/Places.aspx&showlogin=True");
                 return;
             }
-            res.render("sitetest/idewelcome", await db.getRenderObject(req.user));
+
+            const isAndroid = req.headers["user-agent"].includes("Android");
+            if (isAndroid) {
+                res.redirect("/");
+                return;
+            }
+
+            const games = await getGamesT7(req.user.userid);
+
+            let templatesHtml = "";
+            const templates = await db.getTemplateGames();
+
+            for (let i = 0; i < templates.length; i++) {
+                const template = templates[i];
+                templatesHtml += `<div class="template" placeid="${template.gameid}">
+                <a class="game-image">
+                    <img class="inner-game-image" src="http://thumbnails.rbx2016.nl/v1/thumb?id=${template.gameid}">
+                </a>
+                <p>${template.gamename}</p>
+            </div>`;
+            }
+
+            res.render("sitetest/idewelcome", {
+                ...(await db.getRenderObject(req.user)),
+                MyGames: games,
+                templates: templatesHtml
+            });
         });
 
         app.get("/My/Places.aspx&showlogin=True", db.requireNonAuth, async (req, res) => {
@@ -7506,7 +7538,7 @@ module.exports = {
             }
             const base64Data = data.replace(/^data:image\/png;base64,/, "");
 
-            fs.writeFile(`${__dirname}/../thumbnails/${isUserRender ? "avatars/thumbs" : db.pendingRenderJobs.includes(itemid) ? "icons" : "thumbs"}/${itemid}.asset`, base64Data, 'base64', async function (err) {
+            fs.writeFile(`${__dirname}/../thumbnails/${isUserRender ? `avatars/${db.pendingUserRenderJobs.includes(itemid) ? "icons" : "thumbs"}` : db.pendingRenderJobs.includes(itemid) ? "icons" : "thumbs"}/${itemid}.asset`, base64Data, 'base64', async function (err) {
                 res.send("OK");
                 if (err) {
                     console.log(err);
@@ -7517,6 +7549,13 @@ module.exports = {
                         db.pendingRenderJobs.splice(db.pendingRenderJobs.indexOf(itemid), 1)
                     } else {
                         db.pendingRenderJobs.push(itemid);
+                        return;
+                    }
+                }else{
+                    if (db.pendingUserRenderJobs.includes(itemid)) {
+                        db.pendingUserRenderJobs.splice(db.pendingUserRenderJobs.indexOf(itemid), 1)
+                    } else {
+                        db.pendingUserRenderJobs.push(itemid);
                         return;
                     }
                 }
