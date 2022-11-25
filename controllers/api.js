@@ -8,7 +8,7 @@ const get_ip = require('ipware')().get_ip;
 module.exports = {
     init: (app, db) => {
         const badUsernames = db.getSiteConfig().backend.badUsernames;
-        
+
         app.get("/ownership/hasasset", async (req, res) => {
             const userId = parseInt(req.query.userId);
             const assetId = parseInt(req.query.assetId);
@@ -234,7 +234,7 @@ module.exports = {
             const ip = get_ip(req).clientIp;
             let user = req.user;
             if (!user && typeof db.pendingStudioAuthentications[ip] == "object" && db.pendingStudioAuthentications[ip].length > 0) {
-                while (db.pendingStudioAuthentications[ip].length > 0 && !user){
+                while (db.pendingStudioAuthentications[ip].length > 0 && !user) {
                     const cookieObject = db.pendingStudioAuthentications[ip].shift();
                     if (db.getUnixTimestamp() - cookieObject[0] >= 30) {
                         // return res.sendStatus(403);
@@ -783,6 +783,39 @@ module.exports = {
             res.send();
         });
 
+        app.get("/users/get-by-username", async (req, res) => {
+            const username = req.query.username;
+            const user = await db.getUserFromUsername(username);
+            if (user) {
+                res.json({
+                    "Id": user.userid,
+                    "Username": user.username,
+                    "AvatarUri": null,
+                    "AvatarFinal": false,
+                    "IsOnline": isOnline
+                });
+                return;
+            }
+            res.json({});
+        });
+
+        app.get("/users/:userid", async (req, res) => {
+            const userid = parseInt(req.params.userid);
+            const user = await db.getUser(userid);
+            if (user) {
+                const isOnline = (user.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (user.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? ((user.lastOnline || 0) > (db.getUnixTimestamp() - 60) && user.playing != 0 && user.playing != null) ? true : true : false;
+                res.json({
+                    "Id": user.userid,
+                    "Username": user.username,
+                    "AvatarUri": null,
+                    "AvatarFinal": false,
+                    "IsOnline": isOnline
+                });
+                return;
+            }
+            res.json({});
+        });
+
         app.post("/moderation/filtertext", (req, res) => {
             const text = req.body.text;
             const userid = req.body.userId;
@@ -846,7 +879,7 @@ module.exports = {
                 "equippedGearVersionIds": [],
                 "backpackGearVersionIds": [],
                 "accessoryVersionIds": equipCatalogItems,
-                "animations": {},    
+                "animations": {},
                 "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${user.userid}`,
                 "scales": {
                     "Height": 1.0000,
@@ -862,7 +895,7 @@ module.exports = {
 
         app.post("/assets/award-badge", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const userId = parseInt(req.query.userId);
@@ -947,7 +980,7 @@ module.exports = {
                 "equippedGearVersionIds": [],
                 "backpackGearVersionIds": [],
                 "accessoryVersionIds": equipCatalogItems,
-                "animations": {},    
+                "animations": {},
                 "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${user.userid}`,
                 "scales": {
                     "Height": 1.0000,
@@ -1010,7 +1043,7 @@ module.exports = {
                 "equippedGearVersionIds": [],
                 "backpackGearVersionIds": [],
                 "accessoryVersionIds": equipCatalogItems,
-                "animations": {},    
+                "animations": {},
                 "bodyColorsUrl": `https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${user.userid}`,
                 "scales": {
                     "Height": 1.0000,
@@ -1023,7 +1056,7 @@ module.exports = {
                 "emotes": []
             });
         });
-        
+
         app.post("/api/moderation/v2/filtertext", (req, res) => {
             const text = req.body.text;
             const userid = req.body.userId;
