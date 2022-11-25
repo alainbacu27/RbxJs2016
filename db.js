@@ -95,8 +95,8 @@ fs.watchFile(siteConfigFP, (curr, prev) => {
 });
 
 const isWin = process.platform === "win32";
-const rccPath = path.resolve(__dirname + "/internal/RCCService/RCCService.exe");
-const rccPath2 = path.resolve(__dirname + "/internal/RCCService-Renderer/RCCService.exe");
+const rccPath = path.resolve(__dirname + "/internal/RCCService/RCCService.exe"); // RCCService
+const rccPath2 = path.resolve(__dirname + "/internal/RCCService/RCCService.exe"); // RCCService-Renderer
 
 const formatBytes = (bytes, decimals = 2) => {
     if (bytes === 0) {
@@ -2120,20 +2120,71 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) {
 
     let script = ``;
 
+    /*
+    Character Fetch Apis:
+
+    Old:
+    https://assetgame.rbx2016.nl/Asset/CharacterFetch.ashx?userId=
+
+    New:
+    https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=
+    */
+
     if (isUserRender) {
         script = `game.Workspace:ClearAllChildren()
         local url = "http://www.rbx2016.nl"
         game:GetService("ContentProvider"):SetBaseUrl(url)
         game:GetService("ScriptContext").ScriptsDisabled = true
-        local plr = game.Players.LocalPlayer or game.Players:CreateLocalPlayer(0)
-        plr.CharacterAppearance = "https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=${itemid}"
-        plr:LoadCharacter(false)
-        for i,v in pairs(plr.Character:GetChildren()) do
-            print(v)
-            if v:IsA("Tool") then
-                plr.Character.Torso["Right Shoulder"].CurrentAngle = math.pi / 2
+
+        local function LoadCharacter(characterAppearance)
+            local function string_split(s, delimiter)
+                local result = {};
+                for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+                    table.insert(result, match);
+                end
+                return result;
             end
+            
+            local char = game:GetService("InsertService"):LoadAsset(0):GetChildren()[1]
+            
+            local plr = {Character = char}
+			
+			loadfile(characterAppearance)()
+			print(resp)
+			
+            local a = string_split(resp, ";")
+			loadfile(a[1])()
+			local b = resp
+            table.remove(a, 1)
+
+            local bcolor = Instance.new("BodyColors", plr.Character)
+            bcolor.LeftArmColor = BrickColor.new(string_split(string_split(b, "<int name=\\"LeftArmColor\\">")[2], "</int>")[1])
+            bcolor.LeftLegColor = BrickColor.new(string_split(string_split(b, "<int name=\\"LeftLegColor\\">")[2], "</int>")[1])
+            bcolor.RightArmColor = BrickColor.new(string_split(string_split(b, "<int name=\\"RightArmColor\\">")[2], "</int>")[1])
+            bcolor.RightLegColor = BrickColor.new(string_split(string_split(b, "<int name=\\"RightLegColor\\">")[2], "</int>")[1])
+            bcolor.HeadColor = BrickColor.new(string_split(string_split(b, "<int name=\\"HeadColor\\">")[2], "</int>")[1])
+            bcolor.TorsoColor = BrickColor.new(string_split(string_split(b, "<int name=\\"TorsoColor\\">")[2], "</int>")[1])
+
+            for i,v in ipairs(a) do
+                pcall(function()
+                    local id = tonumber(string_split(v, "?id=")[2])
+                    game:GetService("InsertService"):LoadAsset(id):GetChildren()[1].Parent = plr.Character
+                end)
+            end
+
+            for i,v in pairs(plr.Character:GetChildren()) do
+                print(v)
+                if v:IsA("Tool") then
+                    plr.Character.Torso["Right Shoulder"].CurrentAngle = math.pi / 2
+                end
+            end
+
+            plr.Character.Parent = game.Workspace
+
+            return plr
         end
+
+        local plr = LoadCharacter("https://assetgame.rbx2016.nl/Asset/CharacterFetch2.ashx?userId=${itemid}")
 
         local result = {data = game:GetService("ThumbnailGenerator"):Click("PNG", 420, 420, true), isUserRender = ${isUserRender ? "true" : "false"}, itemid = ${itemid}, jobid = "${jobid}"}
         local https = game:GetService("HttpService")
@@ -2166,7 +2217,10 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) {
         local data = https:JSONEncode(result)
 
         game:HttpPostAsync(url, data, "application/json")
+
+        plr.Character:Destroy()
         `;
+        console.log(script);
     } else {
         if (isGame) {
             const key = uuidv4();
@@ -2280,7 +2334,7 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) {
             game:GetService("ContentProvider"):SetBaseUrl(url)
             game:GetService("ScriptContext").ScriptsDisabled = true
             local plr = game.Players.LocalPlayer or game.Players:CreateLocalPlayer(0)
-            plr.CharacterAppearance = "https://api.rbx2016.nl/v1.1/avatar-fetch/?userId=1"
+            plr.CharacterAppearance = "https://assetgame.rbx2016.nl/Asset/CharacterFetch.ashx?userId=1"
             plr:LoadCharacter(false)
     
             for i,v in pairs(plr.Character:GetChildren()) do
@@ -3905,6 +3959,7 @@ function shouldCensorText(text, strict = true) {
 
 const tf = require('@tensorflow/tfjs-node');
 const nsfw = require('nsfwjs');
+const { conv2dTranspose } = require("@tensorflow/tfjs-node");
 
 const convert2TF = async (img) => {
     // Decoded image in UInt8 Byte array

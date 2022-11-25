@@ -582,6 +582,24 @@ module.exports = {
             }
             res.send(`https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${userId}${itemsResponse}`) // ;http://www.rbx2016.nl/asset/?id=63690008&version=5;http://www.rbx2016.nl/asset/?id=144076358;http://www.rbx2016.nl/asset/?id=144076760;http://www.rbx2016.nl/asset/?id=144075659;http://www.rbx2016.nl/asset/?id=86500054&version=1;http://www.rbx2016.nl/asset/?id=86500078&version=1;http://www.rbx2016.nl/asset/?id=86500036&version=1;http://www.rbx2016.nl/asset/?id=86500008&version=1;http://www.rbx2016.nl/asset/?id=86500064&version=1;http://www.rbx2016.nl/asset/?id=86498048&version=1
         });
+        
+        app.get("/Asset/CharacterFetch2.ashx", async (req, res) => {
+            const userId = parseInt(req.query.player) || parseInt(req.query.userId);
+            const user = await db.getUser(userId);
+            if (!user) {
+                res.sendStatus(404);
+                return;
+            }
+            const items = await db.getEquippedCatalogItems(userId);
+            let itemsResponse = ``;
+            for (const itemid of items) {
+                itemsResponse += `;http://www.rbx2016.nl/asset/?id=${itemid}`;
+            }
+            const script = `
+            resp = [[https://www.rbx2016.nl/asset/BodyColors2.ashx?userId=${userId}${itemsResponse}]]`; // ;http://www.rbx2016.nl/asset/?id=63690008&version=5;http://www.rbx2016.nl/asset/?id=144076358;http://www.rbx2016.nl/asset/?id=144076760;http://www.rbx2016.nl/asset/?id=144075659;http://www.rbx2016.nl/asset/?id=86500054&version=1;http://www.rbx2016.nl/asset/?id=86500078&version=1;http://www.rbx2016.nl/asset/?id=86500036&version=1;http://www.rbx2016.nl/asset/?id=86500008&version=1;http://www.rbx2016.nl/asset/?id=86500064&version=1;http://www.rbx2016.nl/asset/?id=86498048&version=1
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
 
         app.get("/Assets/CharacterFetch.php", async (req, res) => {
             const userId = parseInt(req.query.player) || parseInt(req.query.userId);
@@ -619,6 +637,32 @@ module.exports = {
                     </Properties>
                 </Item>
             </roblox>`)
+        });
+
+        app.get("/asset/BodyColors2.ashx", async (req, res) => {
+            const userId = parseInt(req.query.userId);
+            const avatarColors = await db.getUserProperty(userId, "avatarColors") || [1002, 1002, 1002, 1002, 1002, 1002];
+            
+            const script = `
+            resp = [[<?xml version="1.0" encoding="utf-8" ?>
+            <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.rbx2016.nl/roblox.xsd" version="4">
+                <External>null</External>
+                <External>nil</External>
+                <Item class="BodyColors">
+                    <Properties>
+                        <int name="HeadColor">${avatarColors[0]}</int>
+                        <int name="LeftArmColor">${avatarColors[1]}</int>
+                        <int name="LeftLegColor">${avatarColors[2]}</int>
+                        <string name="Name">Body Colors</string>
+                        <int name="RightArmColor">${avatarColors[3]}</int>
+                        <int name="RightLegColor">${avatarColors[4]}</int>
+                        <int name="TorsoColor">${avatarColors[5]}</int>
+                        <bool name="archivable">true</bool>
+                    </Properties>
+                </Item>
+            </roblox>]]`;
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
         });
 
         app.get("/game/studiobeat.ashx", async (req, res) => {
