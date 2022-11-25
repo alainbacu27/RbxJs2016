@@ -1268,7 +1268,7 @@ async function getConfig() {
 
 async function getRenderObject(user, banned = false) {
     const config = await getConfig();
-    const banLiftTime = user.bannedDate + (user.bannedType == "1Day" ? 86400 : user.bannedType == "3Days" ? 259200 : user.bannedType == "1Week" ? 604800 : -user.bannedDate);
+    const banLiftTime = user.bannedDate + (user.bannedType == "1Day" ? 86400 : user.bannedType == "3Days" ? 259200 : user.bannedType == "1Week" ? 604800 : 0);
     return {
         userid: user.userid,
         username: user.username,
@@ -1279,7 +1279,7 @@ async function getRenderObject(user, banned = false) {
         banned: toString(user.banned),
         bannedDate: timeToString(user.bannedDate),
         bannedLiftDate: timeToString(banLiftTime),
-        bannedCanReactivate: toString(banLiftTime - getUnixTimestamp() <= 0),
+        bannedCanReactivate: toString(banLiftTime > 0 && banLiftTime - getUnixTimestamp() <= 0),
         bannedModNote: user.bannedModNote,
         bannedReason: user.bannedReason,
         bannedReasonItem: user.bannedReasonItem,

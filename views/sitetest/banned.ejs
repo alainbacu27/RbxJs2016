@@ -490,7 +490,7 @@
 
 
             <div class="not-approved-page-content">
-                <div class="not-approved-page" <% if (bannedType == "Warning" || bannedCanReactivate == "true") { %>style="height: 75%;"<% } %>>
+                <div class="not-approved-page" <% if (bannedType == "Warning" || bannedCanReactivate == "true") { %>style="height: 32em;"<% } %>>
                     <div class="message-container">
 
                         <h3 class="error-title"><% if (bannedType == "Warning"){ %>Warning<% } else if (bannedType == "1Day"){ %>Banned for 1 Day<% } else if (bannedType == "3Days"){ %>Banned for 3 Days<% } else if (bannedType == "1Week"){ %>Banned for 1 Week<% } else if (bannedType == "Permanent"){ %>Account Deleted<% } %></h3>
@@ -574,7 +574,8 @@
                         <% } else { %><div>
                             <button type="button" class="btn-control-md btn-min-width" id="logout-button"
                                 data-bind="https://auth.rbx2016.nl/v2/logout">Logout</button>
-                        </div><% } %>
+                        </div>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -630,7 +631,7 @@
                     </a>
                 </li>
                 <li class="col-4 col-xs-1 footer-link">
-                    <a href="http://corp.rbx2016.nl/jobs" class="text-footer-nav roblox-interstitial" target="_blank">
+                    <a href="http://www.rbx2016.nl/jobs" class="text-footer-nav roblox-interstitial" target="_blank">
                         Jobs
                     </a>
                 </li>
