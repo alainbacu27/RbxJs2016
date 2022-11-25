@@ -8069,6 +8069,9 @@ module.exports = {
                     continue;
                 }
                 const game = games[i];
+                if (genre != "All" && game.genre != genre){
+                    continue;
+                }
                 const creator = await db.getUser(game.creatorid);
                 out += `<li class="list-item game-card">
                 <div class="game-card-container">
