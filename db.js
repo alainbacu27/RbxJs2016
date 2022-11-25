@@ -1743,7 +1743,7 @@ setInterval(() => {
 
 let availableRCCPorts = [];
 for (let i = 0; i < siteConfig.backend.maxServers; i++) {
-    availableRCCPorts.push((siteConfig.backend.serverStartingPort + siteConfig.backend.maxServers + 1) + i);
+    availableRCCPorts.push((siteConfig.backend.serverStartingPort /* + siteConfig.backend.maxServers */ + 1) + i);
 }
 let availableGamePorts = [];
 for (let i = 0; i < siteConfig.backend.maxServers; i++) {
