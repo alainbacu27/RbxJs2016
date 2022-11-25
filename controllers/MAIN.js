@@ -8032,25 +8032,30 @@ module.exports = {
             switch (SortFilter) {
                 case 1:
                     // Sort games by playing
-                    games = games.sort((a, b) => {
+                    games.sort((a, b) => {
                         return b.playing - a.playing;
                     });
                     break;
                 case 11:
                     // Sort games by likes and dislikes
-                    games = games.sort((a, b) => {
-                        return b.likes - b.dislikes - (a.likes - a.dislikes);
+                    games.sort((a, b) => {
+                        return b.likes.length - b.dislikes.length - (a.likes.length - a.dislikes.length);
                     });
                     break;
+                case 2:
+                    // Sort games by favorites
+                    games.sort((a, b) => {
+                        return b.favorites.length - a.favorites.length;
+                    });
                 case 3:
                     // Sort games by visits
-                    games = games.sort((a, b) => {
+                    games.sort((a, b) => {
                         return b.visits - a.visits;
                     });
                     break;
                 case 16:
                     // Sort games by created
-                    games = games.sort((a, b) => {
+                    games.sort((a, b) => {
                         return b.created - a.created;
                     });
                     break;
