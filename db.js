@@ -7446,23 +7446,27 @@ module.exports = {
         if (isWin) {
             const localappdata = process.env.LOCALAPPDATA;
             const fp = `${localappdata}\\R-2016\\logs\\`;
-            const files = fs.readdirSync(fp);
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                try {
-                    fs.unlinkSync(fp + file);
-                } catch (e) {}
-            }
+            try {
+                const files = fs.readdirSync(fp);
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    try {
+                        fs.unlinkSync(fp + file);
+                    } catch (e) {}
+                }
+            } catch {}
         } else {
             const username = process.env.USER;
             const fp = `/home/${username}/.wine/drive_c/users/${username}/AppData/Local/R-2016/logs/`;
-            const files = fs.readdirSync(fp);
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                try {
-                    fs.unlinkSync(fp + file);
-                } catch (e) {}
-            }
+            try {
+                const files = fs.readdirSync(fp);
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    try {
+                        fs.unlinkSync(fp + file);
+                    } catch (e) {}
+                }
+            } catch {}
         }
     },
 
