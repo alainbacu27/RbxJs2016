@@ -1279,7 +1279,7 @@ async function getRenderObject(user, banned = false) {
         banned: toString(user.banned),
         bannedDate: timeToString(user.bannedDate),
         bannedLiftDate: timeToString(banLiftTime),
-        bannedCanReactivate: toString(banLiftTime > 0 && banLiftTime - getUnixTimestamp() <= 0),
+        bannedCanReactivate: toString(banLiftTime > user.bannedDate && banLiftTime - getUnixTimestamp() <= 0),
         bannedModNote: user.bannedModNote,
         bannedReason: user.bannedReason,
         bannedReasonItem: user.bannedReasonItem,
