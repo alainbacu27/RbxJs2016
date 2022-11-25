@@ -7255,7 +7255,7 @@ module.exports = {
                                 </div>
                                 <div class="vote-container" data-upvotes="${game.likes.length}" data-downvotes="${game.dislikes.length}">
                                     <div class="vote-background"></div>
-                                    <div class="vote-percentage" style="width: 0%;"></div>
+                                    <div class="vote-percentage" style="width: ${game.likes.length == 0 && game.dislikes.length == 0 ? 50 : Math.min((game.likes.length / (game.likes.length + game.dislikes.length)) * 100, 100)}%;"></div>
                                     <div class="vote-mask">
                                         <div class="segment seg-1"></div>
                                         <div class="segment seg-2"></div>
@@ -7323,7 +7323,7 @@ module.exports = {
                                 </div>
                                 <div class="vote-container" data-upvotes="${game.likes.length}" data-downvotes="${game.dislikes.length}">
                                     <div class="vote-background"></div>
-                                    <div class="vote-percentage" style="width: 0%;"></div>
+                                    <div class="vote-percentage" style="width: ${game.likes.length == 0 && game.dislikes.length == 0 ? 50 : Math.min((game.likes.length / (game.likes.length + game.dislikes.length)) * 100, 100)}%;"></div>
                                     <div class="vote-mask">
                                         <div class="segment seg-1"></div>
                                         <div class="segment seg-2"></div>
@@ -7713,7 +7713,7 @@ module.exports = {
                     creatorid: creator.userid,
                     sold: asset.itemowners.length,
                     owned: asset.itemowners.includes(req.user.userid),
-                    likeratio: asset.itemlikes.length == 0 && asset.itemdislikes.length == 0 ? 50 : asset.itemlikes.length / (asset.itemlikes.length + asset.itemdislikes.length),
+                    likeratio: asset.itemlikes.length == 0 && asset.itemdislikes.length == 0 ? 50 : Math.min((asset.itemlikes.length / (asset.itemlikes.length + asset.itemdislikes.length)) * 100, 100),
                     created: `${created.getDate()}/${created.getMonth()}/${created.getFullYear()}`,
                     updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
                     onSale: asset.onSale,
@@ -7740,7 +7740,7 @@ module.exports = {
                 creatorid: creator.userid,
                 sold: asset.itemowners.length,
                 owned: asset.itemowners.includes(req.user.userid),
-                likeratio: asset.itemlikes.length == 0 && asset.itemdislikes.length == 0 ? 50 : asset.itemlikes.length / (asset.itemlikes.length + asset.itemdislikes.length),
+                likeratio: asset.itemlikes.length == 0 && asset.itemdislikes.length == 0 ? 50 : Math.min((asset.itemlikes.length / (asset.itemlikes.length + asset.itemdislikes.length)) * 100, 100),
                 created: `${created.getDate()}/${created.getMonth()}/${created.getFullYear()}`,
                 updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
                 onSale: asset.onSale,
