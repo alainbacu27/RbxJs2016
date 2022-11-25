@@ -4045,7 +4045,6 @@ async function awaitRender(itemid, isUserRender = true) {
                             }
                         }
                     }
-                    console.log(didExist, Object.values(userRenderIdLookup).includes(itemid));
                     if (!didExist && !Object.values(userRenderIdLookup).includes(itemid)) {
                         db.close();
                         returnPromise(true);
