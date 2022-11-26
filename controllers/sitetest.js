@@ -5055,7 +5055,7 @@ module.exports = {
                 const file = req.files.file;
                 const mimetype = detectContentType(file.data);
                 if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
-                    id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
 
                     if (await db.isNsfw(file.data)) {
@@ -5113,7 +5113,7 @@ module.exports = {
                 const file = req.files.file;
                 const mimetype = detectContentType(file.data);
                 if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
-                    id = await db.createAsset(req.user.userid, name + "-TSHIRT", desc, "TShirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    id = await db.createAsset(req.user.userid, name + "-TSHIRT", desc, "TShirt", req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`); // TODO: CHECK WHY NOT UPLOADING?!
 
                     if (await db.isNsfw(file.data)) {
@@ -5178,7 +5178,7 @@ module.exports = {
                 const file = req.files.file;
                 const mimetype = detectContentType(file.data);
                 if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
-                    id = await db.createAsset(req.user.userid, name + "-PANTS", desc, "Pants", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    id = await db.createAsset(req.user.userid, name + "-PANTS", desc, "Pants", req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.PantsUploadCost);
 
@@ -5243,7 +5243,7 @@ module.exports = {
                 const file = req.files.file;
                 const mimetype = detectContentType(file.data);
                 if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
-                    id = await db.createAsset(req.user.userid, name + "-FACE", desc, "Face", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    id = await db.createAsset(req.user.userid, name + "-FACE", desc, "Face", req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.FaceUploadCost);
 
@@ -5314,7 +5314,7 @@ module.exports = {
                 const file = req.files.file;
                 const mimetype = detectContentType(file.data);
                 if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
-                    id = await db.createAsset(req.user.userid, name + "-USERAD", desc, "UserAd", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    id = await db.createAsset(req.user.userid, name + "-USERAD", desc, "UserAd", req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.UserAdUploadCost);
 
@@ -5375,7 +5375,7 @@ module.exports = {
                 const file = req.files.file;
                 const mimetype = detectContentType(file.data);
                 if (mimetype == "application/xml" || mimetype == "text/plain" || mimetype == "application/octet-stream" && db.isXmlFile(file.data)) {
-                    id = await db.createAsset(req.user.userid, name + "-ACCESSORY", desc, type, req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
+                    id = await db.createAsset(req.user.userid, name + "-ACCESSORY", desc, type, req.user.role == "approver" || req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.HatUploadCost);
                     await db.createCatalogItem(name, desc, 0, "Accessory", req.user.userid, id, id);

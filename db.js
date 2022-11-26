@@ -206,7 +206,7 @@ async function deleteAsset(assetid) {
                         }
                         db.close();
 
-                        if (!fs.existsSync(`./assets/${assetid}`)) {
+                        if (fs.existsSync(`./assets/${assetid}.asset`)) {
                             returnPromise(false);
                             return;
                         }
