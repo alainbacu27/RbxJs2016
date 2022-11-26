@@ -687,6 +687,39 @@ module.exports = {
             res.send(`--rbxsig%${signature}%` + script);
         });
 
+        app.get("/users/get-by-username", async (req, res) => {
+            const username = req.query.username;
+            const user = await db.getUserFromUsername(username);
+            if (user) {
+                res.json({
+                    "Id": user.userid,
+                    "Username": user.username,
+                    "AvatarUri": null,
+                    "AvatarFinal": false,
+                    "IsOnline": isOnline
+                });
+                return;
+            }
+            res.json({});
+        });
+
+        app.get("/users/:userid", async (req, res) => {
+            const userid = parseInt(req.params.userid);
+            const user = await db.getUser(userid);
+            if (user) {
+                const isOnline = (user.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (user.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? ((user.lastOnline || 0) > (db.getUnixTimestamp() - 60) && user.playing != 0 && user.playing != null) ? true : true : false;
+                res.json({
+                    "Id": user.userid,
+                    "Username": user.username,
+                    "AvatarUri": null,
+                    "AvatarFinal": false,
+                    "IsOnline": isOnline
+                });
+                return;
+            }
+            res.json({});
+        });
+
         app.get("/Game/gameserver.ashx", async (req, res) => {
             const port = 53640;
             const script = `
