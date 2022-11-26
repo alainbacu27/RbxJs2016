@@ -5007,7 +5007,8 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+                const mimetype = detectContentType(file.data);
+                if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
                     id = await db.createAsset(req.user.userid, name, desc, "Decal", (req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"));
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     if (await db.isNsfw(file.data)) {
@@ -5052,7 +5053,8 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+                const mimetype = detectContentType(file.data);
+                if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
                     id = await db.createAsset(req.user.userid, name + "-SHIRT", desc, "Shirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
 
@@ -5109,7 +5111,8 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+                const mimetype = detectContentType(file.data);
+                if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
                     id = await db.createAsset(req.user.userid, name + "-TSHIRT", desc, "TShirt", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`); // TODO: CHECK WHY NOT UPLOADING?!
 
@@ -5173,7 +5176,8 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+                const mimetype = detectContentType(file.data);
+                if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
                     id = await db.createAsset(req.user.userid, name + "-PANTS", desc, "Pants", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.PantsUploadCost);
@@ -5237,7 +5241,8 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+                const mimetype = detectContentType(file.data);
+                if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
                     id = await db.createAsset(req.user.userid, name + "-FACE", desc, "Face", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.FaceUploadCost);
@@ -5307,7 +5312,8 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+                const mimetype = detectContentType(file.data);
+                if (mimetype == "image/png" || mimetype == "image/jpg" || mimetype == "image/jpeg") {
                     id = await db.createAsset(req.user.userid, name + "-USERAD", desc, "UserAd", req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.UserAdUploadCost);
@@ -5367,7 +5373,8 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "application/xml" || file.mimetype == "text/plain" || file.mimetype == "application/octet-stream" && db.isXmlFile(file.data)) {
+                const mimetype = detectContentType(file.data);
+                if (mimetype == "application/xml" || mimetype == "text/plain" || mimetype == "application/octet-stream" && db.isXmlFile(file.data)) {
                     id = await db.createAsset(req.user.userid, name + "-ACCESSORY", desc, type, req.user.userid, req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner");
                     file.mv(`${__dirname}/../assets/${id}.asset`);
                     await db.setUserProperty(req.user.userid, "robux", req.user.robux - db.getSiteConfig().shared.HatUploadCost);
@@ -5398,7 +5405,8 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "audio/mpeg" || file.mimetype == "audio/ogg" || file.mimetype == "audio/wav") {
+                const mimetype = detectContentType(file.data);
+                if (mimetype == "audio/mpeg" || mimetype == "audio/ogg" || mimetype == "audio/wav") {
                     const metadata = await mm.parseBuffer(file.data, {
                         duration: true
                     });
@@ -5434,7 +5442,8 @@ module.exports = {
                     return;
                 }
                 const file = req.files.file;
-                if (file.mimetype == "application/octet-stream" && db.isObjFile(file.data)) {
+                const mimetype = detectContentType(file.data);
+                if (mimetype == "application/octet-stream" && db.isObjFile(file.data)) {
                     const fp0 = `${__dirname}/../temp/${db.uuidv4()}.asset`;
                     await file.mv(fp0);
                     const s = await db.convertMesh(fp0);
@@ -7551,7 +7560,7 @@ module.exports = {
                         db.pendingRenderJobs.push(itemid);
                         return;
                     }
-                }else{
+                } else {
                     if (db.pendingUserRenderJobs.includes(itemid)) {
                         db.pendingUserRenderJobs.splice(db.pendingUserRenderJobs.indexOf(itemid), 1)
                     } else {
@@ -8069,7 +8078,7 @@ module.exports = {
                     continue;
                 }
                 const game = games[i];
-                if (genre != "All" && game.genre != genre){
+                if (genre != "All" && game.genre != genre) {
                     continue;
                 }
                 const creator = await db.getUser(game.creatorid);
