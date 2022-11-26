@@ -1,0 +1,458 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.rbx2016.nl/roblox.xsd" version="4">
+	<External>null</External>
+	<External>nil</External>
+	<Item class="ModuleScript" referent="RBXB7098544E0134440A1831B1C8A0CD9EA">
+		<Properties>
+			<Content name="LinkedSource"><null></null></Content>
+			<string name="Name">TweenModule</string>
+			<string name="ScriptGuid"></string>
+			<ProtectedString name="Source"><![CDATA[-- @author Validark & Modded by Malte0621
+-- @readme https://github.com/RoStrap/Tween
+
+local function c(a)local _=pcall(function()return a.ClassName end) if _ then return"Instance"end local _=pcall(function()return a:components()end) if _ then return"CFrame"end local _=pcall(function()return a.b end) if _ then return"Color3"end local _=pcall(function()return a.Z end) if _ then return"Vector3"end local _=pcall(function()return a.Y.Scale end) if _ then return"UDim2"end local _=pcall(function()return a.X.Scale end) if _ then return"UDim"end local _=pcall(function()return a.Y end) if _ then return"Vector2"end return type(a)end local function h(a)local _=newproxy(true) local b=getmetatable(_) b.__index=function(_,_)return a[_]end b.__newindex=function(_,_,_)error("attempt to modify a readonly table")end b.__metatable="locked" return _ end local m={Begin=0,Delayed=1,Playing=2,Paused=3,Completed=4,Cancelled=5} local _=game:GetService("RunService") local f=require(script.Easing) local j do local f=Rect.new local g=UDim.new local h=Region3.new local i=Vector3.new local function n(b,a,_)return b+_*(a-b)end local function d(d,_,c)local b=n(d.r,_.r,c) local a=n(d.g,_.g,c) local _=n(d.b,_.b,c) return Color3.new(b,a,_)end local function e(d,c,e)local _=n(d.X.Offset,c.X.Offset,e) local b=n(d.X.Scale,c.X.Scale,e) local a=n(d.Y.Offset,c.Y.Offset,e) local c=n(d.Y.Scale,c.Y.Scale,e) return UDim2.new(_,b,a,c)end local function b(_,a,m)local k={_:components()} local l={a:components()} local _=n(k[1],l[1],m) local a=n(k[2],l[2],m) local d=n(k[3],l[3],m) local c=n(k[4],l[4],m) local g=n(k[5],l[5],m) local f=n(k[6],l[6],m) local b=n(k[7],l[7],m) local e=n(k[8],l[8],m) local h=n(k[9],l[9],m) local j=n(k[10],l[10],m) local i=n(k[11],l[11],m) local k=n(k[12],l[12],m) return CFrame.new(_,a,d,c,g,f,b,e,h,j,i,k)end local function a(b,c,_)local a=n(b.X,c.X,_) local _=n(b.Y,c.Y,_) return Vector2.new(a,_)end local function c(c,d,b)local _=n(c.X,d.X,b) local a=n(c.Y,d.Y,b) local b=n(c.Z,d.Z,b) return Vector3.new(_,a,b)end local function _(a,_)return a.Time<_.Time end local _=table.insert local _=table.sort j={number=n;Color3=d;UDim2=e;CFrame=b;Vector2=a;Vector3=c;UDim=function(b,_,a)return g(n(b.Scale,_.Scale,a),n(b.Offset,_.Offset,a))end;Rect=function(a,b,_)return f(n(a.Min.X,b.Min.X,_),n(a.Min.Y,b.Min.Y,_),n(a.Max.X,b.Max.X,_),n(a.Max.Y,b.Max.Y,_))end;Region3=function(b,c,_)local a=n(b.CFrame*(-b.Size*0.5),c.CFrame*(-c.Size*0.5),_) local _=n(b.CFrame*(b.Size*0.5),c.CFrame*(c.Size*0.5),_) local e=a.x local d=_.x local b=a.y local c=_.y local a=a.z local _=_.z return h(i(e<d and e or d,b<c and b or c,a<_ and a or _),i(e>d and e or d,b>c and b or c,a>_ and a or _))end}end local a=_.Heartbeat local d=Enum.TweenStatus.Completed local b=Enum.TweenStatus.Canceled local function o(c,a)if c.Running then c.Connection:disconnect() c.Running=false local _=c.ObjectTable if _ then _[c.Property]=nil end end for _,_ in ipairs(c.Callbacks)do if _ then _(a and d or b)end end return c end local function g(b)if not b.Running then b.Connection=a:Connect(b.Interpolator) b.Running=true local _=b.ObjectTable if _ then _[b.Property]=b end return b end end local function _(_)return g(_:ResetElapsedTime())end local function e(_)repeat until not _.Running or not a:Wait() return _ end local _={Running=false;Wait=e;Stop=o;Resume=g;Restart=_} _.__index=_ local i={EasingFunctions=f} function i.new(d,e,a)d=d or 1 pcall(function()e=e.Name end) pcall(function()a=a.Name end) if c(e)~="function"then e=f[a and a..e or e]or f[e]end local a=0 local c=setmetatable({},_) c.EasingFunction=e c.Duration=d function c:ResetElapsedTime()a=0 return c end c.Callbacks={} function c.Interpolator(_)a=a+_ if d>a then for _,_ in ipairs(c.Callbacks)do if _ then _(e(a,0,1,d))end end else for _,_ in ipairs(c.Callbacks)do if _ then _(b)end end o(c)end end return c end function i:Create(k,p,_,a)local h={} local n={} local function b()for _,_ in ipairs(n)do e(_)end end local function e(a)local b={} for _,c in ipairs(n)do local _=#c.Callbacks+1 table.insert(c.Callbacks,_,a) table.insert(b,{c,_})end return{Disconnect=function()for _,_ in ipairs(b)do table.remove(_[1].Callbacks,_[2])end end}end local f=false local l l={PlaybackState=m.Begin,Play=function()l.PlaybackState=m.Playing for _,_ in pairs(h)do for _,_ in pairs(_)do o(_)end end h={} n={} for f,d in pairs(_)do p=i.new(p.Duration,p.EasingFunction,nil) local b=k[f] local c=j[c(d)] local e,_=0 p.Property=f local _=h[k] if _ then local _=_[f] if _ then if a then o(_)else return o(p)end end else _={} h[k]=_ end function p:ResetElapsedTime()e=0 return p end function p.Interpolator(_)e=e+_ if p.Duration>e then k[f]=c(b,d,p.EasingFunction(e,0,1,p.Duration))else o(p,true) k[f]=d end end _[f]=p p.ObjectTable=_ table.insert(n,p)end local _ e(function(_)if _==d then l.PlaybackState=m.Completed elseif f then f=false l.PlaybackState=m.Paused else l.PlaybackState=m.Cancelled end end) for _,_ in ipairs(n)do g(_)end end,Cancel=function()for _,_ in ipairs(n)do o(_) _:ResetElapsedTime()end end,Pause=function()for _,_ in ipairs(n)do f=true o(_)end end,Completed={Wait=b,wait=b,Connect=e,connect=e}} return l end local function _()return setmetatable(i,i)end local c=_() local _=unpack or table.unpack local b={Create=function(...)local a={...} table.remove(a,1) return c:Create(_(a))end} local _={new=function(...)return c.new(...)end} local a={PlaybackState=h(m)} local c={} c.__index=function(_,_)local a=a[_] if not a then a=Enum[_]end return a end c=h(setmetatable({},c)) return function()getfenv(2).TweenInfo=_ getfenv(2).Enum=c local c=game local a=h({GetService=function(_,_)if _=="TweenService"then return b end return c:GetService(_)end}) local _={} _.__index=function(_,_)local a=a[_] if not a then a=c[_]end return a end _=h(setmetatable({},_)) getfenv(2)["game"]=_ getfenv(2)["Game"]=_ end]]></ProtectedString>
+		</Properties>
+		<Item class="ModuleScript" referent="RBXA92ED1C0F33C46B1B49F9B05F3909BC9">
+			<Properties>
+				<Content name="LinkedSource"><null></null></Content>
+				<string name="Name">Easing</string>
+				<string name="ScriptGuid"></string>
+				<ProtectedString name="Source"><![CDATA[--[[
+	Disclaimer for Robert Penner's Easing Equations license:
+
+	TERMS OF USE - EASING EQUATIONS
+
+	Open source under the BSD License.
+
+	Copyright © 2001 Robert Penner
+	All rights reserved.
+
+	Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+	* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+	* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+	* Neither the name of the author nor the names of contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+	IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+	OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+]]
+
+-- For all easing functions:
+-- t = elapsed time
+-- b = beginning value
+-- c = change in value same as: ending - beginning
+-- d = duration (total time)
+
+-- Where applicable
+-- a = amplitude
+-- p = period
+
+local sin, cos, pi, abs, asin = math.sin, math.cos, math.pi, math.abs, math.asin
+local _2pi = 2 * pi
+local _halfpi = 0.5 * pi
+local SoftSpringpi = -3.2*pi
+local Springpi = 2*SoftSpringpi
+
+local function Linear(t, b, c, d)
+	return c * t / d + b
+end
+
+local function Smooth(t, b, c, d)
+	t = t / d
+	return c * t * t * (3 - 2*t) + b
+end
+
+local function Smoother(t, b, c, d)
+	t = t / d
+	return c*t*t*t * (t * (6*t - 15) + 10) + b
+end
+
+-- Arceusinator's Easing Functions
+local function RevBack(t, b, c, d)
+	t = 1 - t / d
+	return c*(1 - (sin(t*_halfpi) + (sin(t*pi) * (cos(t*pi) + 1)*0.5))) + b
+end
+
+local function RidiculousWiggle(t, b, c, d)
+	t = t / d
+	return c*sin(sin(t*pi)*_halfpi) + b
+end
+
+-- YellowTide's Easing Functions
+local function Spring(t, b, c, d)
+	t = t / d
+	return (1 + (-2.72^(-6.9*t) * cos(Springpi*t))) * c + b
+end
+
+local function SoftSpring(t, b, c, d)
+	t = t / d
+	return (1 + (-2.72^(-7.5*t) * cos(SoftSpringpi*t))) * c + b
+end
+-- End of YellowTide's functions
+
+local function InQuad(t, b, c, d)
+	t = t / d
+	return c * t * t + b
+end
+
+local function OutQuad(t, b, c, d)
+	t = t / d
+	return -c * t * (t - 2) + b
+end
+
+local function InOutQuad(t, b, c, d)
+	t = t / d * 2
+	return t < 1 and c * 0.5 * t * t + b or -c * 0.5 * ((t - 1) * (t - 3) - 1) + b
+end
+
+local function OutInQuad(t, b, c, d)
+	if t < d * 0.5 then
+		t = 2 * t / d
+		return -0.5 * c * t * (t - 2) + b
+	else
+		t, c = ((t * 2) - d) / d, 0.5 * c
+		return c * t * t + b + c
+	end
+end
+
+local function InCubic(t, b, c, d)
+	t = t / d
+	return c * t * t * t + b
+end
+
+local function OutCubic(t, b, c, d)
+	t = t / d - 1
+	return c * (t * t * t + 1) + b
+end
+
+local function InOutCubic(t, b, c, d)
+	t = t / d * 2
+	if t < 1 then
+		return c * 0.5 * t * t * t + b
+	else
+		t = t - 2
+		return c * 0.5 * (t * t * t + 2) + b
+	end
+end
+
+local function OutInCubic(t, b, c, d)
+	if t < d * 0.5 then
+		t = t * 2 / d - 1
+		return c * 0.5 * (t * t * t + 1) + b
+	else
+		t, c = ((t * 2) - d) / d, c * 0.5
+		return c * t * t * t + b + c
+	end
+end
+
+local function InQuart(t, b, c, d)
+	t = t / d
+	return c * t * t * t * t + b
+end
+
+local function OutQuart(t, b, c, d)
+	t = t / d - 1
+	return -c * (t * t * t * t - 1) + b
+end
+
+local function InOutQuart(t, b, c, d)
+	t = t / d * 2
+	if t < 1 then
+		return c * 0.5 * t * t * t * t + b
+	else
+		t = t - 2
+		return -c * 0.5 * (t * t * t * t - 2) + b
+	end
+end
+
+local function OutInQuart(t, b, c, d)
+	if t < d * 0.5 then
+		t, c = t * 2 / d - 1, c * 0.5
+		return -c * (t * t * t * t - 1) + b
+	else
+		t, c = ((t * 2) - d) / d, c * 0.5
+		return c * t * t * t * t + b + c
+	end
+end
+
+local function InQuint(t, b, c, d)
+	t = t / d
+	return c * t * t * t * t * t + b
+end
+
+local function OutQuint(t, b, c, d)
+	t = t / d - 1
+	return c * (t * t * t * t * t + 1) + b
+end
+
+local function InOutQuint(t, b, c, d)
+	t = t / d * 2
+	if t < 1 then
+		return c * 0.5 * t * t * t * t * t + b
+	else
+		t = t - 2
+		return c * 0.5 * (t * t * t * t * t + 2) + b
+	end
+end
+
+local function OutInQuint(t, b, c, d)
+	if t < d * 0.5 then
+		t = t * 2 / d - 1
+		return c * 0.5 * (t * t * t * t * t + 1) + b
+	else
+		t, c = ((t * 2) - d) / d, c * 0.5
+		return c * t * t * t * t * t + b + c
+	end
+end
+
+local function InSine(t, b, c, d)
+	return -c * cos(t / d * _halfpi) + c + b
+end
+
+local function OutSine(t, b, c, d)
+	return c * sin(t / d * _halfpi) + b
+end
+
+local function InOutSine(t, b, c, d)
+	return -c * 0.5 * (cos(pi * t / d) - 1) + b
+end
+
+local function OutInSine(t, b, c, d)
+	c = c * 0.5
+	return t < d * 0.5 and c * sin(t * 2 / d * _halfpi) + b or -c * cos(((t * 2) - d) / d * _halfpi) + 2 * c + b
+end
+
+local function InExpo(t, b, c, d)
+	return t == 0 and b or c * 2 ^ (10 * (t / d - 1)) + b - c * 0.001
+end
+
+local function OutExpo(t, b, c, d)
+	return t == d and b + c or c * 1.001 * (1 - 2 ^ (-10 * t / d)) + b
+end
+
+local function InOutExpo(t, b, c, d)
+	t = t / d * 2
+	return t == 0 and b or t == 2 and b + c or t < 1 and c * 0.5 * 2 ^ (10 * (t - 1)) + b - c * 0.0005 or c * 0.5 * 1.0005 * (2 - 2 ^ (-10 * (t - 1))) + b
+end
+
+local function OutInExpo(t, b, c, d)
+	c = c * 0.5
+	return t < d * 0.5 and (t * 2 == d and b + c or c * 1.001 * (1 - 2 ^ (-20 * t / d)) + b) or t * 2 - d == 0 and b + c or c * 2 ^ (10 * ((t * 2 - d) / d - 1)) + b + c - c * 0.001
+end
+
+local function InCirc(t, b, c, d)
+	t = t / d
+	return -c * ((1 - t * t) ^ 0.5 - 1) + b
+end
+
+local function OutCirc(t, b, c, d)
+	t = t / d - 1
+	return c * (1 - t * t) ^ 0.5 + b
+end
+
+local function InOutCirc(t, b, c, d)
+	t = t / d * 2
+	if t < 1 then
+		return -c * 0.5 * ((1 - t * t) ^ 0.5 - 1) + b
+	else
+		t = t - 2
+		return c * 0.5 * ((1 - t * t) ^ 0.5 + 1) + b
+	end
+end
+
+local function OutInCirc(t, b, c, d)
+	c = c * 0.5
+	if t < d * 0.5 then
+		t = t * 2 / d - 1
+		return c * (1 - t * t) ^ 0.5 + b
+	else
+		t = (t * 2 - d) / d
+		return -c * ((1 - t * t) ^ 0.5 - 1) + b + c
+	end
+end
+
+local function InElastic(t, b, c, d, a, p)
+	t = t / d - 1
+	p = p or d * 0.3
+	return t == -1 and b or t == 0 and b + c or (not a or a < abs(c)) and -(c * 2 ^ (10 * t) * sin((t * d - p * .25) * _2pi / p)) + b or -(a * 2 ^ (10 * t) * sin((t * d - p / _2pi * asin(c/a)) * _2pi / p)) + b
+end
+
+local function OutElastic(t, b, c, d, a, p)
+	t = t / d
+	p = p or d * 0.3
+	return t == 0 and b or t == 1 and b + c or (not a or a < abs(c)) and c * 2 ^ (-10 * t) * sin((t * d - p * .25) * _2pi / p) + c + b or a * 2 ^ (-10 * t) * sin((t * d - p / _2pi * asin(c / a)) * _2pi / p) + c + b
+end
+
+local function InOutElastic(t, b, c, d, a, p)
+	if t == 0 then
+		return b
+	end
+
+	t = t / d * 2 - 1
+
+	if t == 1 then
+		return b + c
+	end
+
+	p = p or d * .45
+	a = a or 0
+
+	local s
+
+	if not a or a < abs(c) then
+		a = c
+		s = p * .25
+	else
+		s = p / _2pi * asin(c / a)
+	end
+
+	if t < 1 then
+		return -0.5 * a * 2 ^ (10 * t) * sin((t * d - s) * _2pi / p) + b
+	else
+		return a * 2 ^ (-10 * t) * sin((t * d - s) * _2pi / p ) * 0.5 + c + b
+	end
+end
+
+local function OutInElastic(t, b, c, d, a, p)
+	if t < d * 0.5 then
+		return OutElastic(t * 2, b, c * 0.5, d, a, p)
+	else
+		return InElastic(t * 2 - d, b + c * 0.5, c * 0.5, d, a, p)
+	end
+end
+
+local function InBack(t, b, c, d, s)
+	s = s or 1.70158
+	t = t / d
+	return c * t * t * ((s + 1) * t - s) + b
+end
+
+local function OutBack(t, b, c, d, s)
+	s = s or 1.70158
+	t = t / d - 1
+	return c * (t * t * ((s + 1) * t + s) + 1) + b
+end
+
+local function InOutBack(t, b, c, d, s)
+	s = (s or 1.70158) * 1.525
+	t = t / d * 2
+	if t < 1 then
+		return c * 0.5 * (t * t * ((s + 1) * t - s)) + b
+	else
+		t = t - 2
+		return c * 0.5 * (t * t * ((s + 1) * t + s) + 2) + b
+	end
+end
+
+local function OutInBack(t, b, c, d, s)
+	c = c * 0.5
+	s = s or 1.70158
+	if t < d * 0.5 then
+		t = (t * 2) / d - 1
+		return c * (t * t * ((s + 1) * t + s) + 1) + b
+	else
+		t = ((t * 2) - d) / d
+		return c * t * t * ((s + 1) * t - s) + b + c
+	end
+end
+
+local function OutBounce(t, b, c, d)
+	t = t / d
+	if t < 1 / 2.75 then
+		return c * (7.5625 * t * t) + b
+	elseif t < 2 / 2.75 then
+		t = t - (1.5 / 2.75)
+		return c * (7.5625 * t * t + 0.75) + b
+	elseif t < 2.5 / 2.75 then
+		t = t - (2.25 / 2.75)
+		return c * (7.5625 * t * t + 0.9375) + b
+	else
+		t = t - (2.625 / 2.75)
+		return c * (7.5625 * t * t + 0.984375) + b
+	end
+end
+
+local function InBounce(t, b, c, d)
+	return c - OutBounce(d - t, 0, c, d) + b
+end
+
+local function InOutBounce(t, b, c, d)
+	if t < d * 0.5 then
+		return InBounce(t * 2, 0, c, d) * 0.5 + b
+	else
+		return OutBounce(t * 2 - d, 0, c, d) * 0.5 + c * 0.5 + b
+	end
+end
+
+local function OutInBounce(t, b, c, d)
+	if t < d * 0.5 then
+		return OutBounce(t * 2, b, c * 0.5, d)
+	else
+		return InBounce(t * 2 - d, b + c * 0.5, c * 0.5, d)
+	end
+end
+
+return {
+	Linear = Linear; Spring = Spring; SoftSpring = SoftSpring; RevBack = RevBack; RidiculousWiggle = RidiculousWiggle; Smooth = Smooth; Smoother = Smoother;
+
+	InQuad    = InQuad;    OutQuad    = OutQuad;    InOutQuad    = InOutQuad;    OutInQuad    = OutInQuad;
+	InCubic   = InCubic;   OutCubic   = OutCubic;   InOutCubic   = InOutCubic;   OutInCubic   = OutInCubic;
+	InQuart   = InQuart;   OutQuart   = OutQuart;   InOutQuart   = InOutQuart;   OutInQuart   = OutInQuart;
+	InQuint   = InQuint;   OutQuint   = OutQuint;   InOutQuint   = InOutQuint;   OutInQuint   = OutInQuint;
+	InSine    = InSine;    OutSine    = OutSine;    InOutSine    = InOutSine;    OutInSine    = OutInSine;
+	InExpo    = InExpo;    OutExpo    = OutExpo;    InOutExpo    = InOutExpo;    OutInExpo    = OutInExpo;
+	InCirc    = InCirc;    OutCirc    = OutCirc;    InOutCirc    = InOutCirc;    OutInCirc    = OutInCirc;
+	InElastic = InElastic; OutElastic = OutElastic; InOutElastic = InOutElastic; OutInElastic = OutInElastic;
+	InBack    = InBack;    OutBack    = OutBack;    InOutBack    = InOutBack;    OutInBack    = OutInBack;
+	InBounce  = InBounce;  OutBounce  = OutBounce;  InOutBounce  = InOutBounce;  OutInBounce  = OutInBounce;
+}
+]]></ProtectedString>
+			</Properties>
+		</Item>
+		<Item class="ModuleScript" referent="RBXF72E6E2B82F64A3B99714CD7AA2B0CC9">
+			<Properties>
+				<Content name="LinkedSource"><null></null></Content>
+				<string name="Name">Bezier</string>
+				<string name="ScriptGuid"></string>
+				<ProtectedString name="Source"><![CDATA[-- Used for interpolation curves
+-- @author Validark
+-- @original Quenty
+
+return {
+	new = function(n, r, a, w)
+		--- Generates a Bezier interpolation curve from 4 coordinates
+		-- @returns function Bezier curve that when called with a number [0-1] will return a position
+		-- @resources http://greweb.me/bezier-easing-editor/example/, http://cubic-bezier.com/
+		
+		if n and r and a and w then
+			local l, z = 3*a, 3*n
+			w, r = 3*w, 3*r
+			a, n = 6*(a - 2*n), 1 - w + r
+			local m, e, q = 1 - l + z, l - 2*z, w - 2*r
+			local o = 3*m
+	
+			return function(t, b, c, d)
+				-- @param number t [0, 1]
+				-- @optional parmeters (see other easing functions)
+	
+				t = (c or 1) * t / (d or 1) + (b or 0)
+				local f = t
+				for _ = 1, 4 do
+					local y = f*(a + o*f) + z
+					if y == 0 then
+						break
+					end
+					f = f - (((m*f + e)*f + z)*f - t) / y
+				end
+				return ((n*f + q)*f + r)*f
+			end
+		else
+			error("[Bezier] - Need 4 numbers to construct a Bezier curve")
+		end
+	end
+}
+]]></ProtectedString>
+			</Properties>
+		</Item>
+	</Item>
+</roblox>

