@@ -1945,12 +1945,11 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
         end
     end)
 
-
-    game:GetService("RunService"):Run()
-    
     if not game.ReplicatedStorage:FindFirstChild("TweenModule") then
         game:GetService("InsertService"):LoadAsset(-1):GetChildren()[1].Parnet = game.ReplicatedStorage
-    end`;
+    end
+
+    game:GetService("RunService"):Run()`;
     } else {
         script = `local placeId = ${gameid}
         local port = ${port}
