@@ -1946,7 +1946,7 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     end)
 
     if not game.ReplicatedStorage:FindFirstChild("TweenModule") then
-        game:GetService("InsertService"):LoadAsset(-1):GetChildren()[1].Parnet = game.ReplicatedStorage
+        game:GetService("InsertService"):LoadAsset(-1):GetChildren()[1].Parent = game.ReplicatedStorage
     end
 
     game:GetService("RunService"):Run()`;
