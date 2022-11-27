@@ -3499,7 +3499,7 @@ module.exports = {
                     <span >
                         <img src="https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}" style="height: 32em; width: 32em;"/>
                     </span>
-                    <span class="icon-note icon-special">Note: You can only have 1 icon per experience.</span>
+                    <span class="icon-note icon-special">Note: You can only have 1 icon per game.</span>
                 </div>
             </div>
             <div id="IconPurchaseContainer" class="thumbnail-purchase-container icon-purchase-container">
@@ -3569,7 +3569,7 @@ module.exports = {
                     <span >
                         <img src="https://thumbnails.rbx2016.nl/v1/icon?id=${game.gameid}" style="height: 32em; width: 32em;"/>
                     </span>
-                    <span class="icon-note icon-special">Note: You can only have 1 icon per experience.</span>
+                    <span class="icon-note icon-special">Note: You can only have 1 icon per game.</span>
                 </div>
             </div>
             <div id="IconPurchaseContainer" class="thumbnail-purchase-container icon-purchase-container">
