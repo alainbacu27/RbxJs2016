@@ -1961,7 +1961,7 @@ module.exports = {
                         badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
                         <div class="imageWrapper-0-2-99"><span
                                 class="icon-builders-club"></span></div>
-                        <p class="label-0-2-98 mb-0 text-dark">BUILDERS CLUB</p>
+                        <p class="label-0-2-98 mb-0 text-dark">Builders Club</p>
                     </a></div>`;
                         break;
                     case "official model maker":
