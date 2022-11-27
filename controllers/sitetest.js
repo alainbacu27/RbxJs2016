@@ -1847,9 +1847,15 @@ module.exports = {
                 }
             }
 
-            if (await db.getFriends(user.userid).length >= 20) {
+            if (db.getFriends(user.userid).length >= 20) {
                 if (!user.badges.includes("friendship")) {
                     user.badges.push("friendship")
+                }
+            }
+
+            if (await user.membership > 0) {
+                if (!user.badges.includes("club")) {
+                    user.badges.push("club")
                 }
             }
 
@@ -1976,6 +1982,7 @@ module.exports = {
                 auserfriends: (await db.getFriends(user.userid)).length,
                 auserfollowing: 0, // TODO
                 auserfollowers: 0, // TODO
+                ausermembership: user.membership,
                 auserstatusdescription: user.statusdescription,
                 auserdescription: user.description,
                 arefriends: db.toString(await db.areFriends(req.user.userid, user.userid)),

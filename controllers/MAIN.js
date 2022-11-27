@@ -1853,6 +1853,12 @@ module.exports = {
                 }
             }
 
+            if (user.membership > 0) {
+                if (!user.badges.includes("club")) {
+                    user.badges.push("club")
+                }
+            }
+
             const games = await db.getGamesByCreatorId(user.userid);
             for (const game of games) {
                 if (game.visits >= 100) {
@@ -1976,6 +1982,7 @@ module.exports = {
                 auserfriends: (await db.getFriends(user.userid)).length,
                 auserfollowing: 0, // TODO
                 auserfollowers: 0, // TODO
+                ausermembership: user.membership,
                 auserstatusdescription: user.statusdescription,
                 auserdescription: user.description,
                 arefriends: db.toString(await db.areFriends(req.user.userid, user.userid)),

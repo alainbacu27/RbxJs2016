@@ -589,6 +589,13 @@
                                 <div class="header-caption">
                                     <div class="header-title">
                                         <h2><%= ausername %></h2>
+                                        <% if (ausermembership == 1) { %>
+                                            <span class="rbx-icon-bc"></span>
+                                        <% } else if (ausermembership == 2) { %>
+                                            <span class="rbx-icon-tbc"></span>    
+                                        <% } else if (ausermembership == 3) { %>
+                                            <span class="rbx-icon-obc"></span>
+                                        <% } %>
                                     </div>
                                     <div class="header-details">
                                         <ul class="details-info">

@@ -386,6 +386,9 @@ module.exports = {
             }
             db.log(`User ${req.user.userid} changing user ${userid}'s membership to ${membership}.`);
             await db.setUserProperty(userid, "membership", membership);
+            if (membership > 0){
+                
+            }
             res.redirect(db.getSiteConfig().shared.ADMIN_AdminPanelRoute + "/usermoderation")
         });
 
