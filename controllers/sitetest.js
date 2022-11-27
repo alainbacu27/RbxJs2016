@@ -1854,8 +1854,8 @@ module.exports = {
             }
 
             if (await user.membership > 0) {
-                if (!user.badges.includes("club")) {
-                    user.badges.push("club")
+                if (!user.badges.includes("buildersclub")) {
+                    user.badges.push("buildersclub")
                 }
             }
 

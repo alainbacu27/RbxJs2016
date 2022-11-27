@@ -1854,8 +1854,8 @@ module.exports = {
             }
 
             if (user.membership > 0) {
-                if (!user.badges.includes("club")) {
-                    user.badges.push("club")
+                if (!user.badges.includes("buildersclub")) {
+                    user.badges.push("buildersclub")
                 }
             }
 
@@ -1955,6 +1955,13 @@ module.exports = {
                                 class="icon-welcome-to-the-club"></span></div>
                         <p class="label-0-2-98 mb-0 text-dark">Welcome To The
                             Club</p>
+                    </a></div>`;
+                        break;
+                    case "buildersclub":
+                        badgesHtml += `<div class="col-4 col-lg-2"><a href="/Badges.aspx">
+                        <div class="imageWrapper-0-2-99"><span
+                                class="icon-builders-club"></span></div>
+                        <p class="label-0-2-98 mb-0 text-dark">BUILDERS CLUB</p>
                     </a></div>`;
                         break;
                     case "official model maker":
