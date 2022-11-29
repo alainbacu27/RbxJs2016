@@ -44,9 +44,9 @@ module.exports = {
                     "allowedGearCategories": [],
                     "isGenreEnforced": true,
                     "copyingAllowed": false,
-                    "playing": 0,
+                    "playing": await db.getGamePlayerCount(game.gameid),
                     "visits": game.visits,
-                    "maxPlayers": 8,
+                    "maxPlayers": game.maxplayers,
                     "created": db.unixToDate(game.created).toISOString(),
                     "updated": db.unixToDate(game.updated).toISOString(),
                     "studioAccessToApisAllowed": false,
@@ -627,7 +627,7 @@ module.exports = {
 
         app.post("/v2.0/Refresh", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apikey = req.query.apiKey;
@@ -662,13 +662,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             const players = parseInt(req.query.players);
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()
@@ -676,8 +676,10 @@ module.exports = {
                 }
                 const games = await db.getJobsByGameId(placeId);
                 for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
+                    const job = await db.getJob(games[i], placeId);
+                    if (job) {
+                        await job.stop();
+                    }
                 }
             }
             res.json({
@@ -689,7 +691,7 @@ module.exports = {
 
         app.post("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey || (id0.length > 0 ? id0[0] : "");
@@ -710,8 +712,8 @@ module.exports = {
             const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
             const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
             const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
+            const fps = req.query.fps || (id0.length > 10 ? parseInt(id0[10]) : 0);
             /*
-            const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
             const ping = parseInt(req.query.ping);
             const physicsLoadAverage = parseInt(req.query.physicsLoadAverage);
@@ -726,13 +728,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()
@@ -740,11 +742,13 @@ module.exports = {
                 }
                 const games = await db.getJobsByGameId(placeId);
                 for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
+                    const job = await db.getJob(games[i], placeId);
+                    if (job) {
+                        await job.stop();
+                    }
                 }
             }
-            
+
             const script = `
 `
             const signature = db.sign(script);
@@ -753,7 +757,7 @@ module.exports = {
 
         app.get("/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -775,6 +779,7 @@ module.exports = {
             const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
             const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
             const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
+            const fps = req.query.fps || (id0.length > 10 ? parseInt(id0[10]) : 0);
             /*
             const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
@@ -791,13 +796,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()
@@ -805,8 +810,10 @@ module.exports = {
                 }
                 const games = await db.getJobsByGameId(placeId);
                 for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
+                    const job = await db.getJob(games[i], placeId);
+                    if (job) {
+                        await job.stop();
+                    }
                 }
             }
             const script = `
@@ -817,7 +824,7 @@ module.exports = {
 
         app.get("/Game/api/v2.0/Refresh", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -839,8 +846,8 @@ module.exports = {
             const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
             const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
             const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
+            const fps = req.query.fps || (id0.length > 10 ? parseInt(id0[10]) : 0);
             /*
-            const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
             const ping = parseInt(req.query.ping);
             const physicsLoadAverage = parseInt(req.query.physicsLoadAverage);
@@ -855,13 +862,13 @@ module.exports = {
             const usedMemoryBytes = parseInt(req.query.usedMemoryBytes);
             const seqNum = parseInt(req.query.seqNum);
             */
-            if (players > 0){
+            if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 }
-            }else{
+            } else {
                 const game = await db.getGame(placeId);
                 if (game == null) {
                     res.status(400).send()
@@ -869,8 +876,10 @@ module.exports = {
                 }
                 const games = await db.getJobsByGameId(placeId);
                 for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
+                    const job = await db.getJob(games[i], placeId);
+                    if (job) {
+                        await job.stop();
+                    }
                 }
             }
             const script = `
@@ -881,7 +890,7 @@ module.exports = {
 
         app.get("/Game/api/v1/UserJoined", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -896,7 +905,8 @@ module.exports = {
             }
             const gameId = (id0.length > 1 ? parseInt(id0[1]) : null);
             const userId = (id0.length > 2 ? parseInt(id0[2]) : null);
-            await db.userJoinedGame(userId, gameId);
+            const jobId = (id0.length > 3 ? id0[3] : "");
+            await db.userJoinedGame(userId, gameId, jobId);
             const user = await db.getUser(userId);
             let interval;
             interval = setInterval(async () => {
@@ -918,7 +928,7 @@ module.exports = {
 
         app.get("/Game/api/v1/GetPublicIp", async (req, res) => {
             let ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey;
@@ -941,7 +951,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/UserLeft", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -965,7 +975,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/UserJoinedTeamCreate", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -989,7 +999,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/UserLeftTeamCreate", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -1032,7 +1042,7 @@ publicIp = "${ip}"`
                 return;
             }
             const game = await db.getGame(placeid);
-            if (!game || !game.isPublic || game.port == 0) {
+            if (!game || !game.isPublic || game.servers.length == 0) {
                 res.status(403).send();
                 return;
             }
@@ -1046,7 +1056,7 @@ publicIp = "${ip}"`
 
         app.post("/api/v2/CreateOrUpdate", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey;
@@ -1076,7 +1086,7 @@ publicIp = "${ip}"`
 
         app.get("/api/v1/Close", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -1099,8 +1109,10 @@ publicIp = "${ip}"`
             }
             const games = await db.getJobsByGameId(placeId);
             for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
+                const job = await db.getJob(games[i], placeId);
+                if (job) {
+                    await job.stop();
+                }
             }
             const script = `
 `
@@ -1110,7 +1122,7 @@ publicIp = "${ip}"`
 
         app.get("/Game/api/v1/Close", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             let id0 = req.query.apiKey.split("|");
@@ -1133,8 +1145,10 @@ publicIp = "${ip}"`
             }
             const games = await db.getJobsByGameId(placeId);
             for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
+                const job = await db.getJob(games[i], placeId);
+                if (job) {
+                    await job.stop();
+                }
             }
             // await db.setGameProperty(placeId, "port", 0);
             const script = `

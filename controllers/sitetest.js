@@ -1104,8 +1104,10 @@ module.exports = {
             }
             const games = await db.getJobsByGameId(placeId);
             for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
+                const job = await db.getJob(games[i], placeId);
+                if (job) {
+                    await job.stop();
+                }
             }
         });
 
@@ -11161,9 +11163,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const players = parseInt(req.query.players);
             if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps)
                 }
             } else {
                 const game = await db.getGame(placeId);
@@ -11225,9 +11227,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             */
             if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps)
                 }
             } else {
                 const game = await db.getGame(placeId);
@@ -11290,9 +11292,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             */
             if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps)
                 }
             } else {
                 const game = await db.getGame(placeId);
@@ -11331,8 +11333,8 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
             const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
             const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
+            const fps = req.query.fps || (id0.length > 10 ? parseInt(id0[10]) : 0);
             /*
-            const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
             const ping = parseInt(req.query.ping);
             const physicsLoadAverage = parseInt(req.query.physicsLoadAverage);
@@ -11349,9 +11351,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             */
             if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 }
             } else {
                 const game = await db.getGame(placeId);
@@ -11542,7 +11544,7 @@ publicIp = "${ip}"`
                 return;
             }
             const game = await db.getGame(placeid);
-            if (!game || !game.isPublic || game.port == 0) {
+            if (!game || !game.isPublic || game.servers.length == 0) {
                 res.status(403).send();
                 return;
             }
@@ -11609,8 +11611,10 @@ publicIp = "${ip}"`
             }
             const games = await db.getJobsByGameId(placeId);
             for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
+                const job = await db.getJob(games[i], placeId);
+                if (job) {
+                    await job.stop();
+                }
             }
             const script = `
 `
@@ -11643,8 +11647,10 @@ publicIp = "${ip}"`
             }
             const games = await db.getJobsByGameId(placeId);
             for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
+                const job = await db.getJob(games[i], placeId);
+                if (job) {
+                    await job.stop();
+                }
             }
             // await db.setGameProperty(placeId, "port", 0);
             const script = `

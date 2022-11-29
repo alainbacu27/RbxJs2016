@@ -208,7 +208,9 @@
         "maxServers": 500,
         "hostingTeamCreateEnabled": false,
         "hostingConnectsToLocalhost": true,
+        "maxServersPerGame": 3,
         "maxGameStartupTime": 45,
+        "DontClearRbxLogs": false,
         "devProducuts": {
             "enabled": true,
             "isAdminOnly": false,

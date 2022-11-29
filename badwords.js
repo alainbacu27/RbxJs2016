@@ -8,6 +8,5 @@ module.exports = [
     'nazi',
     'nigga',
     'nigger',
-    'retard',
-    'whore'
+    'retard'
 ]

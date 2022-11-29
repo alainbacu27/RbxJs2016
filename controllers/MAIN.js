@@ -1104,8 +1104,10 @@ module.exports = {
             }
             const games = await db.getJobsByGameId(placeId);
             for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
+                const job = await db.getJob(games[i], placeId);
+                if (job) {
+                    await job.stop();
+                }
             }
         });
 
@@ -1311,7 +1313,7 @@ module.exports = {
                             ${game.gamename}
                         </div>
                         <div class="game-card-name-secondary">
-                            ${game.playing} Playing
+                            ${await db.getGamePlayerCount(game.gameid)} Playing
                         </div>
                         <div class="game-card-vote">
                             <div class="vote-bar">
@@ -1771,6 +1773,13 @@ module.exports = {
 
             const equipped = await db.equipCatalogItem(req.user.userid, itemid);
             if (equipped) {
+                if (!db.hasRedrawn.includes(req.user.userid)) {
+                    await db.enqueueRender(req.user.userid, true);
+                    db.hasRedrawn.push(req.user.userid);
+                    setTimeout(() => {
+                        db.hasRedrawn.splice(db.hasRedrawn.indexOf(req.user.userid), 1);
+                    }, db.getSiteConfig().backend.avatarCanRedrawEvery);
+                }
                 res.json({
                     "success": true
                 });
@@ -1800,8 +1809,15 @@ module.exports = {
                     "success": false
                 });
             }
-            const equipped = await db.unequipCatalogItem(req.user.userid, itemid);
-            if (equipped) {
+            const unequipped = await db.unequipCatalogItem(req.user.userid, itemid);
+            if (unequipped) {
+                if (!db.hasRedrawn.includes(req.user.userid)) {
+                    await db.enqueueRender(req.user.userid, true);
+                    db.hasRedrawn.push(req.user.userid);
+                    setTimeout(() => {
+                        db.hasRedrawn.splice(db.hasRedrawn.indexOf(req.user.userid), 1);
+                    }, db.getSiteConfig().backend.avatarCanRedrawEvery);
+                }
                 res.json({
                     "success": true
                 });
@@ -2404,14 +2420,14 @@ module.exports = {
                 "CreatorType": "User",
                 "PlaceVersion": 1,
                 "GsmInterval": 10000,
-                "MaxPlayers": 12,
-                "MaxGameInstances": 1,
+                "MaxPlayers": game.maxplayers,
+                "MaxGameInstances": db.getSiteConfig().backend.maxServersPerGame,
                 // "ApiKey": db.getSiteConfig().PRIVATE.PRIVATE_API_KEY,
-                "PreferredPlayerCapacity": 12,
+                "PreferredPlayerCapacity": game.maxplayers,
                 "Metadata": {
                     "MachineAddress": "127.0.0.1",
                     "GsmInterval": 60,
-                    "MaxPlayers": 12,
+                    "MaxPlayers": game.maxplayers,
                     "placeInformation": {
                         "placeId": game.gameid,
                         "placeVersionNumber": 1,
@@ -7269,7 +7285,7 @@ module.exports = {
                     ${game.gamename}
                     </div>
                     <div class="game-card-name-secondary">
-                        ${game.playing} Playing
+                        ${await db.getGamePlayerCount(game.gameid)} Playing
                     </div>
                     <div class="game-card-vote">
             <div class="vote-bar" data-voting-processed="true">
@@ -7337,7 +7353,7 @@ module.exports = {
                     ${game.gamename}
                     </div>
                     <div class="game-card-name-secondary">
-                        ${game.playing} Playing
+                        ${await db.getGamePlayerCount(game.gameid)} Playing
                     </div>
                     <div class="game-card-vote">
             <div class="vote-bar" data-voting-processed="true">
@@ -8055,8 +8071,8 @@ module.exports = {
             switch (SortFilter) {
                 case 1:
                     // Sort games by playing
-                    games.sort((a, b) => {
-                        return b.playing - a.playing;
+                    games.sort(async (a, b) => {
+                        return (await db.getGamePlayerCount(b.gameid)) - (await db.getGamePlayerCount(a.gameid));
                     });
                     break;
                 case 11:
@@ -8109,7 +8125,7 @@ module.exports = {
                             ${game.gamename}
                         </div>
                         <div class="game-card-name-secondary">
-                        ${game.playing} Playing
+                        ${await db.getGamePlayerCount(game.gameid)} Playing
                         </div>
                         <div class="game-card-vote">
                             <div class="vote-bar" data-voting-processed="false">
@@ -8174,16 +8190,25 @@ module.exports = {
 
             let instances = [];
             for (let i = 0; i < servers.length; i++) {
-                const server = servers[i];
+                const job = await db.getJob(servers[i], game.gameid);
+                const server = job.getServer();
 
-                const plrs = await db.getPlayingPlayers(game.gameid);
+                let jobId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+                try {
+                    jobId = job.getJobId()
+                } catch {}
+
+                const plrs = await db.getPlayingPlayers(game.gameid, jobId);
                 let players = [];
                 for (let j = 0; j < plrs.length; j++) {
                     const plr = plrs[j];
                     players.push({
-                        "Id": plr.userid,
+                        "Id": plr.userid, // Set to 0 to disallow user lookup (but make sure to change the thumbnail url too lol)
                         "Username": plr.username,
-                        // "Thumbnail": `https://thumbnails.rbx2016.nl/v1/avatar/icon?id=${plr.userid}`,
+                        "Thumbnail": {
+                            "IsFinal": true,
+                            "Url": `https://thumbnails.rbx2016.nl/v1/avatar/icon?id=${plr.userid}`,
+                        },
                         // "AssetId": plr.userid,
                         // "AssetHash": plrs.userid.toString(),
                         // "AssetTypeId": 0,
@@ -8191,16 +8216,11 @@ module.exports = {
                     })
                 }
 
-                let jobId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
-                try {
-                    jobId = server.getJobId()
-                } catch {}
-
                 instances.push({
-                    "Capacity": game.maxplayers,
+                    "Capacity": server.maxplayers,
                     "Ping": 0, // TODO: Actually make work.
-                    "FPS": 60, // TODO: Actually make work.
-                    "ShowSlowGameMessage": false,
+                    "FPS": server ? server.fps : 0,
+                    "ShowSlowGameMessage": server ? server.fps <= 30 : true,
                     "Guid": jobId,
                     "PlaceId": game.gameid,
                     "CurrentPlayers": players
@@ -8663,13 +8683,13 @@ module.exports = {
                 userVoted: await db.userLikeStatus(req.user.userid, game.gameid),
                 favorites: game.favorites.length,
                 userFavorited: await db.userHasFavorited(req.user.userid, game.gameid),
-                serversize: 12,
+                serversize: game.maxplayers,
                 gameOnProfile: game.showOnProfile,
                 creatorname: creator.username,
                 creatorid: game.creatorid,
                 visits: game.visits,
                 genre: game.genre,
-                playing: game.playing,
+                playing: await db.getGamePlayerCount(game.gameid),
                 created: `${created.getDate()}/${created.getMonth()}/${created.getFullYear()}`,
                 updated: `${updated.getDate()}/${updated.getMonth()}/${updated.getFullYear()}`,
                 canManage: req.user.userid == creator.userid && db.getSiteConfig().shared.games.canManageGames,
@@ -10232,7 +10252,6 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                         }
                     }
                     await db.setUserProperty(req.user.userid, "avatarColors", brickColors);
-                    await db.setUserProperty(req.user.userid, "avatarColors", brickColors);
                     if (!db.hasRedrawn.includes(req.user.userid)) {
                         await db.enqueueRender(req.user.userid, true);
                         db.hasRedrawn.push(req.user.userid);
@@ -11161,9 +11180,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const players = parseInt(req.query.players);
             if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 }
             } else {
                 const game = await db.getGame(placeId);
@@ -11173,8 +11192,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
                 const games = await db.getJobsByGameId(placeId);
                 for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
+                    const job = await db.getJob(games[i], placeId);
+                    if (job) {
+                        await job.stop();
+                    }
                 }
             }
             res.json({
@@ -11207,6 +11228,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
             const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
             const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
+            const fps = req.query.fps || (id0.length > 10 ? parseInt(id0[10]) : 0);
             /*
             const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
@@ -11225,9 +11247,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             */
             if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 }
             } else {
                 const game = await db.getGame(placeId);
@@ -11237,8 +11259,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
                 const games = await db.getJobsByGameId(placeId);
                 for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
+                    const job = await db.getJob(games[i], placeId);
+                    if (job) {
+                        await job.stop();
+                    }
                 }
             }
 
@@ -11272,6 +11296,7 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
             const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
             const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
+            const fps = req.query.fps || (id0.length > 10 ? parseInt(id0[10]) : 0);
             /*
             const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
@@ -11290,9 +11315,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             */
             if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 }
             } else {
                 const game = await db.getGame(placeId);
@@ -11302,8 +11327,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
                 const games = await db.getJobsByGameId(placeId);
                 for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
+                    const job = await db.getJob(games[i], placeId);
+                    if (job) {
+                        await job.stop();
+                    }
                 }
             }
             const script = `
@@ -11331,8 +11358,8 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             const isCloudEdit = req.query.isCloudEdit == "true" || (id0.length > 7 ? id0[7] == "true" : false);
             const rccVersion = req.query.rccVersion || (id0.length > 8 ? id0[8] : "Unknown");
             const players = req.query.players || (id0.length > 9 ? parseInt(id0[9]) : 0);
+            const fps = req.query.fps || (id0.length > 10 ? parseInt(id0[10]) : 0);
             /*
-            const fps = parseInt(req.query.fps);
             const heartbeatRate = parseInt(req.query.heartbeatRate);
             const ping = parseInt(req.query.ping);
             const physicsLoadAverage = parseInt(req.query.physicsLoadAverage);
@@ -11349,9 +11376,9 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             */
             if (players > 0) {
                 if (!isCloudEdit) {
-                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternal(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 } else {
-                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion)
+                    await db.updateGameInternalCloud(placeId, gameId, ipAddress, port, clientCount, rccVersion, fps, gameCapacity)
                 }
             } else {
                 const game = await db.getGame(placeId);
@@ -11361,8 +11388,10 @@ Why: ${why.replaceAll("---------------------------------------", "")}
                 }
                 const games = await db.getJobsByGameId(placeId);
                 for (let i = 0; i < games.length; i++) {
-                    const job = await db.getJob(games[i]);
-                    await job.stop();
+                    const job = await db.getJob(games[i], placeId);
+                    if (job) {
+                        await job.stop();
+                    }
                 }
             }
             const script = `
@@ -11406,7 +11435,8 @@ Why: ${why.replaceAll("---------------------------------------", "")}
             }
             const gameId = (id0.length > 1 ? parseInt(id0[1]) : null);
             const userId = (id0.length > 2 ? parseInt(id0[2]) : null);
-            await db.userJoinedGame(userId, gameId);
+            const jobId = (id0.length > 3 ? id0[3] : "");
+            await db.userJoinedGame(userId, gameId, jobId);
             const user = await db.getUser(userId);
             let interval;
             interval = setInterval(async () => {
@@ -11542,7 +11572,7 @@ publicIp = "${ip}"`
                 return;
             }
             const game = await db.getGame(placeid);
-            if (!game || !game.isPublic || game.port == 0) {
+            if (!game || !game.isPublic || game.servers.length == 0) {
                 res.status(403).send();
                 return;
             }
@@ -11609,8 +11639,10 @@ publicIp = "${ip}"`
             }
             const games = await db.getJobsByGameId(placeId);
             for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
+                const job = await db.getJob(games[i], placeId);
+                if (job) {
+                    await job.stop();
+                }
             }
             const script = `
 `
@@ -11643,8 +11675,10 @@ publicIp = "${ip}"`
             }
             const games = await db.getJobsByGameId(placeId);
             for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
+                const job = await db.getJob(games[i], placeId);
+                if (job) {
+                    await job.stop();
+                }
             }
             // await db.setGameProperty(placeId, "port", 0);
             const script = `

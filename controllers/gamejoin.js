@@ -23,7 +23,8 @@ module.exports = {
                 res.status(403).json({});
                 return;
             }
-            if (game.isPublic || game.port == 0) {
+            const server = await db.getCloudEditServer();
+            if (!server) {
                 res.json({
                     "status": 0,
                     "message": null
@@ -35,11 +36,11 @@ module.exports = {
                     "message": null,
                     "settings": {
                         "ClientPort": 0,
-                        "MachineAddress": game.ip,
-                        "ServerPort": game.port,
+                        "MachineAddress": server.getIp(),
+                        "ServerPort": server.getHostPort(),
                         "ServerConnections": [{
-                            "Address": game.ip,
-                            "Port": game.port
+                            "Address": server.getIp(),
+                            "Port": server.getHostPort()
                         }],
                         "DirectServerReturn": true,
                         "PingUrl": "",
@@ -88,11 +89,14 @@ module.exports = {
                 return;
             }
             const placeid = parseInt(req.body.placeId);
+            const jobid = req.body.jobId;
             const gameJoinAttemptId = req.body.gameJoinAttemptId;
             const browserTrackerId = req.body.browserTrackerId;
             const game = await db.getGame(placeid);
 
-            if (game.port == 0) {
+            const job = await db.getJob(jobid, placeid);
+
+            if (!job || job.getHostPort() == 0) {
                 res.json({
                     "jobId": null,
                     "status": 0,
@@ -122,11 +126,11 @@ module.exports = {
                 "message": null,
                 "joinScript": {
                     "ClientPort": 0,
-                    "MachineAddress": game.ip,
-                    "ServerPort": game.port,
+                    "MachineAddress": job.getIp(),
+                    "ServerPort": job.getHostPort(),
                     "ServerConnections": [{
-                        "Address": game.ip,
-                        "Port": game.port
+                        "Address": job.getIp(),
+                        "Port": job.getHostPort()
                     }],
                     "DirectServerReturn": true,
                     "PingUrl": "https://assetgame.rbx2016.nl/Game/ClientPresence.ashx?version=old&PlaceID=" + game.gameid.toString() + "&GameID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&UserID=" + req.user.userid.toString(),

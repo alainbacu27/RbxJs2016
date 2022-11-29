@@ -9,14 +9,14 @@ module.exports = {
     init: (app, db) => {
         app.post("/v2/CreateOrUpdate", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apikey = req.query.apiKey;
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
-                if (req.user){
+                if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
-                }else{
+                } else {
                     res.status(404).render("404", await db.getBlankRenderObject());
                 }
                 return;
@@ -25,13 +25,13 @@ module.exports = {
             const placeId = parseInt(req.query.placeId);
             const gameID = req.query.gameID;
             const port = parseInt(req.query.port);
-            
+
             const game = await db.getGame(placeId);
             if (game == null) {
                 res.status(400).send()
                 return;
             }
-            if (game.lastHeartBeat != 0){
+            if (game.lastHeartBeat != 0) {
                 await db.setGameProperty(placeId, "port", port);
             }
             res.send();
@@ -39,7 +39,7 @@ module.exports = {
 
         app.post("/v1/Close", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -62,8 +62,10 @@ module.exports = {
             }
             const games = await db.getJobsByGameId(placeId);
             for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
+                const job = await db.getJob(games[i], placeId);
+                if (job) {
+                    await job.stop();
+                }
             }
             const script = `
 `

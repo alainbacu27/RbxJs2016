@@ -66,7 +66,7 @@ module.exports = {
             res.send();
         });
 
-        app.get("/asset", db.requireAuth2, async (req, res) => {            
+        app.get("/asset", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
             if (db.getSiteConfig().backend.assetdeliveryEnabled == false) {
                 res.status(400).send();
@@ -131,7 +131,7 @@ module.exports = {
             }
 
             const item1 = await db.getCatalogItem(id);
-            if (item1){
+            if (item1) {
                 id = item1.internalAssetId;
             }
 
@@ -582,7 +582,7 @@ module.exports = {
             }
             res.send(`https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${userId}${itemsResponse}`) // ;http://www.rbx2016.nl/asset/?id=63690008&version=5;http://www.rbx2016.nl/asset/?id=144076358;http://www.rbx2016.nl/asset/?id=144076760;http://www.rbx2016.nl/asset/?id=144075659;http://www.rbx2016.nl/asset/?id=86500054&version=1;http://www.rbx2016.nl/asset/?id=86500078&version=1;http://www.rbx2016.nl/asset/?id=86500036&version=1;http://www.rbx2016.nl/asset/?id=86500008&version=1;http://www.rbx2016.nl/asset/?id=86500064&version=1;http://www.rbx2016.nl/asset/?id=86498048&version=1
         });
-        
+
         app.get("/Asset/CharacterFetch2.ashx", async (req, res) => {
             const userId = parseInt(req.query.player) || parseInt(req.query.userId);
             const user = await db.getUser(userId);
@@ -615,11 +615,11 @@ module.exports = {
             }
             res.send(`https://www.rbx2016.nl/asset/BodyColors.ashx?userId=${userId}${itemsResponse}`) // ;http://www.rbx2016.nl/asset/?id=63690008&version=5;http://www.rbx2016.nl/asset/?id=144076358;http://www.rbx2016.nl/asset/?id=144076760;http://www.rbx2016.nl/asset/?id=144075659;http://www.rbx2016.nl/asset/?id=86500054&version=1;http://www.rbx2016.nl/asset/?id=86500078&version=1;http://www.rbx2016.nl/asset/?id=86500036&version=1;http://www.rbx2016.nl/asset/?id=86500008&version=1;http://www.rbx2016.nl/asset/?id=86500064&version=1;http://www.rbx2016.nl/asset/?id=86498048&version=1
         });
-        
+
         app.get("/asset/BodyColors.ashx", async (req, res) => {
             const userId = parseInt(req.query.userId);
             const avatarColors = await db.getUserProperty(userId, "avatarColors") || [1002, 1002, 1002, 1002, 1002, 1002];
-            
+
             res.send(`<?xml version="1.0" encoding="utf-8" ?>
             <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.rbx2016.nl/roblox.xsd" version="4">
                 <External>null</External>
@@ -642,7 +642,7 @@ module.exports = {
         app.get("/asset/BodyColors2.ashx", async (req, res) => {
             const userId = parseInt(req.query.userId);
             const avatarColors = await db.getUserProperty(userId, "avatarColors") || [1002, 1002, 1002, 1002, 1002, 1002];
-            
+
             const script = `
             resp = [[<?xml version="1.0" encoding="utf-8" ?>
             <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.rbx2016.nl/roblox.xsd" version="4">
@@ -1381,6 +1381,7 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
             }
             const teamCreate = req.query.teamCreate == "true";
             const gameid = parseInt(req.query.gameid);
+            const jobid = req.query.jobid
             const ticket = req.query.ticket;
             const user = await db.findUserByToken(ticket);
             if (!user || user.banned || user.inviteKey == "") {
@@ -1395,12 +1396,18 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
 
             const isUserUnder13 = await db.isUserUnder13(user.userid);
 
+            const job = await db.getJob(jobid, gameid);
+            if (!job) {
+                res.status(400).json({});
+                return;
+            }
+
             let joinScript = "";
             if (!teamCreate) {
                 joinScript = "\r\n" + JSON.stringify({
                     "ClientPort": 0,
-                    "MachineAddress": game.ip,
-                    "ServerPort": game.port,
+                    "MachineAddress": job.getIp(),
+                    "ServerPort": job.getHostPort(),
                     "PingUrl": `https://assetgame.rbx2016.nl/Game/ClientPresence.ashx?version=old&PlaceID=${game.gameid}&GameID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&UserID=${user.userid}`,
                     "PingInterval": 20,
                     "UserName": user.username,
@@ -1439,8 +1446,8 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
             } else {
                 joinScript = "\r\n" + JSON.stringify({
                     "ClientPort": 0,
-                    "MachineAddress": game.teamCreateIp,
-                    "ServerPort": game.teamCreatePort,
+                    "MachineAddress": job.getIp(),
+                    "ServerPort": job.getHostPort(),
                     "PingUrl": `https://assetgame.rbx2016.nl/Game/ClientPresence.ashx?version=old&PlaceID=${game.gameid}&GameID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&UserID=${user.userid}`,
                     "PingInterval": 20,
                     "UserName": user.username,
@@ -1727,26 +1734,56 @@ end
                     res.status(404).json({});
                 }
 
-                const gameSession = await db.newJob(game.gameid);
-                if (gameSession) {
-                    setImmediate(async () => {
-                        await gameSession.host();
-                        setTimeout(() => {
-                            let interval;
-                            interval = setInterval(async () => {
-                                if (await gameSession.update()) {
-                                    clearInterval(interval);
-                                }
+                let gameServer = await db.findOptimalServer(game.gameid);
+                if (!gameServer && !PlaceLauncherTimeouts[placeId.toString()]) {
+                    PlaceLauncherTimeouts[placeId.toString()] = true;
+                    setTimeout(() => {
+                        if (Object.keys(PlaceLauncherTimeouts).includes(placeId.toString())) {
+                            delete PlaceLauncherTimeouts[placeId.toString()]
+                        }
+                    }, 5000);
+                    const gameSession = await db.newJob(game.gameid);
+                    if (gameSession) {
+                        gameServer = gameSession;
+                        setImmediate(async () => {
+                            await gameSession.host();
+                            setTimeout(() => {
+                                let interval;
+                                interval = setInterval(async () => {
+                                    if (await gameSession.update()) {
+                                        clearInterval(interval);
+                                    }
+                                }, 5000);
                             }, 5000);
-                        }, 5000);
-                    });
+                        });
+                    }
                 }
 
                 setTimeout(async () => {
-                    if (game.port == 0) {
+                    if (gameServer.getHostPort() == 0) {
                         res.json({
                             "jobId": "",
                             "status": 0,
+                            "joinScriptUrl": "",
+                            "authenticationUrl": "",
+                            "authenticationTicket": "",
+                            "message": "",
+                            "joinScript": "",
+                        });
+                        if (typeof db.pendingPlayerAuthentications[ip] == "object") {
+                            if (!db.pendingPlayerAuthentications[ip].includes(ip)) {
+                                db.pendingPlayerAuthentications[ip].push([db.getUnixTimestamp(), user.cookie]);
+                            }
+                        } else {
+                            db.pendingPlayerAuthentications[ip] = [
+                                [db.getUnixTimestamp(), user.cookie]
+                            ];
+                        }
+                        return;
+                    }else if (!gameServer || (gameServer.getPlayerCount() >= game.maxplayers && !(req.user.role == "mod" || req.user.role == "admin" || req.user.role == "owner"))) {
+                        res.json({
+                            "jobId": "",
+                            "status": 6,
                             "joinScriptUrl": "",
                             "authenticationUrl": "",
                             "authenticationTicket": "",
@@ -1768,13 +1805,13 @@ end
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&jobid=" + gameServer.getJobId() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
                         "authenticationTicket": "",
                         "message": ""
                     });
                 }, 5000);
-            } else if(request == "RequestPrivateGame"){
+            } else if (request == "RequestPrivateGame") {
                 // Not currently private. (Used for android.)
                 if (!user && typeof db.pendingPlayerAuthentications[ip] == "object" && db.pendingPlayerAuthentications[ip].length > 0) {
                     while (db.pendingPlayerAuthentications[ip].length > 0 && !user) {
@@ -1800,23 +1837,33 @@ end
                     res.status(404).json({});
                 }
 
-                const gameSession = await db.newJob(game.gameid);
-                if (gameSession) {
-                    setImmediate(async () => {
-                        await gameSession.host();
-                        setTimeout(() => {
-                            let interval;
-                            interval = setInterval(async () => {
-                                if (await gameSession.update()) {
-                                    clearInterval(interval);
-                                }
+                let gameServer = await db.findOptimalServer(game.gameid);
+                if (!gameServer && !PlaceLauncherTimeouts[placeId.toString()]) {
+                    PlaceLauncherTimeouts[placeId.toString()] = true;
+                    setTimeout(() => {
+                        if (Object.keys(PlaceLauncherTimeouts).includes(placeId.toString())) {
+                            delete PlaceLauncherTimeouts[placeId.toString()]
+                        }
+                    }, 5000);
+                    const gameSession = await db.newJob(game.gameid);
+                    if (gameSession) {
+                        gameServer = gameSession;
+                        setImmediate(async () => {
+                            await gameSession.host();
+                            setTimeout(() => {
+                                let interval;
+                                interval = setInterval(async () => {
+                                    if (await gameSession.update()) {
+                                        clearInterval(interval);
+                                    }
+                                }, 5000);
                             }, 5000);
-                        }, 5000);
-                    });
+                        });
+                    }
                 }
 
                 setTimeout(async () => {
-                    if (game.port == 0) {
+                    if (!gameServer || gameServer.getHostPort() == 0) {
                         res.json({
                             "jobId": "",
                             "status": 0,
@@ -1841,7 +1888,7 @@ end
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&jobid=" + gameServer.getJobId() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
                         "authenticationTicket": "",
                         "message": ""
@@ -1884,23 +1931,33 @@ end
                 }
 
 
-                const gameSession = await db.newJob(game.gameid, true);
-                if (gameSession) {
-                    setImmediate(async () => {
-                        await gameSession.host();
-                        setTimeout(() => {
-                            let interval;
-                            interval = setInterval(async () => {
-                                if (await gameSession.update()) {
-                                    clearInterval(interval);
-                                }
+                let gameServer = await db.getCloudEditServer(game.gameid);
+                if (!gameServer && !PlaceLauncherTimeouts[placeId.toString()]) {
+                    PlaceLauncherTimeouts[placeId.toString()] = true;
+                    setTimeout(() => {
+                        if (Object.keys(PlaceLauncherTimeouts).includes(placeId.toString())) {
+                            delete PlaceLauncherTimeouts[placeId.toString()]
+                        }
+                    }, 5000);
+                    const gameSession = await db.newJob(game.gameid, true);
+                    if (gameSession) {
+                        gameServer = gameSession;
+                        setImmediate(async () => {
+                            await gameSession.host();
+                            setTimeout(() => {
+                                let interval;
+                                interval = setInterval(async () => {
+                                    if (await gameSession.update()) {
+                                        clearInterval(interval);
+                                    }
+                                }, 5000);
                             }, 5000);
-                        }, 5000);
-                    });
+                        });
+                    }
                 }
 
                 setTimeout(async () => {
-                    if (game.teamCreatePort == 0) {
+                    if (!gameServer || gameServer.getHostPort() == 0) {
                         res.json({
                             "jobId": "",
                             "status": 0,
@@ -1924,7 +1981,7 @@ end
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&jobid=" + gameServer.getJobId() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "http://",
                         "authenticationTicket": "",
                         "message": ""
@@ -2040,7 +2097,7 @@ end
 
         app.get("/Game/api/v1/GetPublicIp", async (req, res) => {
             let ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const apiKey = req.query.apiKey;
@@ -2060,6 +2117,8 @@ publicIp = "${ip}"`
             const signature = db.sign(script);
             res.send(`--rbxsig%${signature}%` + script);
         });
+
+        let PlaceLauncherTimeouts = {};
 
         app.get("/game/PlaceLauncher.ashx", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
@@ -2093,23 +2152,33 @@ publicIp = "${ip}"`
                     res.status(404).json({});
                 }
 
-                const gameSession = await db.newJob(game.gameid);
-                if (gameSession) {
-                    setImmediate(async () => {
-                        await gameSession.host();
-                        setTimeout(() => {
-                            let interval;
-                            interval = setInterval(async () => {
-                                if (await gameSession.update()) {
-                                    clearInterval(interval);
-                                }
+                let gameServer = await db.findOptimalServer(game.gameid);
+                if (!gameServer && !PlaceLauncherTimeouts[placeId.toString()]) {
+                    PlaceLauncherTimeouts[placeId.toString()] = true;
+                    setTimeout(() => {
+                        if (Object.keys(PlaceLauncherTimeouts).includes(placeId.toString())) {
+                            delete PlaceLauncherTimeouts[placeId.toString()]
+                        }
+                    }, 5000);
+                    const gameSession = await db.newJob(game.gameid);
+                    if (gameSession) {
+                        gameServer = gameSession;
+                        setImmediate(async () => {
+                            await gameSession.host();
+                            setTimeout(() => {
+                                let interval;
+                                interval = setInterval(async () => {
+                                    if (await gameSession.update()) {
+                                        clearInterval(interval);
+                                    }
+                                }, 5000);
                             }, 5000);
-                        }, 5000);
-                    });
+                        });
+                    }
                 }
 
                 setTimeout(async () => {
-                    if (game.port == 0) {
+                    if (!gameServer || gameServer.getHostPort() == 0) {
                         res.json({
                             "jobId": "",
                             "status": 0,
@@ -2134,13 +2203,13 @@ publicIp = "${ip}"`
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&jobid=" + gameServer.getJobId() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
                         "authenticationTicket": "",
                         "message": ""
                     });
                 }, 5000);
-            } else if(request == "RequestPrivateGame"){
+            } else if (request == "RequestPrivateGame") {
                 // Not currently private. (Used for android.)
                 if (!user && typeof db.pendingPlayerAuthentications[ip] == "object" && db.pendingPlayerAuthentications[ip].length > 0) {
                     while (db.pendingPlayerAuthentications[ip].length > 0 && !user) {
@@ -2166,23 +2235,33 @@ publicIp = "${ip}"`
                     res.status(404).json({});
                 }
 
-                const gameSession = await db.newJob(game.gameid);
-                if (gameSession) {
-                    setImmediate(async () => {
-                        await gameSession.host();
-                        setTimeout(() => {
-                            let interval;
-                            interval = setInterval(async () => {
-                                if (await gameSession.update()) {
-                                    clearInterval(interval);
-                                }
+                let gameServer = await db.findOptimalServer(game.gameid);
+                if (!gameServer && !PlaceLauncherTimeouts[placeId.toString()]) {
+                    PlaceLauncherTimeouts[placeId.toString()] = true;
+                    setTimeout(() => {
+                        if (Object.keys(PlaceLauncherTimeouts).includes(placeId.toString())) {
+                            delete PlaceLauncherTimeouts[placeId.toString()]
+                        }
+                    }, 5000);
+                    const gameSession = await db.newJob(game.gameid);
+                    if (gameSession) {
+                        gameServer = gameSession;
+                        setImmediate(async () => {
+                            await gameSession.host();
+                            setTimeout(() => {
+                                let interval;
+                                interval = setInterval(async () => {
+                                    if (await gameSession.update()) {
+                                        clearInterval(interval);
+                                    }
+                                }, 5000);
                             }, 5000);
-                        }, 5000);
-                    });
+                        });
+                    }
                 }
 
                 setTimeout(async () => {
-                    if (game.port == 0) {
+                    if (!gameServer || gameServer.getHostPort() == 0) {
                         res.json({
                             "jobId": "",
                             "status": 0,
@@ -2207,7 +2286,7 @@ publicIp = "${ip}"`
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&jobid=" + gameServer.getJobId() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
                         "authenticationTicket": "",
                         "message": ""
@@ -2250,23 +2329,33 @@ publicIp = "${ip}"`
                 }
 
 
-                const gameSession = await db.newJob(game.gameid, true);
-                if (gameSession) {
-                    setImmediate(async () => {
-                        await gameSession.host();
-                        setTimeout(() => {
-                            let interval;
-                            interval = setInterval(async () => {
-                                if (await gameSession.update()) {
-                                    clearInterval(interval);
-                                }
+                let gameServer = await db.getCloudEditServer(game.gameid);
+                if (!gameServer && !PlaceLauncherTimeouts[placeId.toString()]) {
+                    PlaceLauncherTimeouts[placeId.toString()] = true;
+                    setTimeout(() => {
+                        if (Object.keys(PlaceLauncherTimeouts).includes(placeId.toString())) {
+                            delete PlaceLauncherTimeouts[placeId.toString()]
+                        }
+                    }, 5000);
+                    const gameSession = await db.newJob(game.gameid, true);
+                    if (gameSession) {
+                        gameServer = gameSession;
+                        setImmediate(async () => {
+                            await gameSession.host();
+                            setTimeout(() => {
+                                let interval;
+                                interval = setInterval(async () => {
+                                    if (await gameSession.update()) {
+                                        clearInterval(interval);
+                                    }
+                                }, 5000);
                             }, 5000);
-                        }, 5000);
-                    });
+                        });
+                    }
                 }
 
                 setTimeout(async () => {
-                    if (game.teamCreatePort == 0) {
+                    if (!gameServer || gameServer.getHostPort() == 0) {
                         res.json({
                             "jobId": "",
                             "status": 0,
@@ -2290,7 +2379,7 @@ publicIp = "${ip}"`
                     res.json({
                         "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                         "status": 2,
-                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?teamCreate=true&gameid=" + game.gameid.toString() + "&jobid=" + gameServer.getJobId() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "http://",
                         "authenticationTicket": "",
                         "message": ""
@@ -2303,22 +2392,22 @@ publicIp = "${ip}"`
 
         app.get("/Game/Badge/HasBadge.ashx", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const UserID = req.query.UserID;
             const BadgeID = req.query.BadgeID;
             const owned = await db.userOwnsAsset(UserID, BadgeID);
-            if (owned){
+            if (owned) {
                 res.send("<Value Type=\"boolean\">true</Value>");
-            }else{
+            } else {
                 res.send("<Value Type=\"boolean\">false</Value>");
             }
         });
 
         app.post("/Game/Badge/AwardBadge.ashx", async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const tmp = req.query.UserID;
@@ -2327,13 +2416,13 @@ publicIp = "${ip}"`
             let badgeId = parseInt(req.query.BadgeId);
             let placeId = parseInt(req.query.PlaceId);
 
-            if (tmp && tmp.includes("=")){
+            if (tmp && tmp.includes("=")) {
                 const split = tmp.split("=");
                 userId = parseInt(split[0]);
                 badgeId = parseInt(split[1]);
                 placeId = parseInt(split[2]);
             }
-            
+
             const user = await db.getUser(userId);
             if (!user) {
                 res.sendStatus(404);
@@ -2376,14 +2465,14 @@ publicIp = "${ip}"`
             }
             if (!badge.onSale) {
                 res.send("<Value Type=\"boolean\">true</Value>");
-            }else{
+            } else {
                 res.send("<Value Type=\"boolean\">false</Value>");
             }
         });
 
         app.post("/api/v1/Close", db.requireAuth2, async (req, res) => {
             const ip = get_ip(req).clientIp;
-            if (!db.getHostPublicIps().includes(ip)){
+            if (!db.getHostPublicIps().includes(ip)) {
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
@@ -2406,8 +2495,10 @@ publicIp = "${ip}"`
             }
             const games = await db.getJobsByGameId(placeId);
             for (let i = 0; i < games.length; i++) {
-                const job = await db.getJob(games[i]);
-                await job.stop();
+                const job = await db.getJob(games[i], placeId);
+                if (job) {
+                    await job.stop();
+                }
             }
             const script = `
 `
@@ -2475,12 +2566,12 @@ publicIp = "${ip}"`
             }
             const user = await db.getUser(userid);
             if (action == "HasPass") {
-                if (user != null && await db.userOwnsAsset(user.userid, passid)){
+                if (user != null && await db.userOwnsAsset(user.userid, passid)) {
                     res.send("<Value Type=\"boolean\">true</Value>");
-                }else{
+                } else {
                     res.send("<Value Type=\"boolean\">false</Value>");
                 }
-            }else{
+            } else {
                 res.stauts(404).send("Unknown Action");
             }
         });

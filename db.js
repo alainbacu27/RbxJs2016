@@ -1642,83 +1642,118 @@ setInterval(() => {
         let updated = 0;
         let needsUpdating = 0;
         dbo.collection("games").find({
-            lastHeartBeat: {
-                $gt: 0
+            servers: {
+                $exists: true,
+                $not: {
+                    $size: 0
+                }
             }
         }).toArray(async function (err, result) {
             if (err) throw err;
             for (let i = 0; i < result.length; i++) {
-                if (result[i].lastHeartBeat != 0 && Date.now() - unixToDate(result[i].lastHeartBeat) > 15000) {
-                    needsUpdating++;
-                    const servers = await getJobsByGameId(result[i].gameid);
-                    if (servers.length > 0) {
-                        for (let j = 0; j < servers.length; j++) {
-                            const job = await getJob(servers[j]);
-                            if (job) {
-                                await job.stop();
-                            }
+                let inactiveServers = result[i].servers.filter(server => server.lastHeartBeat <= 0);
+                let servers = result[i].servers.filter(server => server.lastHeartBeat > 0);
+                for (let j = 0; j < servers.length; j++) {
+                    if (servers[j].lastHeartBeat != 0 && Date.now() - unixToDate(servers[j].lastHeartBeat) > 15000) {
+                        needsUpdating++;
+                        const jobid = servers[j].jobid
+                        console.error(`TERMINATING JOB: ${jobid}! ${Date.now() - unixToDate(servers[j].lastHeartBeat)}ms OverDue!!`);
+                        const server = result[i];
+                        const job = await getJob(jobid, result[i].gameid);
+                        if (job) {
+                            await job.stop();
                         }
-                    }
-                    dbo.collection("games").updateOne({
-                        gameid: result[i].gameid
-                    }, {
-                        $set: {
-                            port: 0,
-                            playing: 0,
-                            rccVersion: "",
-                            lastHeartBeat: 0
-                        }
-                    }, async function (err, res) {
-                        if (err) throw err;
+                        servers.splice(j, 1);
                         dbo.collection("users").updateMany({
-                            playing: result[i].gameid
+                            playing: result[i].gameid,
+                            playingServerId: jobid
                         }, {
                             $set: {
-                                playing: 0
+                                playing: 0,
+                                playingServerId: "",
                             }
                         }, async function (err, res) {
                             if (err) throw err;
                             updated++;
                         });
-                    });
-                } else if (result[i].lastHeartBeat == 0) {
-                    needsUpdating++;
+                    } else if (result[i].lastHeartBeat == 0) {
+                        needsUpdating++;
+                        dbo.collection("users").updateMany({
+                            playing: result[i].gameid,
+                            playingServerId: servers[j].jobid
+                        }, {
+                            $set: {
+                                playing: 0,
+                                playingServerId: "",
+                            }
+                        }, async function (err, res) {
+                            if (err) throw err;
+                            updated++;
+                        });
+                    }
+                }
+                dbo.collection("games").updateOne({
+                    gameid: result[i].gameid
+                }, {
+                    $set: {
+                        servers: servers.concat(inactiveServers)
+                    }
+                }, async function (err, res) {
+                    if (err) throw err;
                     dbo.collection("users").updateMany({
-                        playing: result[i].gameid
+                        playing: result[i].gameid,
+                        playingServerId: {
+                            $nin: servers.map(server => server.jobid)
+                        }
                     }, {
                         $set: {
-                            playing: 0
+                            playing: 0,
+                            playingServerId: ""
                         }
                     }, async function (err, res) {
                         if (err) throw err;
                         updated++;
                     });
-                }
+                });
             }
             while (updated < needsUpdating) {
                 await sleep(100);
             }
         });
         dbo.collection("games").find({
-            teamCreateLastHeartBeat: {
-                $gt: 0
+            teamCreateServers: {
+                $exists: true,
+                $not: {
+                    $size: 0
+                }
             }
         }).toArray(async function (err, result) {
             if (err) throw err;
+
             for (let i = 0; i < result.length; i++) {
-                if (result[i].teamCreateLastHeartBeat != 0 && Date.now() - unixToDate(result[i].teamCreateLastHeartBeat) > 15000) {
-                    needsUpdating++;
-                    dbo.collection("games").updateOne({
-                        gameid: result[i].gameid
-                    }, {
-                        $set: {
-                            teamCreatePort: 0,
-                            teamCreatePlaying: 0,
-                            teamCreateRccVersion: "",
-                            teamCreateLastHeartBeat: 0
+                let inactiveServers = result[i].teamCreateServers.filter(server => server.lastHeartBeat <= 0);
+                let servers = result[i].teamCreateServers.filter(server => server.lastHeartBeat > 0);
+                for (let j = 0; j < servers.length; j++) {
+                    if (servers[j].lastHeartBeat != 0 && Date.now() - unixToDate(servers[j].lastHeartBeat) > 15000) {
+                        needsUpdating++;
+                        const server = result[i];
+                        const job = await getJob(server.jobid, result[i].gameid);
+                        if (job) {
+                            await job.stop();
                         }
-                    }, async function (err, res) {
-                        if (err) throw err;
+                        servers.splice(j, 1);
+                        dbo.collection("users").updateMany({
+                            editing: result[i].gameid
+                        }, {
+                            $set: {
+                                editing: 0,
+                            }
+                        }, async function (err, res) {
+                            if (err) throw err;
+                            updated++;
+                        });
+                    } else if (result[i].lastHeartBeat == 0) {
+                        needsUpdating++;
                         dbo.collection("users").updateMany({
                             editing: result[i].gameid
                         }, {
@@ -1729,8 +1764,19 @@ setInterval(() => {
                             if (err) throw err;
                             updated++;
                         });
-                    });
+                    }
                 }
+                dbo.collection("games").updateOne({
+                    gameid: result[i].gameid
+                }, {
+                    $set: {
+                        teamCreateServers: servers.concat(inactiveServers),
+                        playing: 0
+                    }
+                }, async function (err, res) {
+                    if (err) throw err;
+                    updated++;
+                });
             }
             await sleep(1000)
             while (updated < needsUpdating) {
@@ -1739,7 +1785,7 @@ setInterval(() => {
             db.close();
         });
     });
-}, 7500);
+}, 5000);
 
 let availableRCCPorts = [];
 for (let i = 0; i < siteConfig.backend.maxServers; i++) {
@@ -1785,14 +1831,17 @@ function getRCCScriptXml(script, id, timeout = 10, hasExecutedOnce = false) {
     }
 }
 
-function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
+async function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     const key = uuidv4();
     PRIVATE_PLACE_KEYS.push(key);
     let script = ``;
+    const game = await getGame(gameid);
     if (!isCloudEdit) {
         script = `local placeId = ${gameid}
     local port = ${port}
     local url = "http://www.rbx2016.nl"
+    local MaxPlayers = ${game.maxplayers}
+    game:GetService("Players").MaxPlayersInternal = MaxPlayers
 
     function waitForChild(parent, childName)
         while true do
@@ -1851,19 +1900,51 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     local started = false
     local starting = false
 
+    local function MakeIsInGroup(player, groupId, requiredRank)
+        assert(type(requiredRank) == "nil" or type(requiredRank) == "number", "requiredRank must be a number or nil")
+
+        local inGroupCache = {}
+        return function(player)
+        if player and player.UserId then
+            local userId = player.UserId
+
+            if inGroupCache[userId] == nil then
+            local inGroup = false
+            pcall(function()
+                if requiredRank then
+                    inGroup = player:GetRankInGroup(groupId) > requiredRank
+                else
+                    inGroup = player:IsInGroup(groupId)
+                end
+            end)
+            inGroupCache[userId] = inGroup
+            end
+
+            return inGroupCache[userId]
+        end
+
+        return false
+        end
+    end
+
     game:GetService("Players").PlayerAdded:connect(function(plr)
         if not started then
             started = true
         end
+        local isAdmin = (MakeIsInGroup(plr, 1200769) and MakeIsInGroup(plr, 1200769)()) or (MakeIsInGroup(plr, 2868472, 100) and MakeIsInGroup(plr, 2868472, 100)())
+        if #game.Players:GetPlayers() > MaxPlayers and not isAdmin then
+            plr:Kick("Server is full")
+            return
+        end
         plrs = #game.Players:GetPlayers()
         print("Player " .. plr.userId .. " added")
-        loadfile(url .. "/Game/api/v1/UserJoined?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
+        loadfile(url .. "/Game/api/v1/UserJoined?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId) .. "|" .. game.JobId)()
     end)
 
     game:GetService("Players").PlayerRemoving:connect(function(plr)
-        plrs = plrs - 1
+        plrs = #game.Players:GetPlayers()
         print("Player " .. plr.userId .. " leaving")
-        loadfile(url .. "/Game/api/v1/UserLeft?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
+        loadfile(url .. "/Game/api/v1/UserLeft?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId) .. "|" .. game.JobId)()
     end)
 
     if placeId~=nil and url~=nil then
@@ -1889,13 +1970,15 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                     game.JobId ..
                     "|${gameid}" ..
                     "|" ..
-                    tostring(game:GetService("Players").MaxPlayers) ..
+                    tostring(MaxPlayers) ..
                     "|" ..
                     publicIp ..
                     "|${port}|" ..
                     tostring(#game:GetService("Players"):GetPlayers()) ..
                     "|false|Unknown|" ..
-                    plrs
+                    plrs ..
+                    "|" ..
+                    workspace:GetRealPhysicsFPS()
                     )
                 end)
                 pcall(function()
@@ -2020,13 +2103,13 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
             end
             plrs = #game.Players:GetPlayers()
             print("Player " .. plr.userId .. " added")
-            loadfile(url .. "/Game/api/v1/UserJoinedTeamCreate?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
+            loadfile(url .. "/Game/api/v1/UserJoinedTeamCreate?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId) .. "|" .. game.JobId)()
         end)
 
         game:GetService("Players").PlayerRemoving:connect(function(plr)
             plrs = plrs - 1
             print("Player " .. plr.userId .. " leaving")
-            loadfile(url .. "/Game/api/v1/UserLeftTeamCreate?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId))()
+            loadfile(url .. "/Game/api/v1/UserLeftTeamCreate?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|${gameid}|" .. tostring(plr.UserId) .. "|" .. game.JobId)()
         end)
 
         if placeId~=nil and url~=nil then
@@ -2055,13 +2138,15 @@ function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
                         game.JobId ..
                         "|${gameid}" ..
                         "|" ..
-                        tostring(game:GetService("Players").MaxPlayers) ..
+                        tostring(MaxPlayers) ..
                         "|" ..
                         publicIp ..
                         "|${port}|" ..
                         tostring(#game:GetService("Players"):GetPlayers()) ..
                         "|false|Unknown|" ..
-                        plrs
+                        plrs ..
+                        "|" ..
+                        workspace:GetRealPhysicsFPS()
                         )
                     end)
                     pcall(function()
@@ -2385,10 +2470,46 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) {
     return script;
 }
 
-// console.log(getRCCHostScript(1, 53640))
+// console.log(await getRCCHostScript(1, 53640))
 
 let activeJobs = {};
 let activeGameJobs = {};
+
+async function findOptimalServer(gameid, overrideFlag = false) {
+    return new Promise(async returnPromise => {
+        const game = await getGame(gameid);
+        let bestServer = null;
+        let bestServerScore = Infinity;
+        const servers = game.servers;
+        for (let i = 0; i < servers.length; i++) {
+            const server = servers[i];
+            const job = await getJob(server.jobid, server.gameid);
+            if (job) {
+                const score = job.playing;
+                if (score != 0 && score < bestServerScore && (score < game.maxplayers || overrideFlag)) {
+                    bestServerScore = score;
+                    bestServer = job; // Return the job object, not the server object!
+                }
+            }
+        }
+        returnPromise(bestServer);
+    });
+}
+
+async function getCloudEditServer(gameid) {
+    return new Promise(async returnPromise => {
+        const game = await getGame(gameid);
+        if (game.teamCreateServers.length > 0) {
+            const server = game.teamCreateServers[0];
+            const job = await getJob(server.jobid, server.gameid);
+            if (job) {
+                returnPromise(job);
+                return;
+            }
+        }
+        returnPromise(null);
+    });
+}
 
 async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume = false, port = 0, hostPort = 0, jobId0 = "") {
     return new Promise(async returnPromise => {
@@ -2410,7 +2531,14 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         return;
                     }
 
-                    if (activeGameJobs[gameid] && gameid != 0) { // For now..
+                    if (result != null && result.servers.length >= siteConfig.backend.maxServersPerGame) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+
+
+                    if (activeGameJobs[gameid] && activeGameJobs[gameid].length >= siteConfig.backend.maxServersPerGame && gameid != 0) { // For now..
                         db.close();
                         returnPromise(null);
                         return;
@@ -2419,6 +2547,8 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                     let myPort = port;
                     let myHostPort = hostPort;
                     let jobId = jobId0;
+                    let playerCount = 0;
+                    let server = null;
                     let proc = null;
 
                     let hasExecutedOnce = true;
@@ -2678,13 +2808,18 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         host: async function () {
                             await start();
                             await sleep(1000);
-                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
+                            const resp = await execute(await getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
                             if (resp.length <= 0) return;
                             if (resp[resp.length - 1].startsWith("err|MainExecutionJob:")) {
                                 console.error(resp);
                             }
                             if (resp[resp.length - 1] == "err|Unknown Error") {
                                 await stop();
+                            }
+                            const game = await getGame(gameid);
+                            const server2 = game.servers.filter(s => s.port == myHostPort)[0];
+                            if (server2) {
+                                server = server2;
                             }
                         },
                         update: async function () {
@@ -2698,7 +2833,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                     const dbo = db.db(dbName);
                                     dbo.collection("games").findOne({
                                         gameid: gameid,
-                                        port: myHostPort
+                                        servers: {
+                                            $elemMatch: {
+                                                port: myHostPort
+                                            }
+                                        }
                                     }, async function (err, result) {
                                         if (err) {
                                             db.close();
@@ -2719,9 +2858,21 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         },
                         start: start,
                         stop: stop,
+                        setPlayerCount: function (count) {
+                            playerCount = count;
+                        },
+                        getPlayerCount: function () {
+                            return playerCount;
+                        },
                         execute: execute,
                         isAlive: function () {
                             return myPort != 0;
+                        },
+                        isCloudEdit: function () {
+                            return isCloudEdit;
+                        },
+                        isRender: function () {
+                            return isRenderJob;
                         },
                         getRccPort: function () {
                             return myPort;
@@ -2734,6 +2885,15 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         },
                         getGameId: function () {
                             return gameid;
+                        },
+                        getIp: function () {
+                            return server ? server.ip : hostPublicIp;
+                        },
+                        getServer: function () {
+                            return server;
+                        },
+                        setServer: function (s) {
+                            server = s;
                         }
                     }
 
@@ -2750,8 +2910,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
             if (!isCloudEdit) {
                 if (!isRenderJob) {
                     dbo.collection("games").findOne({
-                        gameid: gameid,
-                        port: 0
+                        gameid: gameid
                     }, function (err, result) {
                         if (err) {
                             db.close();
@@ -2763,8 +2922,13 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             returnPromise(null);
                             return;
                         }
+                        if (result != null && result.servers.length >= siteConfig.backend.maxServersPerGame) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
 
-                        if (activeGameJobs[gameid] && gameid != 0) { // For now..
+                        if (activeGameJobs[gameid] && activeGameJobs[gameid].length >= siteConfig.backend.maxServersPerGame && gameid != 0) { // For now..
                             db.close();
                             returnPromise(null);
                             return;
@@ -2773,6 +2937,8 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         let myPort = 0;
                         let myHostPort = 0;
                         let jobId = "";
+                        let playerCount = 0;
+                        let server = null;
                         let proc = null;
 
                         let hasExecutedOnce = false;
@@ -3032,7 +3198,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             host: async function () {
                                 await start();
                                 await sleep(1000);
-                                const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
+                                const resp = await execute(await getRCCHostScript(gameid, myHostPort, jobId, false), 6000000);
                                 if (resp.length <= 0) return;
                                 if (resp[resp.length - 1].startsWith("err|MainExecutionJob:")) {
                                     console.error(resp);
@@ -3052,7 +3218,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                         const dbo = db.db(dbName);
                                         dbo.collection("games").findOne({
                                             gameid: gameid,
-                                            port: myHostPort
+                                            servers: {
+                                                $elemMatch: {
+                                                    port: myHostPort
+                                                }
+                                            }
                                         }, async function (err, result) {
                                             if (err) {
                                                 db.close();
@@ -3073,9 +3243,21 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             },
                             start: start,
                             stop: stop,
+                            setPlayerCount: function (count) {
+                                playerCount = count;
+                            },
+                            getPlayerCount: function () {
+                                return playerCount;
+                            },
                             execute: execute,
                             isAlive: function () {
                                 return myPort != 0;
+                            },
+                            isCloudEdit: function () {
+                                return isCloudEdit;
+                            },
+                            isRender: function () {
+                                return isRenderJob;
                             },
                             getRccPort: function () {
                                 return myPort;
@@ -3088,6 +3270,15 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             },
                             getGameId: function () {
                                 return gameid;
+                            },
+                            getIp: function () {
+                                return server ? server.ip : hostPublicIp;
+                            },
+                            getServer: function () {
+                                return server;
+                            },
+                            setServer: function (s) {
+                                server = s;
                             }
                         }
 
@@ -3095,8 +3286,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                     });
                 } else {
                     dbo.collection("games").findOne({
-                        gameid: gameid,
-                        port: 0
+                        gameid: gameid
                     }, function (err, result) {
                         if (err) {
                             db.close();
@@ -3109,7 +3299,13 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             return;
                         }
 
-                        if (activeGameJobs[gameid] && gameid != 0) { // For now..
+                        if (result != null && result.servers.length >= siteConfig.backend.maxServersPerGame) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+
+                        if (activeGameJobs[gameid] && activeGameJobs[gameid].length >= siteConfig.backend.maxServersPerGame && gameid != 0) { // For now..
                             db.close();
                             returnPromise(null);
                             return;
@@ -3118,6 +3314,8 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         let myPort = 0;
                         let myHostPort = 0;
                         let jobId = "";
+                        let playerCount = 0;
+                        let server = null;
                         let proc = null;
 
                         let hasExecutedOnce = false;
@@ -3393,7 +3591,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                         const dbo = db.db(dbName);
                                         dbo.collection("games").findOne({
                                             gameid: gameid,
-                                            port: myHostPort
+                                            servers: {
+                                                $elemMatch: {
+                                                    port: myHostPort
+                                                }
+                                            }
                                         }, async function (err, result) {
                                             if (err) {
                                                 db.close();
@@ -3414,9 +3616,21 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             },
                             start: start,
                             stop: stop,
+                            setPlayerCount: function (count) {
+                                playerCount = count;
+                            },
+                            getPlayerCount: function () {
+                                return playerCount;
+                            },
                             execute: execute,
                             isAlive: function () {
                                 return myPort != 0;
+                            },
+                            isCloudEdit: function () {
+                                return isCloudEdit;
+                            },
+                            isRender: function () {
+                                return isRenderJob;
                             },
                             getRccPort: function () {
                                 return myPort;
@@ -3429,6 +3643,15 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                             },
                             getGameId: function () {
                                 return gameid;
+                            },
+                            getIp: function () {
+                                return server ? server.ip : hostPublicIp;
+                            },
+                            getServer: function () {
+                                return server;
+                            },
+                            setServer: function (s) {
+                                server = s;
                             }
                         }
 
@@ -3437,8 +3660,7 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                 }
             } else {
                 dbo.collection("games").findOne({
-                    gameid: gameid,
-                    port: 0
+                    gameid: gameid
                 }, function (err, result) {
                     if (err) {
                         db.close();
@@ -3451,7 +3673,13 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         return;
                     }
 
-                    if (activeGameJobs[gameid] && gameid != 0) { // For now..
+                    if (result != null && result.servers.length >= siteConfig.backend.maxServersPerGame) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+
+                    if (activeGameJobs[gameid] && activeGameJobs[gameid].length >= siteConfig.backend.maxServersPerGame && gameid != 0) { // For now..
                         db.close();
                         returnPromise(null);
                         return;
@@ -3462,6 +3690,8 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                     let myPort = 0;
                     let myHostPort = 0;
                     let jobId = "";
+                    let playerCount = 0;
+                    let server = null;
 
                     let hasExecutedOnce = false;
 
@@ -3712,10 +3942,15 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         host: async function () {
                             await start();
                             await sleep(1000);
-                            const resp = await execute(getRCCHostScript(gameid, myHostPort, jobId, true), 6000000);
+                            const resp = await execute(await getRCCHostScript(gameid, myHostPort, jobId, true), 6000000);
                             if (resp.length <= 0) return;
                             if (resp[resp.length - 1] == "err|Unknown Error") {
                                 await stop();
+                            }
+                            const game = await getGame(gameid);
+                            const server2 = game.servers.filter(s => s.port == myHostPort)[0];
+                            if (server2) {
+                                server = server2;
                             }
                         },
                         update: async function () {
@@ -3729,7 +3964,11 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                                     const dbo = db.db(dbName);
                                     dbo.collection("games").findOne({
                                         gameid: gameid,
-                                        port: myHostPort
+                                        servers: {
+                                            $elemMatch: {
+                                                port: myHostPort
+                                            }
+                                        }
                                     }, async function (err, result) {
                                         if (err) {
                                             db.close();
@@ -3750,9 +3989,21 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         },
                         start: start,
                         stop: stop,
+                        setPlayerCount: function (count) {
+                            playerCount = count;
+                        },
+                        getPlayerCount: function () {
+                            return playerCount;
+                        },
                         execute: execute,
                         isAlive: function () {
                             return myPort != 0;
+                        },
+                        isCloudEdit: function () {
+                            return isCloudEdit;
+                        },
+                        isRender: function () {
+                            return isRenderJob;
                         },
                         getRccPort: function () {
                             return myPort;
@@ -3765,6 +4016,15 @@ async function newJob(gameid, isCloudEdit = false, isRenderJob = false, resume =
                         },
                         getGameId: function () {
                             return gameid;
+                        },
+                        getIp: function () {
+                            return server ? server.ip : hostPublicIp;
+                        },
+                        getServer: function () {
+                            return server;
+                        },
+                        setServer: function (s) {
+                            server = s;
                         }
                     }
 
@@ -3829,11 +4089,21 @@ pm2.connect((err) => {
     });
 });
 
-async function getJob(jobId) {
+async function getJob(jobId, gameid) {
     return new Promise(async returnPromise => {
-        if (Object.keys(activeJobs).includes(jobId)) {
-            returnPromise(activeJobs[jobId]);
-            return;
+        if (typeof gameid == "number" || typeof gameid == "string") {
+            if (typeof gameid != "string") {
+                gameid = gameid.toString();
+            }
+            if (Object.keys(activeGameJobs).includes(gameid) && Object.keys(activeGameJobs[gameid]).includes(jobId)) {
+                returnPromise(activeGameJobs[gameid][jobId]);
+                return;
+            }
+        } else {
+            if (Object.keys(activeJobs).includes(jobId)) {
+                returnPromise(activeJobs[jobId]);
+                return;
+            }
         }
         returnPromise(null);
     });
@@ -3962,7 +4232,9 @@ function shouldCensorText(text, strict = true) {
 
 const tf = require('@tensorflow/tfjs-node');
 const nsfw = require('nsfwjs');
-const { conv2dTranspose } = require("@tensorflow/tfjs-node");
+const {
+    conv2dTranspose
+} = require("@tensorflow/tfjs-node");
 
 const convert2TF = async (img) => {
     // Decoded image in UInt8 Byte array
@@ -4338,6 +4610,7 @@ module.exports = {
                         loginCode: "",
                         seenLoginCode: "",
                         playing: 0,
+                        playingServerId: "",
                         editing: 0,
                         lastStudio: 0,
                         inviteKey: inviteKey,
@@ -5507,7 +5780,7 @@ module.exports = {
                             }
                         }
 
-                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)).sort((a, b) => b.playing - a.playing));
+                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)).sort(async (a, b) => await db.getGamePlayerCount(b.gameid) - await db.getGamePlayerCount(a.gameid)));
                         db.close();
                         return;
                     }
@@ -6543,37 +6816,69 @@ module.exports = {
         });
     },
 
-    getPlayingPlayers: async function (gameid = 0) {
+    getPlayingPlayers: async function (gameid = 0, jobid = "") {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                if (gameid > 0) {
-                    dbo.collection("games").find({
-                        playing: gameid
-                    }).toArray(function (err, result) {
-                        if (err) {
+                if (jobid != "") {
+                    if (gameid > 0) {
+                        dbo.collection("users").find({
+                            playing: gameid,
+                            playingServerId: jobid
+                        }).toArray(function (err, result) {
+                            if (err) {
+                                db.close();
+                                returnPromise(null);
+                                return;
+                            }
                             db.close();
-                            returnPromise(null);
-                            return;
-                        }
-                        db.close();
-                        returnPromise(result);
-                    });
+                            returnPromise(result);
+                        });
+                    } else {
+                        dbo.collection("users").find({
+                            playing: {
+                                $gt: 0
+                            },
+                            playingServerId: jobid
+                        }).toArray(function (err, result) {
+                            if (err) {
+                                db.close();
+                                returnPromise(null);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(result);
+                        });
+                    }
                 } else {
-                    dbo.collection("games").find({
-                        playing: {
-                            $gt: 0
-                        }
-                    }).toArray(function (err, result) {
-                        if (err) {
+                    if (gameid > 0) {
+                        dbo.collection("users").find({
+                            playing: gameid,
+                        }).toArray(function (err, result) {
+                            if (err) {
+                                db.close();
+                                returnPromise(null);
+                                return;
+                            }
                             db.close();
-                            returnPromise(null);
-                            return;
-                        }
-                        db.close();
-                        returnPromise(result);
-                    });
+                            returnPromise(result);
+                        });
+                    } else {
+                        dbo.collection("users").find({
+                            playing: {
+                                $gt: 0
+                            }
+                        }).toArray(function (err, result) {
+                            if (err) {
+                                db.close();
+                                returnPromise(null);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(result);
+                        });
+                    }
                 }
             });
         });
@@ -6681,6 +6986,8 @@ module.exports = {
 
     newJob: newJob,
     getJob: getJob,
+    findOptimalServer: findOptimalServer,
+    getCloudEditServer: getCloudEditServer,
 
     userExists: async function (username) {
         return new Promise(async returnPromise => {
@@ -7500,6 +7807,9 @@ module.exports = {
     log: log,
 
     clearRobloxLogs: function () {
+        if (siteConfig.backend.DontClearRbxLogs){
+            return;
+        }
         if (isWin) {
             const localappdata = process.env.LOCALAPPDATA;
             const fp = `${localappdata}\\R-2016\\logs\\`;
@@ -8457,6 +8767,32 @@ module.exports = {
         });
     },
 
+    getGamePlayerCount: async function (gameid) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("games").findOne({
+                    gameid: gameid
+                }, function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(0);
+                        return;
+                    }
+                    let playing = 0;
+                    if (result) {
+                        for (let i = 0; i < result.servers.length; i++) {
+                            playing += result.servers[i].playing;
+                        }
+                    }
+                    db.close();
+                    returnPromise(playing);
+                });
+            });
+        });
+    },
+
     createGame: async function (gamename, gamedescription, creatorid) {
         return new Promise(async returnPromise => {
             gamename = censorText(filterText4(gamename));
@@ -8489,7 +8825,6 @@ module.exports = {
                             gamename: gamename,
                             description: gamedescription,
                             creatorid: creatorid,
-                            playing: 0,
                             visits: 0,
                             likes: [],
                             dislikes: [],
@@ -8505,16 +8840,18 @@ module.exports = {
                             access: "Everyone",
                             copiable: false,
                             chattype: "Classic",
-                            ip: "",
-                            port: 0,
-                            rccVersion: "",
-                            lastHeartBeat: 0,
-                            teamCreateEnabled: false,
-                            teamCreateIp: "",
-                            teamCreatePort: 0,
-                            teamCreatePlaying: 0,
-                            teamCreateRccVersion: "",
-                            teamCreateLastHeartBeat: 0,
+                            // ip: "",
+                            // port: 0,
+                            // rccVersion: "",
+                            // lastHeartBeat: 0,
+                            // teamCreateEnabled: false,
+                            // teamCreateIp: "",
+                            // teamCreatePort: 0,
+                            // teamCreatePlaying: 0,
+                            // teamCreateRccVersion: "",
+                            // teamCreateLastHeartBeat: 0,
+                            servers: [],
+                            teamCreateServers: [],
                             showOnProfile: false,
                             internalIconAssetId: 0,
                             thumbnails: [],
@@ -8684,7 +9021,7 @@ module.exports = {
         });
     },
 
-    userJoinedTeamCreate: async function (userid, gameid) {
+    userJoinedTeamCreate: async function (userid, gameid, jobid = "") {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -8708,7 +9045,7 @@ module.exports = {
         });
     },
 
-    userLeftGame: async function (userid, gameid) {
+    userLeftGame: async function (userid, gameid, jobid = "") {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -8717,7 +9054,8 @@ module.exports = {
                     userid: userid
                 }, {
                     $set: {
-                        playing: 0
+                        playing: 0,
+                        playingServerId: ""
                     }
                 }, function (err, res) {
                     if (err) {
@@ -8732,7 +9070,7 @@ module.exports = {
         });
     },
 
-    userJoinedGame: async function (userid, gameid) {
+    userJoinedGame: async function (userid, gameid, jobid = "") {
         return new Promise(async returnPromise => {
             MongoClient.connect(mongourl, function (err, db) {
                 if (err) throw err;
@@ -8759,7 +9097,8 @@ module.exports = {
                                     userid: userid
                                 }, {
                                     $set: {
-                                        playing: gameid
+                                        playing: gameid,
+                                        playingServerId: jobid
                                     }
                                 }, function (err, res) {
                                     if (err) {
@@ -8905,7 +9244,8 @@ module.exports = {
                                                 placeVisits: 1
                                             },
                                             $set: {
-                                                playing: gameid
+                                                playing: gameid,
+                                                playingServerId: jobid
                                             }
                                         }, function (err, res) {
                                             if (err) {
@@ -9054,7 +9394,8 @@ module.exports = {
                                         userid: userid
                                     }, {
                                         $set: {
-                                            playing: gameid
+                                            playing: gameid,
+                                            playingServerId: jobid
                                         }
                                     }, function (err, res) {
                                         if (err) {
@@ -9195,7 +9536,8 @@ module.exports = {
                                             placeVisits: 1
                                         },
                                         $set: {
-                                            playing: gameid
+                                            playing: gameid,
+                                            playingServerId: jobid
                                         }
                                     }, function (err, res) {
                                         if (err) {
@@ -9367,57 +9709,165 @@ module.exports = {
         });
     },
 
-    updateGameInternal: async function (placeid, gameid, ip, port, playing, rccVersion) {
+    updateGameInternal: async function (placeid, jobid, ip, port, playing, rccVersion, fps, maxplayers) {
         return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
+            MongoClient.connect(mongourl, async function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("games").updateOne({
-                    gameid: placeid
-                }, {
-                    $set: {
-                        ip: ip,
-                        port: port,
-                        playing: playing,
-                        rccVersion: rccVersion,
-                        lastHeartBeat: getUnixTimestamp()
+                const job = await getJob(jobid, placeid);
+                if (!job) {
+                    returnPromise(false);
+                    return;
+                }
+                job.setPlayerCount(playing);
+                dbo.collection("games").findOne({
+                    gameid: placeid,
+                    servers: {
+                        $elemMatch: {
+                            jobid: jobid
+                        }
                     }
-                }, function (err, obj) {
+                }, function (err, game) {
                     if (err) {
                         db.close();
                         returnPromise(false);
                         return;
                     }
-                    db.close();
-                    returnPromise(true);
+                    if (!game) {
+                        dbo.collection("games").updateOne({
+                            gameid: placeid
+                        }, {
+                            $push: {
+                                servers: {
+                                    gameid: placeid,
+                                    ip: ip,
+                                    port: port,
+                                    playing: playing,
+                                    rccVersion: rccVersion,
+                                    jobid: jobid,
+                                    lastHeartBeat: getUnixTimestamp(),
+                                    fps: fps,
+                                    maxplayers: maxplayers
+                                }
+                            }
+                        }, async function (err, res) {
+                            if (err) {
+                                db.close();
+                                returnPromise(false);
+                                return;
+                            }
+                            db.close();
+                            const newGame = await getGame(placeid);
+                            const server = newGame.servers.find(server => server.jobid === jobid);
+                            if (server) {
+                                job.setServer(server);
+                            }
+                            returnPromise(true);
+                        });
+                    } else {
+                        dbo.collection("games").updateOne({
+                            gameid: placeid,
+                            "servers.jobid": jobid
+                        }, {
+                            $set: {
+                                "servers.$.playing": playing,
+                                "servers.$.rccVersion": rccVersion,
+                                "servers.$.lastHeartBeat": getUnixTimestamp(),
+                                "servers.$.fps": fps,
+                                "servers.$.maxplayers": maxplayers
+                            }
+                        }, async function (err, res) {
+                            if (err) {
+                                db.close();
+                                returnPromise(false);
+                                return;
+                            }
+                            db.close();
+                            const newGame = await getGame(placeid);
+                            const server = newGame.servers.find(server => server.jobid == jobid);
+                            if (server) {
+                                job.setServer(server);
+                            }
+                            returnPromise(true);
+                        });
+                    }
                 });
             });
         });
     },
 
-    updateGameInternalCloud: async function (placeid, gameid, ip, port, playing, rccVersion) {
+    updateGameInternalCloud: async function (placeid, gameid, ip, port, playing, rccVersion, fps) {
         return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
+            MongoClient.connect(mongourl, async function (err, db) {
                 if (err) throw err;
                 const dbo = db.db(dbName);
-                dbo.collection("games").updateOne({
-                    gameid: placeid
-                }, {
-                    $set: {
-                        teamCreateIp: ip,
-                        teamCreatePort: port,
-                        teamCreatePlaying: playing,
-                        teamCreateRccVersion: rccVersion,
-                        teamCreateLastHeartBeat: getUnixTimestamp()
+                const job = await getJob(jobid, placeid);
+                if (!job) {
+                    returnPromise(false);
+                    return;
+                }
+                job.setPlayerCount(playing);
+                dbo.collection("games").findOne({
+                    gameid: placeid,
+                    teamCreateServers: {
+                        $elemMatch: {
+                            jobid: jobid
+                        }
                     }
-                }, function (err, obj) {
+                }, function (err, game) {
                     if (err) {
                         db.close();
                         returnPromise(false);
                         return;
                     }
-                    db.close();
-                    returnPromise(true);
+                    if (!game) {
+                        dbo.collection("games").updateOne({
+                            gameid: placeid
+                        }, {
+                            $push: {
+                                teamCreateServers: {
+                                    ip: ip,
+                                    port: port,
+                                    playing: playing,
+                                    rccVersion: rccVersion,
+                                    jobid: jobid,
+                                    lastHeartBeat: getUnixTimestamp(),
+                                    fps: fps,
+                                    maxplayers: maxplayers
+                                }
+                            }
+                        }, function (err, res) {
+                            if (err) {
+                                db.close();
+                                returnPromise(false);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(true);
+                        });
+                    } else {
+                        dbo.collection("games").updateOne({
+                            gameid: placeid,
+                            "teamCreateServers.jobid": jobid
+                        }, {
+                            $set: {
+                                "teamCreateServers.$.playing": playing,
+                                "teamCreateServers.$.rccVersion": rccVersion,
+                                "teamCreateServers.$.jobid": jobid,
+                                "teamCreateServers.$.lastHeartBeat": getUnixTimestamp(),
+                                "teamCreateServers.$.fps": fps,
+                                "teamCreateServers.$.maxplayers": maxplayers
+                            }
+                        }, function (err, res) {
+                            if (err) {
+                                db.close();
+                                returnPromise(false);
+                                return;
+                            }
+                            db.close();
+                            returnPromise(true);
+                        });
+                    }
                 });
             });
         });
@@ -9734,7 +10184,7 @@ module.exports = {
                 if (!isPublic) {
                     const jobs = await getJobsByGameId(gameid);
                     for (let i = 0; i < jobs.length; i++) {
-                        const job = getJob(jobs[i]);
+                        const job = await getJob(jobs[i]);
                         if (typeof job !== "undefined") {
                             job.stop();
                         }
@@ -9772,7 +10222,7 @@ module.exports = {
                 if (!isPublic) {
                     const jobs = await getJobsByGameId(gameid);
                     for (let i = 0; i < jobs.length; i++) {
-                        const job = getJob(jobs[i]);
+                        const job = await getJob(jobs[i]);
                         if (typeof job !== "undefined") {
                             job.stop();
                         }
