@@ -8844,7 +8844,7 @@ module.exports = {
                             // port: 0,
                             // rccVersion: "",
                             // lastHeartBeat: 0,
-                            // teamCreateEnabled: false,
+                            teamCreateEnabled: false,
                             // teamCreateIp: "",
                             // teamCreatePort: 0,
                             // teamCreatePlaying: 0,
