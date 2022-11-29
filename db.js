@@ -961,6 +961,74 @@ async function findUserByCookie(cookie) {
     });
 }
 
+async function getPlayingPlayers(gameid = 0, jobid = "") {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            if (jobid != "") {
+                if (gameid > 0) {
+                    dbo.collection("users").find({
+                        playing: gameid,
+                        playingServerId: jobid
+                    }).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(result);
+                    });
+                } else {
+                    dbo.collection("users").find({
+                        playing: {
+                            $gt: 0
+                        },
+                        playingServerId: jobid
+                    }).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(result);
+                    });
+                }
+            } else {
+                if (gameid > 0) {
+                    dbo.collection("users").find({
+                        playing: gameid,
+                    }).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(result);
+                    });
+                } else {
+                    dbo.collection("users").find({
+                        playing: {
+                            $gt: 0
+                        }
+                    }).toArray(function (err, result) {
+                        if (err) {
+                            db.close();
+                            returnPromise(null);
+                            return;
+                        }
+                        db.close();
+                        returnPromise(result);
+                    });
+                }
+            }
+        });
+    });
+}
+
 function toString(input) {
     if (input === null || input === undefined) {
         return "null";
@@ -2238,7 +2306,6 @@ async function getRCCRenderScript(isUserRender, itemid, port, jobid) {
             local plr = {Character = char}
 			
 			loadfile(characterAppearance)()
-			print(resp)
 			
             local a = string_split(resp, ";")
 			loadfile(a[1])()
@@ -4082,6 +4149,11 @@ pm2.connect((err) => {
                 const jobId = s[4];
                 await setGameProperty(gameId, "lastHeartBeat", getUnixTimestamp());
                 await newJob(gameId, false, false, true, myPort, myHostPort, jobId);
+                const job = await getJob(jobId);
+                if (job) {
+                    const playing = await getPlayingPlayers(gameId, jobid) || 0;
+                    job.setPlayerCount(playing);
+                }
                 jobs++;
             }
         }
@@ -6842,73 +6914,7 @@ module.exports = {
         });
     },
 
-    getPlayingPlayers: async function (gameid = 0, jobid = "") {
-        return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
-                if (err) throw err;
-                const dbo = db.db(dbName);
-                if (jobid != "") {
-                    if (gameid > 0) {
-                        dbo.collection("users").find({
-                            playing: gameid,
-                            playingServerId: jobid
-                        }).toArray(function (err, result) {
-                            if (err) {
-                                db.close();
-                                returnPromise(null);
-                                return;
-                            }
-                            db.close();
-                            returnPromise(result);
-                        });
-                    } else {
-                        dbo.collection("users").find({
-                            playing: {
-                                $gt: 0
-                            },
-                            playingServerId: jobid
-                        }).toArray(function (err, result) {
-                            if (err) {
-                                db.close();
-                                returnPromise(null);
-                                return;
-                            }
-                            db.close();
-                            returnPromise(result);
-                        });
-                    }
-                } else {
-                    if (gameid > 0) {
-                        dbo.collection("users").find({
-                            playing: gameid,
-                        }).toArray(function (err, result) {
-                            if (err) {
-                                db.close();
-                                returnPromise(null);
-                                return;
-                            }
-                            db.close();
-                            returnPromise(result);
-                        });
-                    } else {
-                        dbo.collection("users").find({
-                            playing: {
-                                $gt: 0
-                            }
-                        }).toArray(function (err, result) {
-                            if (err) {
-                                db.close();
-                                returnPromise(null);
-                                return;
-                            }
-                            db.close();
-                            returnPromise(result);
-                        });
-                    }
-                }
-            });
-        });
-    },
+    getPlayingPlayers: getPlayingPlayers,
 
     countPlayingPlayers: async function () {
         return new Promise(async returnPromise => {
