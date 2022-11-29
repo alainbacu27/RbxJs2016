@@ -4428,6 +4428,32 @@ setInterval(async () => {
     }
 }, 500);
 
+async function getGamePlayerCount(gameid) {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("games").findOne({
+                gameid: gameid
+            }, function (err, result) {
+                if (err) {
+                    db.close();
+                    returnPromise(0);
+                    return;
+                }
+                let playing = 0;
+                if (result) {
+                    for (let i = 0; i < result.servers.length; i++) {
+                        playing += result.servers[i].playing;
+                    }
+                }
+                db.close();
+                returnPromise(playing);
+            });
+        });
+    });
+}
+
 module.exports = {
     hasRedrawn: [],
     pendingRenderJobs: [],
@@ -5780,7 +5806,7 @@ module.exports = {
                             }
                         }
 
-                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)).sort(async (a, b) => await db.getGamePlayerCount(b.gameid) - await db.getGamePlayerCount(a.gameid)));
+                        returnPromise(results.filter(game => !bannedGames.includes(game.gameid)).sort(async (a, b) => await getGamePlayerCount(b.gameid) - await getGamePlayerCount(a.gameid)));
                         db.close();
                         return;
                     }
@@ -7807,7 +7833,7 @@ module.exports = {
     log: log,
 
     clearRobloxLogs: function () {
-        if (siteConfig.backend.DontClearRbxLogs){
+        if (siteConfig.backend.DontClearRbxLogs) {
             return;
         }
         if (isWin) {
@@ -8767,31 +8793,7 @@ module.exports = {
         });
     },
 
-    getGamePlayerCount: async function (gameid) {
-        return new Promise(async returnPromise => {
-            MongoClient.connect(mongourl, function (err, db) {
-                if (err) throw err;
-                const dbo = db.db(dbName);
-                dbo.collection("games").findOne({
-                    gameid: gameid
-                }, function (err, result) {
-                    if (err) {
-                        db.close();
-                        returnPromise(0);
-                        return;
-                    }
-                    let playing = 0;
-                    if (result) {
-                        for (let i = 0; i < result.servers.length; i++) {
-                            playing += result.servers[i].playing;
-                        }
-                    }
-                    db.close();
-                    returnPromise(playing);
-                });
-            });
-        });
-    },
+    getGamePlayerCount: getGamePlayerCount,
 
     createGame: async function (gamename, gamedescription, creatorid) {
         return new Promise(async returnPromise => {
