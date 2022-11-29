@@ -691,6 +691,7 @@ module.exports = {
             const username = req.query.username;
             const user = await db.getUserFromUsername(username);
             if (user) {
+                const isOnline = (user.lastStudio || 0) > (db.getUnixTimestamp() - 30) ? 3 : (user.lastOnline || 0) > (db.getUnixTimestamp() - 60) ? ((user.lastOnline || 0) > (db.getUnixTimestamp() - 60) && user.playing != 0 && user.playing != null) ? true : true : false;
                 res.json({
                     "Id": user.userid,
                     "Username": user.username,

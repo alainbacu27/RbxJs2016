@@ -2554,7 +2554,7 @@ async function findOptimalServer(gameid, overrideFlag = false) {
             if (job) {
                 const server = job.getServer();
                 const score = job.getPlayerCount();
-                if (score != 0 && score < bestServerScore && (score < server ? server.maxplayers : game.maxplayers || overrideFlag)) {
+                if (score != 0 && score < bestServerScore && (score < (server ? server.maxplayers : game.maxplayers) || overrideFlag)) {
                     bestServerScore = score;
                     bestServer = job; // Return the job object, not the server object!
                 }
