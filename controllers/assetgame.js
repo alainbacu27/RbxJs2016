@@ -2119,6 +2119,33 @@ publicIp = "${ip}"`
             res.send(`--rbxsig%${signature}%` + script);
         });
 
+        app.get("/Game/api/v1/GetPlayerIdentifier", async (req, res) => {
+            let ip = get_ip(req).clientIp;
+            if (!db.getHostPublicIps().includes(ip)) {
+                return res.sendStatus(403);
+            }
+            const id0 = req.query.apiKey.split("|");
+            const apiKey = (id0.length > 0 ? id0[0] : "");
+            if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
+                if (req.user) {
+                    res.status(404).render("404", await db.getRenderObject(req.user));
+                } else {
+                    res.status(404).render("404", await db.getBlankRenderObject());
+                }
+                return;
+            }
+            const userId = parseInt(req.query.userId) || (id0.length > 1 ? parseInt(id0[1]) : 0);
+            const user = await db.getUser(userId);
+            if (!user) {
+                return res.status(404).send("");
+            }
+            const id = await db.getUserIdentifier(userId);
+            const script = `
+            playerIdentifier = "${id}"`
+            const signature = db.sign(script);
+            res.send(`--rbxsig%${signature}%` + script);
+        });
+
         let PlaceLauncherTimeouts = {};
 
         app.get("/game/PlaceLauncher.ashx", db.requireAuth2, async (req, res) => {
@@ -2477,7 +2504,7 @@ publicIp = "${ip}"`
                 return res.sendStatus(403);
             }
             const id0 = req.query.apiKey.split("|");
-            const apikey = (id0.length > 0 ? id0[0] : "");
+            const apiKey = (id0.length > 0 ? id0[0] : "");
             if (apiKey != db.getSiteConfig().PRIVATE.PRIVATE_API_KEY) {
                 if (req.user) {
                     res.status(404).render("404", await db.getRenderObject(req.user));
@@ -2486,7 +2513,7 @@ publicIp = "${ip}"`
                 }
                 return;
             }
-            const placeId = parseInt(req.query.placeId) || (id0.length > 1 ? parseInt(id0[1]) : "");
+            const placeId = parseInt(req.query.placeId) || (id0.length > 1 ? parseInt(id0[1]) : 0);
             const gameID = req.query.gameID || (id0.length > 2 ? id0[2] : "");
 
             const game = await db.getGame(placeId);

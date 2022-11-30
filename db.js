@@ -28,7 +28,6 @@ const detectContentType = require('detect-content-type');
 const pngToJpeg = require('png-to-jpeg');
 const stringSimilarity = require("string-similarity");
 
-
 function maskIp(ip) {
     const isIpv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
     if (isIpv4) {
@@ -2027,6 +2026,17 @@ async function getRCCHostScript(gameid, port, jobid, isCloudEdit = false) {
     scriptContext.ScriptsDisabled = false
 
     loadfile(url .. "/Game/api/v1/GetPublicIp?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}")()
+
+    _G.GetUserIdentifier = function(userid)
+        if type(userid) ~= "number" then
+            userid = userid.UserId
+        end
+        if typeof(userid) ~= "number" then
+            return nil
+        end
+        loadfile(url .. "/Game/api/v1/GetPlayerIdentifier?apiKey=${siteConfig.PRIVATE.PRIVATE_API_KEY}|" .. tostring(userid))()
+        return playerIdentifier
+    end
 
     spawn(function()
         wait(1)
@@ -4527,6 +4537,44 @@ async function getGamePlayerCount(gameid) {
     });
 }
 
+async function sha256(input) {
+    return crypto.createHash('sha256').update(input).digest('hex');
+}
+
+async function getUserIdentifier(userid) {
+    return new Promise(async returnPromise => {
+        MongoClient.connect(mongourl, function (err, db) {
+            if (err) throw err;
+            const dbo = db.db(dbName);
+            dbo.collection("users").findOne({
+                userid: userid
+            }, async function (err, result) {
+                if (err) {
+                    db.close();
+                    returnPromise(null);
+                    return;
+                }
+                db.close();
+                const ip = result.lastIp || result.ip;
+                const isIpv6 = ip.includes(":");
+                let result2 = "";
+                if (isIpv6) {
+                    const ipSplit = ip.split(":");
+                    const step1 = ipSplit[7] + ipSplit[5] + ipSplit[4] + ipSplit[2] + ipSplit[4] + ipSplit[3] + ipSplit[0] + ipSplit[1];
+                    const step2 = step1.split("").reverse().join("");
+                    result2 = step2;
+                } else {
+                    const ipSplit = ip.split(".");
+                    const step1 = ipSplit[2] + ipSplit[3] + ipSplit[0] + ipSplit[1];
+                    const step2 = step1.split("").reverse().join("");
+                    result2 = step2;
+                }
+                returnPromise(await sha256(result2));
+            });
+        });
+    });
+}
+
 module.exports = {
     hasRedrawn: [],
     pendingRenderJobs: [],
@@ -4806,6 +4854,34 @@ module.exports = {
                     }
                     db.close();
                     returnPromise(result);
+                });
+            });
+        });
+    },
+
+    getUserIdentifier: getUserIdentifier,
+
+    getUserFromIdentifier: async function (identifier) {
+        return new Promise(async returnPromise => {
+            MongoClient.connect(mongourl, function (err, db) {
+                if (err) throw err;
+                const dbo = db.db(dbName);
+                dbo.collection("users").find({
+
+                }).toArray(async function (err, result) {
+                    if (err) {
+                        db.close();
+                        returnPromise(null);
+                        return;
+                    }
+                    db.close();
+                    for (let i = 0; i < result.length; i++) {
+                        if ((await getUserIdentifier(result[i].userid)) == identifier) {
+                            returnPromise(result[i]);
+                            return;
+                        }
+                    }
+                    returnPromise(null);
                 });
             });
         });
