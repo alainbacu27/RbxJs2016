@@ -1397,18 +1397,14 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
 
             const isUserUnder13 = await db.isUserUnder13(user.userid);
 
-            const job = await db.getJob(jobid, gameid);
-            if (!job) {
-                res.status(400).json({});
-                return;
-            }
-
             let joinScript = "";
-            if (!teamCreate) {
+
+            const override = req.query.override == "true";
+            if (override){
                 joinScript = "\r\n" + JSON.stringify({
                     "ClientPort": 0,
-                    "MachineAddress": job.getIp(),
-                    "ServerPort": job.getHostPort(),
+                    "MachineAddress": "127.0.0.1",
+                    "ServerPort": 53640,
                     "PingUrl": `https://assetgame.rbx2016.nl/Game/ClientPresence.ashx?version=old&PlaceID=${game.gameid}&GameID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&UserID=${user.userid}`,
                     "PingInterval": 20,
                     "UserName": user.username,
@@ -1444,12 +1440,23 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
                     "CharacterAppearanceId": user.userid,
                     "CharacterAppearance": `http://rbx2016.nl/Assets/CharacterFetch.php?player=${user.userid}`
                 });
-            } else {
+                const signature = db.sign(joinScript, isAndroid);
+                res.send(`--rbxsig%${signature}%` + joinScript);
+                return;
+            }
+
+            const job = await db.getJob(jobid, gameid);
+            if (!job) {
+                res.status(400).json({});
+                return;
+            }
+
+            if (!teamCreate) {
                 joinScript = "\r\n" + JSON.stringify({
                     "ClientPort": 0,
                     "MachineAddress": job.getIp(),
                     "ServerPort": job.getHostPort(),
-                    "PingUrl": `https://assetgame.rbx2016.nl/Game/ClientPresence.ashx?version=old&PlaceID=${game.gameid}&GameID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa&UserID=${user.userid}`,
+                    "PingUrl": `https://assetgame.rbx2016.nl/Game/ClientPresence.ashx?version=old&PlaceID=${game.gameid}&GameID=${job.getJobId()}&UserID=${user.userid}`,
                     "PingInterval": 20,
                     "UserName": user.username,
                     "SeleniumTestMode": false,
@@ -1475,7 +1482,47 @@ ifSeleniumThenSetCookie("SeleniumTest4", "Finished join")`;
                     "IsRobloxPlace": true,
                     "GenerateTeleportJoin": false,
                     "IsUnknownOrUnder13": isUserUnder13,
-                    "SessionId": `aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa|00000000-0000-0000-0000-000000000000|0|${ip}|8|${new Date().toISOString()}|${user.cookie.replaceAll("|","§")}|null|null`,
+                    "SessionId": `${job.getJobId()}|00000000-0000-0000-0000-000000000000|0|${ip}|8|${new Date().toISOString()}|${user.cookie.replaceAll("|","§")}|null|null`,
+                    "DataCenterId": 0,
+                    "UniverseId": game.gameid,
+                    "BrowserTrackerId": 0,
+                    "UsePortraitMode": false,
+                    "FollowUserId": 0,
+                    "CharacterAppearanceId": user.userid,
+                    "CharacterAppearance": `http://rbx2016.nl/Assets/CharacterFetch.php?player=${user.userid}`
+                });
+            } else {
+                joinScript = "\r\n" + JSON.stringify({
+                    "ClientPort": 0,
+                    "MachineAddress": job.getIp(),
+                    "ServerPort": job.getHostPort(),
+                    "PingUrl": `https://assetgame.rbx2016.nl/Game/ClientPresence.ashx?version=old&PlaceID=${game.gameid}&GameID=${job.getJobId()}&UserID=${user.userid}`,
+                    "PingInterval": 20,
+                    "UserName": user.username,
+                    "SeleniumTestMode": false,
+                    "UserId": user.userid,
+                    "SuperSafeChat": isUserUnder13,
+                    "ClientTicket": user.token,
+                    "GameId": game.gameid,
+                    "PlaceId": game.gameid,
+                    "MeasurementUrl": "",
+                    "WaitingForCharacterGuid": db.uuidv4(),
+                    "BaseUrl": "http://rbx2016.nl",
+                    "ChatStyle": "ClassicAndBubble",
+                    "VendorId": 0,
+                    "ScreenShotInfo": "",
+                    "VideoInfo": "",
+                    "CreatorId": game.creatorid,
+                    "CreatorTypeEnum": "User",
+                    "MembershipType": user.membership == 3 ? "OutrageousBuildersClub" : user.membership == 2 ? "TurboBuildersClub" : user.membership == 1 ? "BuildersClub" : "None",
+                    "AccountAge": Math.floor(db.getUnixTimestamp() - db.unixToDate(user.created) / 86400),
+                    "CookieStoreFirstTimePlayKey": "rbx_evt_ftp",
+                    "CookieStoreFiveMinutePlayKey": "rbx_evt_fmp",
+                    "CookieStoreEnabled": true,
+                    "IsRobloxPlace": true,
+                    "GenerateTeleportJoin": false,
+                    "IsUnknownOrUnder13": isUserUnder13,
+                    "SessionId": `${job.getJobId()}|00000000-0000-0000-0000-000000000000|0|${ip}|8|${new Date().toISOString()}|${user.cookie.replaceAll("|","§")}|null|null`,
                     "DataCenterId": 0,
                     "UniverseId": game.gameid,
                     "BrowserTrackerId": 0,
@@ -1710,6 +1757,7 @@ end
             const browserTrackerId = req.query.browserTrackerId;
             const placeId = parseInt(req.query.placeId);
             const isPlayTogetherGame = req.query.isPlayTogetherGame == "true";
+            const override = req.query.override == "true" || db.getSiteConfig().backend.joinscriptOverride == true;
             if (request == "RequestGame") {
                 if (!user && typeof db.pendingPlayerAuthentications[ip] == "object" && db.pendingPlayerAuthentications[ip].length > 0) {
                     while (db.pendingPlayerAuthentications[ip].length > 0 && !user) {
@@ -1733,6 +1781,18 @@ end
                 const creator = await db.getUser(game.creatorid);
                 if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
                     res.status(404).json({});
+                }
+
+                if (override){
+                    res.json({
+                        "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "status": 2,
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?override=true&gameid=" + game.gameid.toString() + "&jobid=" + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "authenticationUrl": "",
+                        "authenticationTicket": "",
+                        "message": ""
+                    });
+                    return;
                 }
 
                 let gameServer = await db.findOptimalServer(game.gameid);
@@ -1804,7 +1864,7 @@ end
                     }
 
                     res.json({
-                        "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "jobId": gameServer.getJobId(),
                         "status": 2,
                         "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?gameid=" + game.gameid.toString() + "&jobid=" + gameServer.getJobId() + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
                         "authenticationUrl": "",
@@ -1836,6 +1896,18 @@ end
                 const creator = await db.getUser(game.creatorid);
                 if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
                     res.status(404).json({});
+                }
+
+                if (override){
+                    res.json({
+                        "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "status": 2,
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?override=true&gameid=" + game.gameid.toString() + "&jobid=" + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "authenticationUrl": "",
+                        "authenticationTicket": "",
+                        "message": ""
+                    });
+                    return;
                 }
 
                 let gameServer = await db.findOptimalServer(game.gameid);
@@ -2155,6 +2227,7 @@ publicIp = "${ip}"`
             const browserTrackerId = req.query.browserTrackerId;
             const placeId = parseInt(req.query.placeId);
             const isPlayTogetherGame = req.query.isPlayTogetherGame == "true";
+            const override = req.query.override == "true" || db.getSiteConfig().backend.joinscriptOverride == true;
             if (request == "RequestGame") {
                 if (!user && typeof db.pendingPlayerAuthentications[ip] == "object" && db.pendingPlayerAuthentications[ip].length > 0) {
                     while (db.pendingPlayerAuthentications[ip].length > 0 && !user) {
@@ -2178,6 +2251,18 @@ publicIp = "${ip}"`
                 const creator = await db.getUser(game.creatorid);
                 if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
                     res.status(404).json({});
+                }
+                
+                if (override){
+                    res.json({
+                        "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "status": 2,
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?override=true&gameid=" + game.gameid.toString() + "&jobid=" + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "authenticationUrl": "",
+                        "authenticationTicket": "",
+                        "message": ""
+                    });
+                    return;
                 }
 
                 let gameServer = await db.findOptimalServer(game.gameid);
@@ -2261,6 +2346,18 @@ publicIp = "${ip}"`
                 const creator = await db.getUser(game.creatorid);
                 if (!creator || creator.banned || game.deleted || creator.inviteKey == "") {
                     res.status(404).json({});
+                }
+
+                if (override){
+                    res.json({
+                        "jobId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        "status": 2,
+                        "joinScriptUrl": "https://assetgame.rbx2016.nl/game/join.ashx?override=true&gameid=" + game.gameid.toString() + "&jobid=" + "&ticket=" + await db.generateUserToken(user.xcsrftoken),
+                        "authenticationUrl": "",
+                        "authenticationTicket": "",
+                        "message": ""
+                    });
+                    return;
                 }
 
                 let gameServer = await db.findOptimalServer(game.gameid);

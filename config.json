@@ -208,6 +208,7 @@
         "maxServers": 500,
         "hostingTeamCreateEnabled": false,
         "hostingConnectsToLocalhost": true,
+        "joinscriptOverride": false,
         "maxServersPerGame": 3,
         "maxGameStartupTime": 45,
         "DontClearRbxLogs": false,
