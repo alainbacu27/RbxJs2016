@@ -34,11 +34,11 @@
 }
 
 .icon-logo {
-    background-image: url(https://static.rbx2018.tk/images/Logo/roblox_logo.svg);
+    background-image: url(https://static.rbx2016.nl/images/Logo/roblox_logo.svg);
 }
 
 .icon-logo-r {
-    background-image: url(https://static.rbx2018.tk/images/Logo/logo_R.svg);
+    background-image: url(https://static.rbx2016.nl/images/Logo/logo_R.svg);
 }
 
 .icon-default-generic,
@@ -111,7 +111,7 @@
 .input-group-btn .input-dropdown-btn:hover .icon-down,
 .input-group-btn .input-dropdown-btn:focus .icon-down,
 .open .input-dropdown-btn .icon-down {
-    background-image: url(https://static.rbx2018.tk/IWuYt5n.png);
+    background-image: url(https://static.rbx2016.nl/IWuYt5n.png);
 }
 
 .icon-default-navigation,
@@ -132,83 +132,83 @@
 .icon-nav-blog,
 .icon-nav-search-white,
 .icon-nav-shop {
-    background-image: url(https://static.rbx2018.tk/g8oAV0H.png);
+    background-image: url(https://static.rbx2016.nl/g8oAV0H.png);
 }
 
 .icon-default-bc,
 .icon-bc,
 .icon-tbc,
 .icon-obc {
-    background-image: url(https://static.rbx2018.tk/ubVZKnx.png);
+    background-image: url(https://static.rbx2016.nl/ubVZKnx.png);
 }
 
 .btn-control.btn-control-medium {
-    background-image: url(https://static.rbx2018.tk/UbudUKJ.png);
+    background-image: url(https://static.rbx2016.nl/UbudUKJ.png);
 }
 
 .btn-control.btn-control-large {
-    background-image: url(https://static.rbx2018.tk/FgOPSS6.png);
+    background-image: url(https://static.rbx2016.nl/FgOPSS6.png);
 }
 
 .StatusView .top {
-    background: url(https://static.rbx2018.tk/2utBoT0.png);
+    background: url(https://static.rbx2016.nl/2utBoT0.png);
 }
 
 .StatusView .bottom {
-    background: url(https://static.rbx2018.tk/KK9zLUT.png) no-repeat;
+    background: url(https://static.rbx2016.nl/KK9zLUT.png) no-repeat;
 }
 
 .btn-control.btn-control-small {
-    background-image: url(https://static.rbx2018.tk/GA9t48R.png) !important;
+    background-image: url(https://static.rbx2016.nl/GA9t48R.png) !important;
 }
 
 #TradeRequest .OfferContainer>img {
-    content: url(https://static.rbx2018.tk/0rvuBHi.png);
+    content: url(https://static.rbx2016.nl/0rvuBHi.png);
 }
 
 #NameAsset .form-label>img {
-    content: url(https://static.rbx2018.tk/XP191a4.png);
+    content: url(https://static.rbx2016.nl/XP191a4.png);
 }
 
 .CarouselPager .arrow-prev,
 .CarouselPager .arrow-next {
-    background-image: url(https://static.rbx2018.tk/fFRwWUD.png);
+    background-image: url(https://static.rbx2016.nl/fFRwWUD.png);
 }
 
 .SkinnyRightArrow {
-    background-image: url(https://static.rbx2018.tk/RghIgib.png);
+    background-image: url(https://static.rbx2016.nl/RghIgib.png);
 }
 
 .SkinnyLeftArrow {
-    background-image: url(https://static.rbx2018.tk/24tMCDU.png);
+    background-image: url(https://static.rbx2016.nl/24tMCDU.png);
 }
 
 .dropdown .button {
-    background-image: url(https://static.rbx2018.tk/SHUXIgH.png);
+    background-image: url(https://static.rbx2016.nl/SHUXIgH.png);
 }
 
 .dropdown .button.gear,
 #build-page .gear-button,
 #build-page .gear-button-hover,
 #build-page .gear-button-open {
-    background-image: url(https://static.rbx2018.tk/bEsNdUN.png);
+    background-image: url(https://static.rbx2016.nl/bEsNdUN.png);
 }
 
 #GroupMembersAdminFooter div div ul .pager-next a,
 #versionHistoryItems div .pager.next,
 #catalog .PagingContainerDivTop .pager.next {
-    background-image: url(https://static.rbx2018.tk/iOSedd5.png);
+    background-image: url(https://static.rbx2016.nl/iOSedd5.png);
 }
 
 #GroupMembersAdminFooter div div ul .pager-prev .pager.previous,
 #versionHistoryItems div .pager.previous,
 #catalog .PagingContainerDivTop .pager.previous {
-    background-image: url(https://static.rbx2018.tk/p9fjBJm.png);
+    background-image: url(https://static.rbx2016.nl/p9fjBJm.png);
 }
 
 .deleteRoleSetButton,
 .deleteRoleSetButtonDisabled {
-    background-image: url(https://static.rbx2018.tk/y8cUQ5Z.png);
+    background-image: url(https://static.rbx2016.nl/y8cUQ5Z.png);
 }
 
 .btn-disabled-negative,
@@ -240,28 +240,28 @@ img[src="/Forum/skins/default/images/user_IsOffline.gif"] {
 
 img[src="/images/thumb/d/d9/EasyTutorial.png/24px-EasyTutorial.png"],
 img[src="/images/thumb/d/d9/EasyTutorial.png/40px-EasyTutorial.png"] {
-    content: url(https://static.rbx2018.tk/5jtlaGF.png);
+    content: url(https://static.rbx2016.nl/5jtlaGF.png);
     width: 24px;
     height: 24px;
 }
 
 img[src="/images/thumb/c/c1/MediumTutorial.png/24px-MediumTutorial.png"],
 img[src="/images/thumb/c/c1/MediumTutorial.png/40px-MediumTutorial.png"] {
-    content: url(https://static.rbx2018.tk/GDZp8Tc.png);
+    content: url(https://static.rbx2016.nl/GDZp8Tc.png);
     width: 24px;
     height: 24px;
 }
 
 img[src="/images/thumb/a/a7/HardTutorial.png/24px-HardTutorial.png"],
 img[src="/images/thumb/a/a7/HardTutorial.png/40px-HardTutorial.png"] {
-    content: url(https://static.rbx2018.tk/ozg7lYi.png);
+    content: url(https://static.rbx2016.nl/ozg7lYi.png);
     width: 24px;
     height: 24px;
 }
 
 img[src="/images/thumb/a/a5/MiscTutorial.png/24px-MiscTutorial.png"],
 img[src="/images/thumb/a/a5/MiscTutorial.png/40px-MiscTutorial.png"] {
-    content: url(https://static.rbx2018.tk/tIE8L9W.png);
+    content: url(https://static.rbx2016.nl/tIE8L9W.png);
     width: 24px;
     height: 24px;
 }
