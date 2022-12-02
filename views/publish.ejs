@@ -156,6 +156,10 @@
     </script>
     <input name="__RequestVerificationToken" type="hidden"
         value="<%= xcsrftoken %>" />
+
+    <% if (theme == "dark") { %>
+        <link rel='stylesheet' class="dark-theme" href='/css/dark.css' />
+    <% } %>
 </head>
 
 <body>

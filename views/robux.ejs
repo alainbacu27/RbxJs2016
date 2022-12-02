@@ -172,6 +172,10 @@
         Roblox.Endpoints = Roblox.Endpoints || {};
         Roblox.Endpoints.Urls = Roblox.Endpoints.Urls || {};
     </script>
+
+    <% if (theme == "dark") { %>
+        <link rel='stylesheet' class="dark-theme" href='/css/dark.css' />
+    <% } %>
 </head>
 
 <body id="rbx-body" class="" data-performance-relative-value="0.000" data-internal-page-name=""
@@ -196,13 +200,25 @@
 
         // Add or remove the "dark" class based on if the media query matches
         function toggleDarkTheme(shouldAdd) {
-            const heads = document.getElementsByTagName("head");
-            for (let i = 0; i < heads.length; i++) {
-                const head = heads[i];
-                const cssFile = document.createElement('link');
-                cssFile.rel = 'stylesheet';
-                cssFile.href = "/css/dark.css";
-                head.appendChild(cssFile);
+            if (shouldAdd){
+                const heads = document.getElementsByTagName("head");
+                for (let i = 0; i < heads.length; i++) {
+                    const head = heads[i];
+                    const darkModeStyles = head.querySelector(".dark-theme");
+                    if (darkModeStyles == null) {
+                        const cssFile = document.createElement('link');
+                        cssFile.rel = 'stylesheet';
+                        cssFile.href = "/css/dark.css";
+                        cssFile.classList.add("dark-theme");
+                        head.appendChild(cssFile);
+                    }
+                }
+            }else{
+                const darkTheme = document.getElementsByClassName("dark-theme");
+                for (let i = 0; i < darkTheme.length; i++) {
+                    const element = darkTheme[i];
+                    element.remove();
+                }
             }
         }
     </script>

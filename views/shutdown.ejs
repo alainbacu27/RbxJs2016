@@ -470,6 +470,10 @@
             window.parent.postMessage("resize", "*");
         }
     </script>
+
+    <% if (theme == "dark") { %>
+        <link rel='stylesheet' class="dark-theme" href='/css/dark.css' />
+    <% } %>
 </head>
 
 <body translate="no">
