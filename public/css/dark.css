@@ -16,7 +16,11 @@
     background: var(--body);
 }
 
-.modalPopup  {
+.modalPopup {
+    background: #1A1A1A;
+}
+
+.ph-installinstructions {
     background: #1A1A1A;
 }
 
