@@ -27,6 +27,8 @@ sudo apt-get install nodejs
 
 node -v 
 
+https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+
 3. Install GIT and clone this repo
 
 https://github.com/godmod9/RbxJs2016.git
