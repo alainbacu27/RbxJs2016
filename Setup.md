@@ -1,6 +1,6 @@
-# RbxJs2016
+# RbxJs2016 Fixed
 
-#Requirements
+# Requirements
 
 NPM
 GIT
