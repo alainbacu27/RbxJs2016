@@ -7,7 +7,6 @@ it took me a long time to learn how this crap works with my knowledge
 but we have a setup now
 
 1. Install WSL Ubuntu 22.04
-
 2. Install NodeJS, npm and mongodb using:
 
 sudo apt-get install curl
@@ -23,7 +22,10 @@ node -v
 https://github.com/godmod9/RbxJs2016.git
 
 4. Do sudo npm i (use --force if something bad happens)
+5. After npm i finish, use sudo npm start to start the servers (bruh)
 
+
+have fun nogger
 
 
 
