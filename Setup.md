@@ -1,5 +1,15 @@
 # RbxJs2016
 
+#Requirements
+
+NPM
+GIT
+NODEJS
+MONGODB
+PYTHON3
+
+More in package.json
+
 # Setup
 
 it took me a long time to learn how this crap works with my knowledge
