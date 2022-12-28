@@ -38,11 +38,11 @@ btw we have a setup now
 
 sudo apt-get install curl
 
-curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - &&\
+> curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - &&\
 
-sudo apt-get install nodejs
+> sudo apt-get install nodejs
 
-node -v 
+> node -v 
 
 https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
@@ -54,8 +54,10 @@ https://github.com/godmod9/RbxJs2016.git
 
 https://www.mediafire.com/file/34zg6a6kevig1tk/setup.rar/file
 
-5. Do sudo npm i, ignore warnings (use sudo npm i --force if something bad happens)
-6. After npm i finish, use sudo npm start to start the servers (REQUIRES A GOOD PC)
+5. Create Database Using
+
+6. Do sudo npm i, ignore warnings (use sudo npm i --force if something bad happens)
+7. After npm i finish, use sudo npm start to start the servers (REQUIRES A GOOD PC)
 
 # Thanks Malte for telling me this thing used mongdb
 
