@@ -26,7 +26,12 @@ REMEMBER normal use does not have permission to use the default HTTP port (80). 
 
 https://www.digitalocean.com/community/tutorials/how-to-use-pm2-to-setup-a-node-js-production-environment-on-an-ubuntu-vps#give-safe-user-permission-to-use-port-80
 
-but we have a setup now
+or
+
+> sudo apt-get install libcap2-bin 
+> sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\`` 
+
+btw we have a setup now
 
 1. Install WSL Ubuntu 20.04
 2. Install NodeJS, npm and mongodb using:
