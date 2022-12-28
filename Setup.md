@@ -49,11 +49,8 @@ https://github.com/godmod9/RbxJs2016.git
 
 https://www.mediafire.com/file/34zg6a6kevig1tk/setup.rar/file
 
-4. Do sudo npm i, ignore warnings (use sudo npm i --force if something bad happens)
-5. After npm i finish, use sudo npm start to start the servers (REQUIRES A GOOD PC)
-
-
-have fun nogger
+5. Do sudo npm i, ignore warnings (use sudo npm i --force if something bad happens)
+6. After npm i finish, use sudo npm start to start the servers (REQUIRES A GOOD PC)
 
 # Thanks Malte for telling me this thing used mongdb
 
