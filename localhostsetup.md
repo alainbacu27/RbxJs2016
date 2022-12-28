@@ -65,7 +65,9 @@ https://www.mediafire.com/file/34zg6a6kevig1tk/setup.rar/file
 6. Do npm i, ignore warnings (use sudo npm i --force if something bad happens)
 7. After npm i finish, use npm start to start the servers (REQUIRES A GOOD PC)
 
-# Thanks Malte for telling me this thing used mongdb
+# Extras
+
+Game settings are in config.json, feel free to change them
 
 
 
