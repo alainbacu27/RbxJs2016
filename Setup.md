@@ -22,6 +22,7 @@ https://www.youtube.com/watch?v=UnCjLs8UWVo&t=4s
 REMEMBER normal use does not have permission to use the default HTTP port (80). check this:
 
  sudo apt-get install libcap2-bin 
+ 
  sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\`` 
 
 More in package.json
