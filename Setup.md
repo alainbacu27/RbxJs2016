@@ -45,6 +45,10 @@ https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
 https://github.com/godmod9/RbxJs2016.git
 
+4. Setup.rar (create a folder called setup inside the public folder and put the files in the folder)
+
+https://www.mediafire.com/file/34zg6a6kevig1tk/setup.rar/file
+
 4. Do sudo npm i, ignore warnings (use sudo npm i --force if something bad happens)
 5. After npm i finish, use sudo npm start to start the servers (REQUIRES A GOOD PC)
 
