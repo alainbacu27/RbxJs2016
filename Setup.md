@@ -22,6 +22,10 @@ More in package.json
 
 it took me a long time to learn how this crap works with my knowledge
 
+REMEMBER normal use does not have permission to use the default HTTP port (80). check this:
+
+https://www.digitalocean.com/community/tutorials/how-to-use-pm2-to-setup-a-node-js-production-environment-on-an-ubuntu-vps#give-safe-user-permission-to-use-port-80
+
 but we have a setup now
 
 1. Install WSL Ubuntu 20.04
