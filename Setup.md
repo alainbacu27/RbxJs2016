@@ -46,6 +46,10 @@ sudo apt-get install curl
 
 https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
+check mongodb status by using:
+
+> sudo systemctl status mongod
+
 3. Install GIT and clone this repo
 
 https://github.com/godmod9/RbxJs2016.git
