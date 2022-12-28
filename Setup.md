@@ -1,5 +1,8 @@
 # RbxJs2016 Fixed
 
+NOTE:
+I do NOT give support to make this work, it works on my tutorial, it should work on your computer if it doesn't then ask stackoverflow or search youtube.
+
 # Requirements
 
 NPM
