@@ -24,7 +24,7 @@ it took me a long time to learn how this crap works with my knowledge
 
 but we have a setup now
 
-1. Install WSL Ubuntu 22.04
+1. Install WSL Ubuntu 20.04
 2. Install NodeJS, npm and mongodb using:
 
 sudo apt-get install curl
