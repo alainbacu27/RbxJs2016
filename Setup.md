@@ -12,9 +12,9 @@ MONGODB
 
 PYTHON3
 
-Systemd *MANDATORY YOU MUST HAVE SYSTEMD ON IF NOT MONGO DB WILL NOT WORK)
+Systemd (MANDATORY YOU MUST HAVE SYSTEMD ON IF NOT MONGO DB WILL NOT WORK)
 
-https://devblogs.microsoft.com/commandline/systemd-support-is-now-available-in-wsl/
+https://www.youtube.com/watch?v=UnCjLs8UWVo&t=4s
 
 More in package.json
 
