@@ -19,20 +19,16 @@ Systemd (MANDATORY YOU MUST HAVE SYSTEMD ON IF NOT MONGO DB WILL NOT WORK)
 
 https://www.youtube.com/watch?v=UnCjLs8UWVo&t=4s
 
+REMEMBER normal use does not have permission to use the default HTTP port (80). check this:
+
+ sudo apt-get install libcap2-bin 
+ sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\`` 
+
 More in package.json
 
 # Setup
 
 it took me a long time to learn how this crap works with my knowledge
-
-REMEMBER normal use does not have permission to use the default HTTP port (80). check this:
-
-https://www.digitalocean.com/community/tutorials/how-to-use-pm2-to-setup-a-node-js-production-environment-on-an-ubuntu-vps#give-safe-user-permission-to-use-port-80
-
-or
-
-> sudo apt-get install libcap2-bin 
-> sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\`` 
 
 btw we have a setup now
 
