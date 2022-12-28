@@ -60,8 +60,8 @@ https://www.mediafire.com/file/34zg6a6kevig1tk/setup.rar/file
 
 5. Create Database Using
 
-6. Do sudo npm i, ignore warnings (use sudo npm i --force if something bad happens)
-7. After npm i finish, use sudo npm start to start the servers (REQUIRES A GOOD PC)
+6. Do npm i, ignore warnings (use sudo npm i --force if something bad happens)
+7. After npm i finish, use npm start to start the servers (REQUIRES A GOOD PC)
 
 # Thanks Malte for telling me this thing used mongdb
 
