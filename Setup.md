@@ -3,6 +3,8 @@
 NOTE:
 I do NOT give support to make this work, it works on my tutorial, it should work on your computer if it doesn't then ask stackoverflow or search youtube.
 
++ i made this tutorial for localhost
+
 # Requirements
 
 NPM
