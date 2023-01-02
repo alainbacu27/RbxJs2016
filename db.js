@@ -1520,7 +1520,7 @@ async function dequeueRender() {
                     returnPromise(null);
                     return;
                 }
-                if (result.dequeueRender.length == 0) {
+                if (result.dequeueRender == 0) {
                     db.close();
                     returnPromise(null);
                     return;
@@ -1529,8 +1529,7 @@ async function dequeueRender() {
                 dbo.collection("config").updateOne({}, {
                     $pull: {
                         renderQueue: {
-                            itemid: item.itemid,
-                            isUserRender: item.isUserRender
+                            itemid: item,
                         }
                     }
                 }, function (err, result) {
