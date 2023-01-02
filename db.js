@@ -1520,7 +1520,7 @@ async function dequeueRender() {
                     returnPromise(null);
                     return;
                 }
-                if (result.renderQueue.length == 0) {
+                if (result.dequeueRender.length == 0) {
                     db.close();
                     returnPromise(null);
                     return;
