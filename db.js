@@ -761,7 +761,7 @@ MongoClient.connect(mongourl, async function (err, db) {
             });
         } else {
             if (await dbo.collection("config").countDocuments() == 0) {
-                dbo.collection("config").create({
+                dbo.collection("config").insertOne.next({
                     assets: 0,
                     maintenance: false,
                     maintenance_finishtime: 0,
@@ -1520,7 +1520,7 @@ async function dequeueRender() {
                     returnPromise(null);
                     return;
                 }
-                if (result.dequeueRender == 0) {
+                if (result.renderQueue == 0) {
                     db.close();
                     returnPromise(null);
                     return;
