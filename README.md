@@ -38,7 +38,7 @@ https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
 5. Create Mongo Database called roblox (without capslock)
 
-https://www.youtube.com/watch?v=vnvcI8wLn5M
+here if you dont know: https://www.youtube.com/watch?v=vnvcI8wLn5M
 
 6. go to RbxJs2016 folder
 
@@ -48,9 +48,21 @@ https://www.youtube.com/watch?v=vnvcI8wLn5M
 
 sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
 
-9. do npm start
+9. go to \\wsl$ in your windows explorer bar
 
-10 Have FUN!
+10. go to views
+
+11. open notepad++ in the folder and press ctrl + f
+
+12. click on "find in files"
+
+13. put https on the first box
+
+14. put http on the second box
+
+15. and finnaly click "replace in files"
+
+16. do npm start
 
 WARNING THIS SHOULD NOT BE USED FOR PUBLIC REVIVALS ITS VERY DANGEROUS
 
