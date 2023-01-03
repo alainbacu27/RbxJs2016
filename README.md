@@ -50,7 +50,7 @@ sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
 
 9. go to \\wsl$ in your windows explorer bar
 
-10. go to views
+10. go to home\server\RBXJS2016\views
 
 11. open notepad++ in the folder and press ctrl + f
 
