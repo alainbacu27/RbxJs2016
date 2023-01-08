@@ -48,23 +48,6 @@ here if you dont know: https://www.youtube.com/watch?v=vnvcI8wLn5M
 
 sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
 
-9. go to \\wsl$ in your windows explorer bar
-
-10. go to home\server\RBXJS2016\views
-
-11. open notepad++ in the folder and press ctrl + f
-
-12. click on "find in files"
-
-13. put https on the first box
-
-14. put http on the second box
-
-15. and finnaly click "replace in files"
-
-16. do npm start
-
-WARNING THIS SHOULD NOT BE USED FOR PUBLIC REVIVALS ITS VERY DANGEROUS
-
+9. add the ssl thing ( trustca.txt )
 
 
