@@ -50,4 +50,6 @@ sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
 
 9. add the ssl thing ( trustca.txt )
 
+10 run npm start
 
+11. fun
