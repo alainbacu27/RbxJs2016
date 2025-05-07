@@ -1,5 +1,5 @@
 /* ~/CSS/DesignLabs/Switch.css */
-a.switch{padding-left:18px;background-image:url('/web/20160216080343im_/http://www.roblox.com/images/BuildPage/ico-game_status3.png');background-repeat:no-repeat;display:block;height:15px;text-decoration:none;}a.switch.inactive{color:#888;background-position:0 -30px;}a.switch.active{color:#060;}
+a.switch{padding-left:18px;background-image:url('https://www.rbx2016.nl/images/BuildPage/ico-game_status3.png');background-repeat:no-repeat;display:block;height:15px;text-decoration:none;}a.switch.inactive{color:#888;background-position:0 -30px;}a.switch.active{color:#060;}
 /* ~/CSS/DesignLabs/CloseX.css */
 a.close-x{background-color:#E73E33;cursor:pointer;text-decoration:none;width:27px;height:27px;position:relative;}.close-x:after{position:absolute;top:-2px;bottom:0;left:0;right:0;content:"\0078";font-size:27px;color:#FFF;line-height:27px;text-align:center;}
 /* ~/CSS/Pages/Studio/Plugins/Manage.css */
